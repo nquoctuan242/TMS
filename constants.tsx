@@ -2,43 +2,50 @@
 import { ShipmentData, HistoryEntry } from './types';
 
 export const MOCK_SHIPMENT: ShipmentData = {
-  shipmentCode: 'S2512231YG9',
-  orderCodes: ['251223XFON'],
+  shipmentCode: 'S260107WAIU',
+  orderCodes: ['260107HMX9'],
   customerCode: 'NOW_20250606121235',
-  amount: 26.29,
+  amount: 1.000,
   currency: 'USD',
-  dimensions: '9.700x9.700x9.700',
-  weight: 0.152,
-  volume: 912.673,
-  shippingCost: 0.0,
+  dimensions: '1.000x2.000x3.000',
+  weight: 2.000,
+  volume: 6.000,
+  shippingCost: 0.000,
   carrierName: 'Hasaki Express',
-  shipperName: 'Nguyen Vi Na',
-  trackingNumber: 'S2512231YG9',
+  shipperName: '-',
+  trackingNumber: 'S260107WAIU',
   statusDescription: '-',
   note: '-',
+  zone: 'Z3',
 };
 
 export const MOCK_HISTORY: HistoryEntry[] = [
   {
-    status: 'Returning warehouse',
-    time: '25/12/2025 14:56:47',
-    performedBy: '0937700555',
-    note: 'Mark returning shipment',
-    carrierStatus: '',
-    podImageUrl: 'https://picsum.photos/40/40?random=1'
-  },
-  {
-    status: 'Out for Delivery',
-    time: '25/12/2025 14:52:12',
-    performedBy: '0937700555',
-    note: 'Carrier cancel shipment status not success',
+    status: 'Waiting for Pickup',
+    time: '07/01/2026 14:37:34',
+    performedBy: 'hungnk1',
+    note: 'Update shipment status',
     carrierStatus: '',
   },
   {
-    status: 'Out for Delivery',
-    time: '25/12/2025 14:52:12',
-    performedBy: '0937700555',
-    note: 'Shipper marked shipment to delivery',
+    status: 'Packed',
+    time: '07/01/2026 14:37:34',
+    performedBy: 'hungnk1',
+    note: 'Update shipment status',
+    carrierStatus: '',
+  },
+  {
+    status: 'Dispatched',
+    time: '07/01/2026 14:37:22',
+    performedBy: 'hungnk1',
+    note: 'Pushed to carrier, update shipment with carrier info',
+    carrierStatus: '',
+  },
+  {
+    status: 'New',
+    time: '07/01/2026 14:37:18',
+    performedBy: 'hungnk1',
+    note: 'Create shipment',
     carrierStatus: '',
   }
 ];

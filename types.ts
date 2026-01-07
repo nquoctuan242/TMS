@@ -14,6 +14,8 @@ export interface ShipmentData {
   trackingNumber: string;
   statusDescription: string;
   note: string;
+  zone?: string;
+  isReDelivered?: boolean;
 }
 
 export interface HistoryEntry {
