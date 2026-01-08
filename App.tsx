@@ -12,16 +12,16 @@ const STORES = [
 ];
 
 const MOCK_STORE_LIST = [
-  { id: '1', name: 'SPA - 363 TO NGOC VAN', state: 'Ho Chi Minh', radius: 50, zoneCount: 12 },
-  { id: '2', name: 'SPA - GENERAL', state: 'Ho Chi Minh', radius: 30, zoneCount: 8 },
-  { id: '3', name: 'STOCK-TRANSHIPMENT', state: 'Hanoi', radius: 100, zoneCount: 24 },
-  { id: '4', name: 'STOCK - 43 TAN HAI', state: 'Ho Chi Minh', radius: 45, zoneCount: 10 },
-  { id: '5', name: 'SHOP - 176 PHAN DANG LUU', state: 'Ho Chi Minh', radius: 40, zoneCount: 9 },
-  { id: '6', name: 'SHOP - 94 LE VAN VIET', state: 'Ho Chi Minh', radius: 55, zoneCount: 15 },
-  { id: '7', name: 'SPA - 447 PHAN VAN TRI', state: 'Ho Chi Minh', radius: 35, zoneCount: 7 },
-  { id: '8', name: 'SPA - 6 NGUYEN ANH THU', state: 'Ho Chi Minh', radius: 60, zoneCount: 18 },
-  { id: '9', name: 'SPA - 304 LE VAN QUOI', state: 'Ho Chi Minh', radius: 25, zoneCount: 6 },
-  { id: '10', name: 'WH - F3 - 182 CAU GIAY', state: 'Hanoi', radius: 150, zoneCount: 30 },
+  { id: '1', name: 'SPA - 363 TO NGOC VAN', state: 'Ho Chi Minh', country: 'Vietnam', radius: 50, zoneCount: 12 },
+  { id: '2', name: 'SPA - GENERAL', state: 'Ho Chi Minh', country: 'Vietnam', radius: 30, zoneCount: 8 },
+  { id: '3', name: 'STOCK-TRANSHIPMENT', state: 'Hanoi', country: 'Vietnam', radius: 100, zoneCount: 24 },
+  { id: '4', name: 'STOCK - 43 TAN HAI', state: 'Ho Chi Minh', country: 'Vietnam', radius: 45, zoneCount: 10 },
+  { id: '5', name: 'SHOP - 176 PHAN DANG LUU', state: 'Ho Chi Minh', country: 'Vietnam', radius: 40, zoneCount: 9 },
+  { id: '6', name: 'SHOP - 94 LE VAN VIET', state: 'Ho Chi Minh', country: 'Vietnam', radius: 55, zoneCount: 15 },
+  { id: '7', name: 'SPA - 447 PHAN VAN TRI', state: 'Ho Chi Minh', country: 'Vietnam', radius: 35, zoneCount: 7 },
+  { id: '8', name: 'SPA - 6 NGUYEN ANH THU', state: 'Ho Chi Minh', country: 'Vietnam', radius: 60, zoneCount: 18 },
+  { id: '9', name: 'SPA - 304 LE VAN QUOI', state: 'Ho Chi Minh', country: 'Vietnam', radius: 25, zoneCount: 6 },
+  { id: '10', name: 'WH - F3 - 182 CAU GIAY', state: 'Hanoi', country: 'Vietnam', radius: 150, zoneCount: 30 },
 ];
 
 const App: React.FC = () => {
@@ -31,12 +31,12 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [storeSearchQuery, setStoreSearchQuery] = useState('');
   const [stateSearchQuery, setStateSearchQuery] = useState('');
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
   
   // Modal states
   const [isReDeliveryModalOpen, setIsReDeliveryModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [templateType, setTemplateType] = useState<'Import' | 'Export'>('Import');
   
   const [reDeliveryDate, setReDeliveryDate] = useState('');
   const [selectedStore, setSelectedStore] = useState(STORES[0]);
@@ -53,14 +53,13 @@ const App: React.FC = () => {
   };
 
   const handleImport = () => {
-    setTemplateType('Import');
     setShowTemplateModal(true);
   };
 
   const handleExport = () => {
     // Generate a mock CSV for export
-    const headers = "id,name,state,radius,zoneCount\n";
-    const rows = MOCK_STORE_LIST.map(s => `${s.id},"${s.name}","${s.state}",${s.radius},${s.zoneCount}`).join("\n");
+    const headers = "id,name,country,state,radius,zoneCount\n";
+    const rows = MOCK_STORE_LIST.map(s => `${s.id},"${s.name}","${s.country}","${s.state}",${s.radius},${s.zoneCount}`).join("\n");
     const csvContent = headers + rows;
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -135,7 +134,8 @@ const App: React.FC = () => {
 
   const filteredStores = MOCK_STORE_LIST.filter(store => 
     store.name.toLowerCase().includes(storeSearchQuery.toLowerCase()) &&
-    store.state.toLowerCase().includes(stateSearchQuery.toLowerCase())
+    store.state.toLowerCase().includes(stateSearchQuery.toLowerCase()) &&
+    store.country.toLowerCase().includes(countrySearchQuery.toLowerCase())
   );
 
   return (
@@ -149,8 +149,8 @@ const App: React.FC = () => {
           <span className="font-bold tracking-tight">HASAKI TMS</span>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
-          <SidebarItem icon="fa-gauge" label="Dashboard" />
-          <SidebarItem icon="fa-box" label="Orders" />
+          <SidebarItem icon="fa-gauge" label="Dashboard" onClick={() => {}} />
+          <SidebarItem icon="fa-box" label="Orders" onClick={() => {}} />
           <SidebarItem 
             icon="fa-truck-arrow-right" 
             label="Shipments" 
@@ -168,11 +168,11 @@ const App: React.FC = () => {
                 <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-1 cursor-pointer">Master Bill</div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-car-side" label="Fleet" />
-          <SidebarItem icon="fa-chart-pie" label="Report" />
-          <SidebarItem icon="fa-handshake" label="Partner" />
-          <SidebarItem icon="fa-gears" label="Configs" />
-          <SidebarItem icon="fa-gear" label="Settings" active={currentView === 'stores-list' || currentView === 'store-edit'} hasSubItems>
+          <SidebarItem icon="fa-car-side" label="Fleet" onClick={() => {}} />
+          <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
+          <SidebarItem icon="fa-handshake" label="Partner" onClick={() => {}} />
+          <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} />
+          <SidebarItem icon="fa-gear" label="Settings" active={currentView === 'stores-list' || currentView === 'store-edit'} hasSubItems onClick={() => {}}>
              <div className="ml-8 mt-2 space-y-2">
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'stores-list' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -182,7 +182,7 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-user-shield" label="Admin" />
+          <SidebarItem icon="fa-user-shield" label="Admin" onClick={() => {}} />
         </nav>
       </aside>
 
@@ -334,7 +334,21 @@ const App: React.FC = () => {
                 {/* Search / Action Bar */}
                 <div className="p-4 border-b flex flex-wrap items-center justify-between gap-4 bg-white">
                   <div className="flex flex-1 flex-wrap items-center gap-3">
-                    <div className="relative w-full max-w-xs">
+                    {/* Country Search */}
+                    <div className="relative w-full max-w-[200px]">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i className="fa-solid fa-globe text-sm"></i>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Search by Country..." 
+                        value={countrySearchQuery}
+                        onChange={(e) => setCountrySearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#4d9e5f] focus:border-[#4d9e5f] outline-none transition-all"
+                      />
+                    </div>
+                    {/* State Search */}
+                    <div className="relative w-full max-w-[200px]">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <i className="fa-solid fa-location-dot text-sm"></i>
                       </div>
@@ -346,6 +360,7 @@ const App: React.FC = () => {
                         className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#4d9e5f] focus:border-[#4d9e5f] outline-none transition-all"
                       />
                     </div>
+                    {/* Store Name Search */}
                     <div className="relative w-full max-w-xs">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <i className="fa-solid fa-magnifying-glass text-sm"></i>
@@ -387,8 +402,9 @@ const App: React.FC = () => {
                    <table className="w-full text-left text-[13px] border-collapse">
                       <thead className="bg-[#f8f9fa] border-b text-gray-600 font-bold">
                         <tr>
-                          <th className="px-4 py-3 border-r w-[40%]">Name</th>
-                          <th className="px-4 py-3 border-r w-[20%]">State/Province</th>
+                          <th className="px-4 py-3 border-r w-[30%]">Name</th>
+                          <th className="px-4 py-3 border-r w-[15%]">Country</th>
+                          <th className="px-4 py-3 border-r w-[15%]">State/Province</th>
                           <th className="px-4 py-3 border-r w-[10%] text-center whitespace-nowrap">Radius (Km)</th>
                           <th className="px-4 py-3 border-r w-[15%] text-center">Zone Count</th>
                           <th className="px-4 py-3 text-center w-[15%]">Actions</th>
@@ -399,6 +415,7 @@ const App: React.FC = () => {
                           filteredStores.map((store) => (
                             <tr key={store.id} className="hover:bg-gray-50">
                               <td className="px-4 py-3 border-r font-medium text-blue-600 hover:underline cursor-pointer">{store.name}</td>
+                              <td className="px-4 py-3 border-r">{store.country}</td>
                               <td className="px-4 py-3 border-r">{store.state}</td>
                               <td className="px-4 py-3 border-r text-center">{store.radius}</td>
                               <td className="px-4 py-3 border-r text-center">{store.zoneCount}</td>
@@ -414,7 +431,7 @@ const App: React.FC = () => {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="px-4 py-10 text-center text-gray-400 bg-gray-50/50 italic">
+                            <td colSpan={6} className="px-4 py-10 text-center text-gray-400 bg-gray-50/50 italic">
                                <i className="fa-solid fa-store-slash text-2xl mb-2 block opacity-20"></i>
                                No stores found matching your criteria.
                             </td>
