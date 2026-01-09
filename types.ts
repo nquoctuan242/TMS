@@ -1,4 +1,11 @@
 
+export interface TransitPoint {
+  name: string;
+  location: string;
+  type: 'store' | 'warehouse' | 'hub';
+  statusLabel?: string; // The label to show ON the path leading to this point
+}
+
 export interface ShipmentData {
   shipmentCode: string;
   orderCodes: string[];
@@ -16,6 +23,11 @@ export interface ShipmentData {
   note: string;
   zone?: string;
   isReDelivered?: boolean;
+  isReturned?: boolean;
+  senderAddress: string;
+  receiverAddress: string;
+  transitPoints: TransitPoint[];
+  returnLocation?: string;
 }
 
 export interface HistoryEntry {

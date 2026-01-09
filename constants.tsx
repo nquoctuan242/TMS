@@ -17,6 +17,22 @@ export const MOCK_SHIPMENT: ShipmentData = {
   statusDescription: '-',
   note: '-',
   zone: 'Z3',
+  senderAddress: 'Kho Hasaki - 71 Hoàng Hoa Thám, P.13, Q. Tân Bình, TP. HCM',
+  receiverAddress: '123 Nguyễn Văn Cừ, P.2, Quận 5, TP. HCM',
+  transitPoints: [
+    { 
+      name: 'Store 123', 
+      location: '568 Lũy Bán Bích', 
+      type: 'store',
+      statusLabel: 'Returning'
+    },
+    { 
+      name: 'Hub Q10', 
+      location: '456 Tô Hiến Thành, Quận 10', 
+      type: 'hub',
+      statusLabel: 'Sorting'
+    }
+  ]
 };
 
 export const MOCK_HISTORY: HistoryEntry[] = [
