@@ -514,7 +514,7 @@ const App: React.FC = () => {
             <div className="bg-[#133e33] p-4 text-white flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2 text-[15px]">
                 <i className="fa-solid fa-warehouse"></i> 
-                {pendingStatus === 'Returning Local Hub' ? 'Return to Local Hub' : 'Return to Warehouse'}
+                {pendingStatus === 'Returning Local Hub' ? 'Return Local Hub' : 'Return Warehouse'}
               </h3>
               <button onClick={() => setIsReturningLocalHubModalOpen(false)} className="hover:opacity-70 transition-opacity">
                 <i className="fa-solid fa-xmark text-lg"></i>
