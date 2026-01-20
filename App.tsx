@@ -11,11 +11,24 @@ const STORES = [
   'District 10 Hub'
 ];
 
-const MOCK_SHIPMENTS_LIST = [
+interface ShipmentListItem {
+  id: string;
+  code: string;
+  order: string;
+  customer: string;
+  carrier: string;
+  shipper: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+  targetStore?: string; // Track assigned return store
+}
+
+const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
   { id: '1', code: 'S260119G19E', order: '2601192TO9', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Cancelled', priority: 'normal', createdAt: '19/01/2026 13:29:15' },
   { id: '2', code: 'S260119DMX6', order: '260119MOHQ', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 11:14:04' },
   { id: '3', code: 'S260119QLN1', order: '2601199TVU', customer: 'OMS - NOW_20250606121235', carrier: 'Yun Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 10:01:09' },
-  { id: '4', code: 'S260119P4W0', order: '260119XVHR', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'AnhHung Xa Lo', status: 'Returned Local Hub', priority: 'normal', createdAt: '19/01/2026 09:55:03' },
+  { id: '4', code: 'S260119P4W0', order: '260119XVHR', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'AnhHung Xa Lo', status: 'Returned Local Hub', priority: 'normal', createdAt: '19/01/2026 09:55:03', targetStore: STORES[0] },
   { id: '5', code: 'S260119LNC4', order: '260119KEBK', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Waiting for Pickup', priority: 'normal', createdAt: '19/01/2026 09:23:06' },
 ];
 
@@ -24,7 +37,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('General information');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
-  const [listShipments, setListShipments] = useState(MOCK_SHIPMENTS_LIST);
+  const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
   
   // Modal states
   const [isReDeliveryModalOpen, setIsReDeliveryModalOpen] = useState(false);
@@ -48,9 +61,19 @@ const App: React.FC = () => {
   };
 
   const handleStatusChange = (id: string, newStatus: string) => {
-    if (newStatus === 'Returning Local Hub' || newStatus === 'Returning warehouse') {
+    if (newStatus === 'Returning Local Hub' || newStatus === 'Returning warehouse' || newStatus === 'Returned Local Hub') {
+      const targetShipment = listShipments.find(s => s.id === id);
       setSelectedShipmentId(id);
       setPendingStatus(newStatus);
+      
+      // If "Returned Local Hub" is selected, force use the targetStore if it exists
+      if (newStatus === 'Returned Local Hub' && targetShipment?.targetStore) {
+        setSelectedReturnStore(targetShipment.targetStore);
+      } else if (newStatus !== 'Returned Local Hub') {
+        // For other return actions, default to first store or current target
+        setSelectedReturnStore(targetShipment?.targetStore || STORES[0]);
+      }
+      
       setIsReturningLocalHubModalOpen(true);
     } else {
       setListShipments(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
@@ -59,16 +82,24 @@ const App: React.FC = () => {
 
   const confirmReturnAction = () => {
     if (selectedShipmentId && pendingStatus) {
-      const finalStatus = pendingStatus === 'Returning Local Hub' ? 'Returned Local Hub' : 'Returned Warehouse';
+      // Determine the final state
+      let finalStatus = pendingStatus;
+      if (pendingStatus === 'Returning Local Hub') finalStatus = 'Returned Local Hub';
+      if (pendingStatus === 'Returning warehouse') finalStatus = 'Returned Warehouse';
       
-      setListShipments(prev => prev.map(s => s.id === selectedShipmentId ? { ...s, status: finalStatus } : s));
+      setListShipments(prev => prev.map(s => 
+        s.id === selectedShipmentId 
+          ? { ...s, status: finalStatus, targetStore: selectedReturnStore } 
+          : s
+      ));
+      
       setIsReturningLocalHubModalOpen(false);
       
       // Update Detail View if it's the same shipment
-      const targetShipment = listShipments.find(s => s.id === selectedShipmentId);
-      if (shipment.shipmentCode === targetShipment?.code) {
+      const targetShipmentItem = listShipments.find(s => s.id === selectedShipmentId);
+      if (shipment.shipmentCode === targetShipmentItem?.code) {
           const newPoint: TransitPoint = {
-              name: pendingStatus === 'Returning Local Hub' ? 'Local Hub' : 'Target Warehouse',
+              name: pendingStatus.includes('Local Hub') ? 'Local Hub' : 'Target Warehouse',
               location: selectedReturnStore,
               type: 'warehouse',
               statusLabel: 'Returning'
@@ -505,7 +536,7 @@ const App: React.FC = () => {
         </main>
       </div>
 
-      {/* GENERALIZED RETURN MODAL: Handles both Local Hub and Warehouse */}
+      {/* GENERALIZED RETURN MODAL: Handles Local Hub and Warehouse */}
       {isReturningLocalHubModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsReturningLocalHubModalOpen(false)}></div>
@@ -514,7 +545,7 @@ const App: React.FC = () => {
             <div className="bg-[#133e33] p-4 text-white flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2 text-[15px]">
                 <i className="fa-solid fa-warehouse"></i> 
-                {pendingStatus === 'Returning Local Hub' ? 'Return Local Hub' : 'Return Warehouse'}
+                {pendingStatus === 'Returned Local Hub' ? 'Confirm Return' : (pendingStatus?.includes('Local Hub') ? 'Return Local Hub' : 'Return Warehouse')}
               </h3>
               <button onClick={() => setIsReturningLocalHubModalOpen(false)} className="hover:opacity-70 transition-opacity">
                 <i className="fa-solid fa-xmark text-lg"></i>
@@ -528,24 +559,32 @@ const App: React.FC = () => {
                   <span className="font-bold text-lg">!</span>
                 </div>
                 <p className="text-[14px] text-[#8c5216] leading-snug">
-                  You are changing the status to <b className="text-[#a65d1b]">"{pendingStatus}"</b>. Please select the destination warehouse.
+                  You are changing the status to <b className="text-[#a65d1b]">"{pendingStatus}"</b>. 
+                  {pendingStatus === 'Returned Local Hub' 
+                    ? " Please confirm the arrival at the previously assigned hub." 
+                    : " Please select the destination warehouse."}
                 </p>
               </div>
 
               {/* Field Label */}
               <label className="block text-[11px] font-bold text-[#7a869a] uppercase tracking-wider mb-2">SELECT WAREHOUSE/STORE</label>
               
-              {/* Select Input */}
+              {/* Select Input (Disabled if status is 'Returned Local Hub') */}
               <div className="relative">
                 <select 
                   value={selectedReturnStore} 
+                  disabled={pendingStatus === 'Returned Local Hub'}
                   onChange={(e) => setSelectedReturnStore(e.target.value)} 
-                  className="w-full px-4 py-3 border border-[#d1d5db] rounded-lg focus:ring-2 focus:ring-[#4d9e5f] outline-none bg-white transition cursor-pointer text-[14px] shadow-sm appearance-none"
+                  className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${
+                    pendingStatus === 'Returned Local Hub' 
+                      ? 'bg-gray-100 cursor-not-allowed text-gray-500 font-medium' 
+                      : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'
+                  }`}
                 >
                   {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                  <i className="fa-solid fa-chevron-down text-xs"></i>
+                  <i className={`fa-solid ${pendingStatus === 'Returned Local Hub' ? 'fa-lock' : 'fa-chevron-down'} text-xs opacity-40`}></i>
                 </div>
               </div>
             </div>
@@ -573,7 +612,7 @@ const App: React.FC = () => {
       {isReDeliveryModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsReDeliveryModalOpen(false)}></div>
-          <div className="bg-white rounded shadow-2xl w-full max-w-md z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded shadow-2xl w-full max-md z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
             <div className="bg-[#4d9e5f] p-4 text-white flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-wider"><i className="fa-solid fa-calendar-check"></i> Schedule Re-delivery</h3>
               <button onClick={() => setIsReDeliveryModalOpen(false)}><i className="fa-solid fa-xmark"></i></button>
