@@ -11,6 +11,24 @@ const STORES = [
   'District 10 Hub'
 ];
 
+interface Company {
+  id: string;
+  code: string;
+  name: string;
+  address: string;
+  taxNo: string;
+  contactName?: string;
+  contractNumber?: string;
+  email?: string;
+  designation?: string;
+  signatureImage?: string;
+}
+
+const MOCK_COMPANIES: Company[] = [
+  { id: '1', code: 'CMP001', name: 'Hasaki Beauty & Spa', address: '71 Hoang Hoa Tham, Ward 13, Tan Binh', taxNo: '0313158132', contactName: 'Mr. John Doe', email: 'admin@hasaki.vn' },
+  { id: '2', code: 'CMP002', name: 'OMS Logistics Solutions', address: '456 Le Van Sy, District 3, HCM', taxNo: '0398765432', contactName: 'Ms. Jane Smith', email: 'jane@oms.vn' },
+];
+
 interface ShipmentListItem {
   id: string;
   code: string;
@@ -21,7 +39,7 @@ interface ShipmentListItem {
   status: string;
   priority: string;
   createdAt: string;
-  targetStore?: string; // Track assigned return store
+  targetStore?: string; 
 }
 
 const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
@@ -33,12 +51,14 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 ];
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'stores-list' | 'store-edit'>('shipment-list');
-  const [activeTab, setActiveTab] = useState('General information');
+  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail'>('shipment-list');
+  const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
-  
+  const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
+  const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
+
   // Modal states
   const [isReDeliveryModalOpen, setIsReDeliveryModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
@@ -46,7 +66,6 @@ const App: React.FC = () => {
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   
   const [selectedShipmentId, setSelectedShipmentId] = useState<string | null>(null);
-  const [reDeliveryDate, setReDeliveryDate] = useState('');
   const [selectedStore, setSelectedStore] = useState(STORES[0]);
   const [selectedReturnStore, setSelectedReturnStore] = useState(STORES[0]);
 
@@ -66,11 +85,9 @@ const App: React.FC = () => {
       setSelectedShipmentId(id);
       setPendingStatus(newStatus);
       
-      // If "Returned Local Hub" is selected, force use the targetStore if it exists
       if (newStatus === 'Returned Local Hub' && targetShipment?.targetStore) {
         setSelectedReturnStore(targetShipment.targetStore);
       } else if (newStatus !== 'Returned Local Hub') {
-        // For other return actions, default to first store or current target
         setSelectedReturnStore(targetShipment?.targetStore || STORES[0]);
       }
       
@@ -82,7 +99,6 @@ const App: React.FC = () => {
 
   const confirmReturnAction = () => {
     if (selectedShipmentId && pendingStatus) {
-      // Determine the final state
       let finalStatus = pendingStatus;
       if (pendingStatus === 'Returning Local Hub') finalStatus = 'Returned Local Hub';
       if (pendingStatus === 'Returning warehouse') finalStatus = 'Returned Warehouse';
@@ -95,7 +111,6 @@ const App: React.FC = () => {
       
       setIsReturningLocalHubModalOpen(false);
       
-      // Update Detail View if it's the same shipment
       const targetShipmentItem = listShipments.find(s => s.id === selectedShipmentId);
       if (shipment.shipmentCode === targetShipmentItem?.code) {
           const newPoint: TransitPoint = {
@@ -128,52 +143,35 @@ const App: React.FC = () => {
   };
 
   const handleSaveReDelivery = () => {
-    if (!reDeliveryDate) {
-      alert('Please select a delivery date and time.');
-      return;
-    }
-    const newTransitPoint: TransitPoint = {
-      name: 'Re-delivery Point',
-      location: selectedStore,
-      type: 'store',
-      statusLabel: 'Re-delivering'
-    };
-    setShipment(prev => ({
-      ...prev,
-      isReDelivered: true,
-      isReturned: false,
-      transitPoints: [...prev.transitPoints, newTransitPoint]
-    }));
-    setHistory([{
-      status: 'Re-delivery Scheduled',
-      time: getCurrentTimestamp(),
-      performedBy: 'Nguyen Quoc Tuan',
-      note: `Scheduled re-delivery for: ${reDeliveryDate} at Store: ${selectedStore}.`,
-      carrierStatus: 'Pending',
-    }, ...history]);
     setIsReDeliveryModalOpen(false);
   };
 
-  const handleConfirmReturnToWarehouse = () => {
-    const newTransitPoint: TransitPoint = {
-      name: 'Return Target',
-      location: selectedReturnStore,
-      type: 'warehouse',
-      statusLabel: 'Returning'
-    };
-    setShipment(prev => ({
-      ...prev,
-      isReturned: true,
-      transitPoints: [...prev.transitPoints, newTransitPoint]
-    }));
-    setHistory([{
-      status: 'Returned to Warehouse',
-      time: getCurrentTimestamp(),
-      performedBy: 'Nguyen Quoc Tuan',
-      note: `Confirmed return to: ${selectedReturnStore}.`,
-      carrierStatus: 'Closed',
-    }, ...history]);
-    setIsReturnModalOpen(false);
+  const handleSaveCompany = () => {
+    if (!editingCompany.code || !editingCompany.name || !editingCompany.address || !editingCompany.taxNo) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    if (editingCompany.id) {
+      setCompanies(prev => prev.map(c => c.id === editingCompany.id ? (editingCompany as Company) : c));
+    } else {
+      const newCompany: Company = {
+        ...(editingCompany as Company),
+        id: Math.random().toString(36).substr(2, 9),
+      };
+      setCompanies(prev => [...prev, newCompany]);
+    }
+    setCurrentView('company-list');
+  };
+
+  const startEditCompany = (company: Company) => {
+    setEditingCompany(company);
+    setCurrentView('company-detail');
+  };
+
+  const startCreateCompany = () => {
+    setEditingCompany({});
+    setCurrentView('company-detail');
   };
 
   return (
@@ -195,31 +193,35 @@ const App: React.FC = () => {
             active={currentView === 'shipment-list' || currentView === 'shipment-detail'} 
             hasSubItems 
             onClick={() => setCurrentView('shipment-list')}
+          />
+          <SidebarItem icon="fa-car-side" label="Fleet" onClick={() => {}} />
+          <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-handshake" 
+            label="Partner" 
+            active={currentView === 'contract-list' || currentView === 'company-list' || currentView === 'company-detail'} 
+            hasSubItems
+            onClick={() => {}}
           >
              <div className="ml-8 mt-2 space-y-2">
                 <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-list' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('shipment-list')}
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'company-list' || currentView === 'company-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('company-list')}
                 >
-                  Shipment List
+                  Company
                 </div>
                 <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('shipment-detail')}
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'contract-list' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('contract-list')}
                 >
-                  Master Bill
+                  Contract
                 </div>
+                <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-2 rounded-l-full cursor-pointer">Carrier</div>
+                <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-2 rounded-l-full cursor-pointer">Allocate Strategy</div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-car-side" label="Fleet" onClick={() => {}} />
-          <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
-          <SidebarItem icon="fa-handshake" label="Partner" onClick={() => {}} />
           <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} />
-          <SidebarItem icon="fa-gear" label="Settings" active={currentView === 'stores-list'} hasSubItems onClick={() => setCurrentView('stores-list')}>
-             <div className="ml-8 mt-2 space-y-2">
-                <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-2 rounded-l-full cursor-pointer">Stores</div>
-             </div>
-          </SidebarItem>
+          <SidebarItem icon="fa-gear" label="Settings" onClick={() => {}} />
           <SidebarItem icon="fa-user-shield" label="Admin" onClick={() => {}} />
         </nav>
       </aside>
@@ -231,7 +233,12 @@ const App: React.FC = () => {
             <button className="md:hidden"><i className="fa-solid fa-bars"></i></button>
             <div className="flex items-center gap-2 font-semibold">
               <i className="fa-solid fa-list-ul"></i>
-              <span>{currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}</span>
+              <span>
+                {currentView === 'company-list' ? 'Company List' : 
+                 currentView === 'company-detail' ? 'Company Detail' : 
+                 currentView === 'contract-list' ? 'Contract Management' : 
+                 currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm shrink-0">
@@ -246,7 +253,287 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4">
-          {currentView === 'shipment-list' ? (
+          {currentView === 'company-list' ? (
+            <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Companies</h2>
+                <button 
+                  onClick={startCreateCompany}
+                  className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-plus"></i> Create New
+                </button>
+              </div>
+              <div className="p-4">
+                <div className="border border-gray-100 rounded overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 border-r">Company Code</th>
+                        <th className="px-4 py-3 border-r">Company Name</th>
+                        <th className="px-4 py-3 border-r">Tax No</th>
+                        <th className="px-4 py-3 border-r">Email</th>
+                        <th className="px-4 py-3 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y text-gray-600 font-medium">
+                      {companies.map(company => (
+                        <tr key={company.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3 border-r font-mono text-[#4d9e5f]">{company.code}</td>
+                          <td className="px-4 py-3 border-r">{company.name}</td>
+                          <td className="px-4 py-3 border-r">{company.taxNo}</td>
+                          <td className="px-4 py-3 border-r text-blue-500">{company.email || '-'}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-4">
+                              <i 
+                                onClick={() => startEditCompany(company)}
+                                className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"
+                              ></i>
+                              <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : currentView === 'company-detail' ? (
+            <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setCurrentView('company-list')} className="text-gray-400 hover:text-gray-600">
+                    <i className="fa-solid fa-arrow-left"></i>
+                  </button>
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                    {editingCompany.id ? 'Update Company' : 'Create New Company'}
+                  </h2>
+                </div>
+                <div className="flex gap-2">
+                   <button onClick={() => setCurrentView('company-list')} className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-50">Cancel</button>
+                   <button onClick={handleSaveCompany} className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] shadow-sm">Save Company</button>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-8 max-w-5xl mx-auto w-full">
+                {/* General Information Section */}
+                <div className="space-y-6">
+                  <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                    <i className="fa-solid fa-building"></i> General Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInput 
+                      label="Company Code" 
+                      required 
+                      value={editingCompany.code} 
+                      onChange={val => setEditingCompany({...editingCompany, code: val})} 
+                    />
+                    <FormInput 
+                      label="Company Name" 
+                      required 
+                      value={editingCompany.name} 
+                      onChange={val => setEditingCompany({...editingCompany, name: val})} 
+                    />
+                    <FormInput 
+                      label="Address" 
+                      required 
+                      colSpan={2}
+                      value={editingCompany.address} 
+                      onChange={val => setEditingCompany({...editingCompany, address: val})} 
+                    />
+                    <FormInput 
+                      label="Tax No" 
+                      required 
+                      value={editingCompany.taxNo} 
+                      onChange={val => setEditingCompany({...editingCompany, taxNo: val})} 
+                    />
+                    <FormInput 
+                      label="Email" 
+                      value={editingCompany.email} 
+                      onChange={val => setEditingCompany({...editingCompany, email: val})} 
+                    />
+                  </div>
+                </div>
+
+                {/* Contact & Contract Section */}
+                <div className="space-y-6">
+                  <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                    <i className="fa-solid fa-file-signature"></i> Contact & Contract Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInput 
+                      label="Contract Name" 
+                      value={editingCompany.contactName} 
+                      onChange={val => setEditingCompany({...editingCompany, contactName: val})} 
+                    />
+                    <FormInput 
+                      label="Contract Number" 
+                      value={editingCompany.contractNumber} 
+                      onChange={val => setEditingCompany({...editingCompany, contractNumber: val})} 
+                    />
+                    <FormInput 
+                      label="Designation/Title" 
+                      value={editingCompany.designation} 
+                      onChange={val => setEditingCompany({...editingCompany, designation: val})} 
+                    />
+                  </div>
+                </div>
+
+                {/* Signature Section */}
+                <div className="space-y-6">
+                  <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                    <i className="fa-solid fa-signature"></i> Image Signature
+                  </h3>
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <i className="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-[#4d9e5f] transition-colors mb-2"></i>
+                    <span className="text-xs font-medium text-gray-500">Click or drag to upload signature image</span>
+                    <span className="text-[10px] text-gray-400 mt-1">Supports PNG, JPG (Max 2MB)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : currentView === 'contract-list' ? (
+            <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+               {/* View Header Tabs */}
+               <div className="flex items-center justify-between border-b px-4 py-2">
+                  <div className="flex gap-6">
+                    <button onClick={() => setActiveContractTab('List of Charges')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'List of Charges' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>List of Charges</button>
+                    <button onClick={() => setActiveContractTab('Remote Area Surcharges')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'Remote Area Surcharges' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>Remote Area Surcharges</button>
+                    <button onClick={() => setActiveContractTab('Extra Fees')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'Extra Fees' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>Extra Fees</button>
+                  </div>
+                  <button className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm">Save All Changes</button>
+               </div>
+
+               {/* View Body */}
+               <div className="p-4 space-y-6">
+                  {/* Section Title */}
+                  <h2 className="text-[#4d9e5f] font-bold text-sm">International (VN - US)</h2>
+
+                  {/* Route Bar */}
+                  <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-full p-2 px-6 flex items-center gap-10 shadow-sm">
+                    <div className="flex items-center gap-2">
+                       <i className="fa-solid fa-earth-americas text-[#4d9e5f]"></i>
+                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Route:</span>
+                       <span className="text-xs font-bold text-gray-700">Vietnam</span>
+                       <i className="fa-solid fa-arrow-right-long text-gray-300"></i>
+                       <span className="text-xs font-bold text-gray-700">United States</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">VAT:</span>
+                       <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full text-[10px] font-bold">0%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Currency:</span>
+                       <span className="bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">USD</span>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="flex justify-end">
+                     <button className="border border-[#4d9e5f] text-[#4d9e5f] px-3 py-1.5 rounded flex items-center gap-2 text-[12px] font-bold hover:bg-green-50 transition-colors">
+                        <i className="fa-solid fa-plus"></i> Add Remote Area Surcharges
+                     </button>
+                  </div>
+
+                  {/* Config Box */}
+                  <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
+                     {/* Watermark/Pattern Overlay simulation */}
+                     <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-20 p-20">
+                        {Array(10).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45">QC</span>)}
+                     </div>
+
+                     <div className="p-4 flex items-center justify-between border-b">
+                        <div className="bg-blue-600 text-white px-3 py-1 text-[11px] font-bold rounded shadow-sm uppercase tracking-wide">Surcharge Remote Zone</div>
+                        <button className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 transition-colors">
+                           <i className="fa-solid fa-trash-can"></i> Remove
+                        </button>
+                     </div>
+
+                     <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                           {/* Define Regions */}
+                           <div className="space-y-2">
+                              <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
+                                 Define Remote Regions <span className="text-red-500">*</span>
+                              </label>
+                              <div className="relative">
+                                 <select className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-400 focus:ring-1 focus:ring-[#4d9e5f] outline-none bg-white appearance-none cursor-pointer h-10 shadow-sm">
+                                    <option>Select state/province</option>
+                                 </select>
+                                 <i className="fa-solid fa-chevron-down absolute right-3 top-[13px] text-[10px] text-gray-400 pointer-events-none"></i>
+                              </div>
+                           </div>
+
+                           {/* LEADTIME FIELD */}
+                           <div className="space-y-2">
+                              <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
+                                 Leadtime (h)
+                              </label>
+                              <div className="relative">
+                                 <input 
+                                    type="text" 
+                                    defaultValue="2"
+                                    className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10"
+                                 />
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Add Row Button */}
+                        <div className="flex justify-end relative z-10">
+                           <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1 rounded flex items-center gap-2 text-[11px] font-bold hover:bg-gray-50 transition-all shadow-sm">
+                              <i className="fa-solid fa-plus"></i> Add Row
+                           </button>
+                        </div>
+
+                        {/* Config Table */}
+                        <div className="border border-gray-100 rounded overflow-hidden relative z-10">
+                           <table className="w-full text-left text-[11px] border-collapse">
+                              <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                                 <tr>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Service Type</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Category</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculate Fee Type</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculation Condition</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Fee</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight From ({'>'})</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight To ({'≤'})</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance From</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance To</th>
+                                    <th className="px-3 py-2 text-center">Actions</th>
+                                 </tr>
+                              </thead>
+                              <tbody className="divide-y text-gray-600 font-medium">
+                                 <tr className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="px-3 py-2.5 border-r border-gray-100">Express 1H</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">Document</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">Percentage</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">Weight (kg)</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
+                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
+                                    <td className="px-3 py-2.5">
+                                       <div className="flex items-center justify-center gap-3">
+                                          <i className="fa-regular fa-copy text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"></i>
+                                          <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                                       </div>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                           {/* Scroll Indicator simulation */}
+                           <div className="bg-gray-100 h-1.5 w-full mt-auto relative overflow-hidden">
+                              <div className="absolute left-0 top-0 h-full w-1/4 bg-gray-300 rounded-full"></div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'shipment-list' ? (
             <div className="space-y-4 animate-in fade-in duration-300">
                {/* Breadcrumb */}
                <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
@@ -309,13 +596,6 @@ const App: React.FC = () => {
                   </div>
                </div>
 
-               {/* Table Actions */}
-               <div className="flex justify-end gap-2">
-                  <button className="px-4 py-1 border rounded text-xs text-gray-400 font-medium bg-white">Assign Shipper</button>
-                  <button className="px-4 py-1 border rounded text-xs text-gray-400 font-medium bg-white">Dispatching</button>
-                  <button className="px-4 py-1 border rounded text-xs text-gray-400 font-medium bg-white">Print Label</button>
-               </div>
-
                {/* Table Content */}
                <div className="bg-white border rounded shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
@@ -371,21 +651,6 @@ const App: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-
-                  {/* Pagination */}
-                  <div className="bg-gray-50 border-t p-3 flex items-center justify-between text-xs text-gray-500">
-                    <div>Total: {listShipments.length}</div>
-                    <div className="flex items-center gap-2">
-                      <button className="px-2 py-1 border rounded bg-white"><i className="fa-solid fa-chevron-left text-[10px]"></i></button>
-                      <button className="px-2.5 py-1 bg-white border border-[#4d9e5f] text-[#4d9e5f] font-bold rounded">1</button>
-                      <button className="px-2.5 py-1 bg-white border border-gray-200 rounded">2</button>
-                      <span>...</span>
-                      <button className="px-2 py-1 border rounded bg-white"><i className="fa-solid fa-chevron-right text-[10px]"></i></button>
-                      <select className="border rounded bg-white px-2 py-1 ml-2">
-                        <option>20 / page</option>
-                      </select>
-                    </div>
-                  </div>
                </div>
             </div>
           ) : (
@@ -401,134 +666,22 @@ const App: React.FC = () => {
                 </div>
               </nav>
 
-              <div className="bg-white border p-4 flex flex-wrap gap-4 items-center justify-between shadow-sm rounded mb-4">
-                <div className="flex gap-4 items-center">
-                  <button onClick={() => handleAction('Returning warehouse')} className="px-6 py-2 bg-[#2563eb] text-white font-bold rounded shadow-sm hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-arrow-rotate-left"></i> Returning warehouse</button>
-                  <div className="flex items-center gap-2 text-sm"><span className="text-gray-400 font-medium">Is Return:</span><span className="px-2 py-1 bg-[#fff5f5] text-[#e03131] border border-[#ffc9c9] rounded font-bold uppercase text-[11px]">NO</span></div>
-                  <div className={`px-4 py-2 bg-[#c05621] text-white font-bold rounded shadow-sm flex items-center gap-2 text-sm transition-opacity duration-300 ${shipment.isReDelivered ? 'opacity-100' : 'opacity-40 grayscale'}`}>Re-delivered</div>
-                </div>
-                <div className="flex gap-3">
+              <div className="bg-white border rounded p-6 space-y-8 shadow-sm">
+                <div className="flex gap-4 items-center mb-6 border-b pb-4">
                   <button onClick={() => handleAction('Re-delivered')} className="px-6 py-2 bg-[#4d9e5f] text-white font-bold rounded shadow-sm hover:bg-[#3d7d4c] transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-rotate-right"></i> Re-delivered</button>
                   <button onClick={() => handleAction('Return to warehouse')} className="px-6 py-2 bg-[#f97316] text-white font-bold rounded shadow-sm hover:bg-orange-600 transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-warehouse"></i> Return to warehouse</button>
                 </div>
-              </div>
 
-              <div className="bg-white border rounded p-6 space-y-8 shadow-sm">
                 <section>
                   <h3 className="font-bold text-[#1b4d3e] mb-4 flex items-center gap-2 text-xs uppercase tracking-wider"><span className="w-1 h-4 bg-[#4d9e5f] rounded-full"></span>Shipment information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 border rounded overflow-hidden">
                     <InfoRow label="Shipment code" value={shipment.shipmentCode} bold />
                     <InfoRow label="Order codes" value={<span className="text-blue-500 bg-blue-50 px-2 py-0.5 rounded text-[11px] border border-blue-100">{shipment.orderCodes[0]}</span>} />
-                    <InfoRow label="Customer code" value={<span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded text-[11px] border border-purple-100 font-mono">{shipment.customerCode}</span>} />
-                    <InfoRow label="Amount" value={<span className="text-blue-600 font-bold">{shipment.amount.toFixed(3)} {shipment.currency}</span>} />
-                    <InfoRow label="Weight" value={shipment.weight.toFixed(3)} />
-                    <InfoRow label="Volume (Cm)" value={shipment.volume.toFixed(3)} />
-                    <InfoRow label="Total dimensions (LxWxH)" value={shipment.dimensions} />
-                    <InfoRow label="Shipping cost" value={<span className="text-[#4d9e5f] font-bold">{shipment.shippingCost.toFixed(3)}</span>} />
-                    <InfoRow label="Empty" value="" />
-                    <InfoRow label="Carrier name" value={<span className="text-[#4d9e5f] bg-green-50 px-2 py-0.5 rounded text-[11px] border border-green-100">{shipment.carrierName}</span>} />
-                    <InfoRow label="Shipper name" value={<span className={`px-2 py-0.5 rounded text-[11px] border ${shipment.shipperName === '-' ? 'text-gray-400 bg-gray-50 border-gray-100 italic' : 'text-gray-800 bg-gray-50 border-gray-100'}`}>{shipment.shipperName}</span>} />
-                    <InfoRow label="Empty" value="" />
-                    <InfoRow label="Tracking number" value={<span className="text-[#4d9e5f] bg-green-50 px-2 py-0.5 rounded text-[11px] border border-green-100">{shipment.trackingNumber}</span>} />
-                    <InfoRow label="Zone" value={<span className="bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded font-bold text-[12px] uppercase shadow-sm">{shipment.zone}</span>} />
-                    <InfoRow label="Empty" value="" />
-                    <InfoRow label="Status description" value={shipment.statusDescription} fullWidth />
-                    <InfoRow label="Note" value={shipment.note} fullWidth />
+                    <InfoRow label="Customer code" value={shipment.customerCode} />
+                    <InfoRow label="Amount" value={`${shipment.amount.toFixed(3)} ${shipment.currency}`} bold />
+                    <InfoRow label="Weight" value={shipment.weight} />
+                    <InfoRow label="Carrier" value={shipment.carrierName} />
                   </div>
-                </section>
-
-                <section>
-                   <h3 className="font-bold text-[#1b4d3e] mb-6 flex items-center gap-2 text-xs uppercase tracking-wider"><span className="w-1 h-4 bg-[#4d9e5f] rounded-full"></span>Shipping Route</h3>
-                   <div className="bg-white border rounded p-12 shadow-inner overflow-x-auto">
-                      <div className="flex items-center justify-between min-w-[800px] relative">
-                         <div className="flex flex-col items-center text-center w-[180px] z-10">
-                            <div className="w-14 h-14 bg-[#e8f5e9] text-[#4d9e5f] rounded-full flex items-center justify-center mb-4 shadow-sm border-2 border-white ring-1 ring-gray-100">
-                               <i className="fa-solid fa-building-circle-arrow-right text-2xl"></i>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Sender</span>
-                            <p className="text-[11px] font-medium text-gray-800 leading-tight">
-                               <span className="bg-gray-200 text-gray-500 px-1 py-0.5 rounded mr-1 text-[9px] font-bold">WH</span>
-                               {shipment.senderAddress}
-                            </p>
-                         </div>
-                         {shipment.transitPoints.map((point, idx) => (
-                            <React.Fragment key={idx}>
-                               <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
-                                  <div className="w-full h-[1px] bg-gray-100 absolute top-[28px] z-0"></div>
-                                  <div className="bg-white px-2 py-1 rounded-full border border-gray-50 shadow-sm z-10 mb-8">
-                                     <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap uppercase tracking-tighter">{point.statusLabel || 'In Transit'}</span>
-                                  </div>
-                               </div>
-                               <div className="flex flex-col items-center text-center w-[180px] z-10">
-                                  <div className="w-16 h-16 bg-white border border-[#ffccbc] rounded-lg flex items-center justify-center mb-4 shadow-sm relative group overflow-hidden">
-                                     <i className="fa-solid fa-cart-shopping text-[#ff7043] text-2xl"></i>
-                                     <div className="absolute top-0 right-0 p-0.5 bg-orange-50 rounded-bl-lg"><i className="fa-solid fa-store text-[8px] text-orange-300"></i></div>
-                                     <div className="absolute bottom-0 w-full bg-[#fff3e0] py-0.5 border-t border-[#ffe0b2]">
-                                        <span className="text-[8px] font-bold text-[#e64a19] uppercase tracking-tighter">{point.name}</span>
-                                     </div>
-                                  </div>
-                                  <p className="text-[11px] font-bold text-gray-900 leading-tight">{point.location}</p>
-                                  <div className="mt-2 text-gray-200"><i className="fa-solid fa-chevron-right text-[10px]"></i></div>
-                               </div>
-                            </React.Fragment>
-                         ))}
-                         <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
-                            <div className="w-full h-[1px] bg-gray-100 absolute top-[28px] z-0"></div>
-                            <div className="bg-white px-2 py-1 rounded-full border border-gray-50 shadow-sm z-10 mb-8">
-                               <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap uppercase tracking-tighter">Delivered</span>
-                            </div>
-                         </div>
-                         <div className="flex flex-col items-center text-center w-[180px] z-10">
-                            <div className="w-14 h-14 bg-[#e3f2fd] text-[#1e88e5] rounded-full flex items-center justify-center mb-4 shadow-sm border-2 border-white ring-1 ring-gray-100">
-                               <i className="fa-solid fa-truck-ramp-box text-2xl"></i>
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Receiver</span>
-                            <p className="text-[11px] font-medium text-gray-800 leading-tight">{shipment.receiverAddress}</p>
-                         </div>
-                      </div>
-                   </div>
-                </section>
-
-                <section>
-                   <h3 className="font-bold text-[#1b4d3e] mb-4 flex items-center gap-2 text-xs uppercase tracking-wider"><span className="w-1 h-4 bg-[#4d9e5f] rounded-full"></span>Shipment history</h3>
-                   <div className="border rounded overflow-hidden">
-                      <table className="w-full text-left text-xs border-collapse">
-                         <thead className="bg-[#f8f9fa] border-b text-gray-600 font-bold uppercase tracking-tighter">
-                            <tr>
-                               <th className="px-4 py-3 border-r">Status</th>
-                               <th className="px-4 py-3 border-r">Time</th>
-                               <th className="px-4 py-3 border-r">Performed By</th>
-                               <th className="px-4 py-3 border-r">Note</th>
-                               <th className="px-4 py-3 border-r">Carrier status</th>
-                               <th className="px-4 py-3">POD</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y text-gray-700">
-                            {history.map((entry, idx) => (
-                               <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                  <td className="px-4 py-3 border-r whitespace-nowrap">
-                                     <span className={`px-2 py-1 rounded font-bold text-[9px] uppercase border ${
-                                       entry.status.includes('Scheduled') ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                                       entry.status.includes('Returned') ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                       'bg-gray-100 text-gray-600 border-gray-200'
-                                     }`}>
-                                       {entry.status}
-                                     </span>
-                                  </td>
-                                  <td className="px-4 py-3 border-r text-gray-500 whitespace-nowrap font-mono">{entry.time}</td>
-                                  <td className="px-4 py-3 border-r font-medium">{entry.performedBy}</td>
-                                  <td className="px-4 py-3 border-r">{entry.note}</td>
-                                  <td className="px-4 py-3 border-r text-gray-400">{entry.carrierStatus || '-'}</td>
-                                  <td className="px-4 py-3">
-                                     {entry.podImageUrl ? (
-                                        <img src={entry.podImageUrl} alt="POD" className="w-8 h-8 rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform" />
-                                     ) : <span className="text-gray-300">-</span>}
-                                  </td>
-                               </tr>
-                            ))}
-                         </tbody>
-                      </table>
-                   </div>
                 </section>
               </div>
             </>
@@ -536,49 +689,60 @@ const App: React.FC = () => {
         </main>
       </div>
 
-      {/* GENERALIZED RETURN MODAL: Handles Local Hub and Warehouse */}
+      {/* RE-DELIVERY MODAL */}
+      {isReDeliveryModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsReDeliveryModalOpen(false)}></div>
+          <div className="bg-white rounded shadow-2xl w-full max-w-md z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
+            <div className="bg-[#4d9e5f] p-4 text-white flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-wider"><i className="fa-solid fa-calendar-check"></i> Schedule Re-delivery</h3>
+              <button onClick={() => setIsReDeliveryModalOpen(false)}><i className="fa-solid fa-xmark"></i></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Select Next Point</label>
+              <select value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)} className="w-full px-3 py-2 border rounded text-sm bg-white">
+                {STORES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 flex justify-end gap-2 border-t">
+              <button onClick={() => setIsReDeliveryModalOpen(false)} className="px-4 py-2 text-sm text-gray-500">Cancel</button>
+              <button onClick={handleSaveReDelivery} className="px-6 py-2 bg-[#4d9e5f] text-white font-bold rounded text-sm">Add to Route</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RETURN MODAL */}
       {isReturningLocalHubModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsReturningLocalHubModalOpen(false)}></div>
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-[500px] z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
             <div className="bg-[#133e33] p-4 text-white flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2 text-[15px]">
                 <i className="fa-solid fa-warehouse"></i> 
                 {pendingStatus === 'Returned Local Hub' ? 'Confirm Return' : (pendingStatus?.includes('Local Hub') ? 'Return Local Hub' : 'Return Warehouse')}
               </h3>
-              <button onClick={() => setIsReturningLocalHubModalOpen(false)} className="hover:opacity-70 transition-opacity">
-                <i className="fa-solid fa-xmark text-lg"></i>
-              </button>
+              <button onClick={() => setIsReturningLocalHubModalOpen(false)}><i className="fa-solid fa-xmark text-lg"></i></button>
             </div>
             
             <div className="p-8">
-              {/* Warning Alert Box */}
               <div className="mb-8 flex items-start gap-4 p-4 bg-[#fff8f1] rounded-lg border border-[#ffe8d1]">
-                <div className="bg-orange-400 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="font-bold text-lg">!</span>
-                </div>
+                <div className="bg-orange-400 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"><span className="font-bold text-lg">!</span></div>
                 <p className="text-[14px] text-[#8c5216] leading-snug">
                   You are changing the status to <b className="text-[#a65d1b]">"{pendingStatus}"</b>. 
-                  {pendingStatus === 'Returned Local Hub' 
-                    ? " Please confirm the arrival at the previously assigned hub." 
-                    : " Please select the destination warehouse."}
+                  {pendingStatus === 'Returned Local Hub' ? " Please confirm the arrival at the previously assigned hub." : " Please select the destination warehouse."}
                 </p>
               </div>
 
-              {/* Field Label */}
-              <label className="block text-[11px] font-bold text-[#7a869a] uppercase tracking-wider mb-2">SELECT WAREHOUSE/STORE</label>
+              <label className="block text-[11px] font-bold text-[#7a869a] uppercase mb-2">SELECT WAREHOUSE/STORE</label>
               
-              {/* Select Input (Disabled if status is 'Returned Local Hub') */}
               <div className="relative">
                 <select 
                   value={selectedReturnStore} 
                   disabled={pendingStatus === 'Returned Local Hub'}
                   onChange={(e) => setSelectedReturnStore(e.target.value)} 
                   className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${
-                    pendingStatus === 'Returned Local Hub' 
-                      ? 'bg-gray-100 cursor-not-allowed text-gray-500 font-medium' 
-                      : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'
+                    pendingStatus === 'Returned Local Hub' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'
                   }`}
                 >
                   {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
@@ -589,76 +753,9 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="bg-white px-8 py-5 flex justify-end items-center gap-8 border-t border-gray-100">
-              <button 
-                onClick={() => setIsReturningLocalHubModalOpen(false)} 
-                className="text-[14px] text-[#7a869a] hover:text-gray-800 font-bold transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmReturnAction} 
-                className="px-8 py-2.5 bg-[#52a468] text-white font-bold rounded-md shadow-md hover:bg-[#468c58] transition-all transform hover:scale-[1.02] active:scale-95 text-[14px]"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Re-delivery Modal */}
-      {isReDeliveryModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsReDeliveryModalOpen(false)}></div>
-          <div className="bg-white rounded shadow-2xl w-full max-md z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-[#4d9e5f] p-4 text-white flex items-center justify-between">
-              <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-wider"><i className="fa-solid fa-calendar-check"></i> Schedule Re-delivery</h3>
-              <button onClick={() => setIsReDeliveryModalOpen(false)}><i className="fa-solid fa-xmark"></i></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Select Next Point</label>
-                <select value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)} className="w-full px-3 py-2 border rounded focus:ring-1 focus:ring-[#4d9e5f] outline-none bg-white transition cursor-pointer text-sm">
-                  {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Date & Time</label>
-                <input type="datetime-local" value={reDeliveryDate} onChange={(e) => setReDeliveryDate(e.target.value)} className="w-full px-3 py-2 border rounded focus:ring-1 focus:ring-[#4d9e5f] outline-none transition text-sm" />
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 flex justify-end gap-2 border-t">
-              <button onClick={() => setIsReDeliveryModalOpen(false)} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
-              <button onClick={handleSaveReDelivery} className="px-6 py-2 bg-[#4d9e5f] text-white font-bold rounded shadow-md hover:bg-[#3d7d4c] transition-all text-sm">Add to Route</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Return to Warehouse Modal */}
-      {isReturnModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsReturnModalOpen(false)}></div>
-          <div className="bg-white rounded shadow-2xl w-full max-w-md z-10 overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-orange-500 p-4 text-white flex items-center justify-between">
-              <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-wider"><i className="fa-solid fa-triangle-exclamation"></i> Confirm Return</h3>
-              <button onClick={() => setIsReturnModalOpen(false)}><i className="fa-solid fa-xmark"></i></button>
-            </div>
-            <div className="p-6 text-center">
-              <i className="fa-solid fa-warehouse text-4xl text-orange-200 mb-4"></i>
-              <p className="font-bold text-lg mb-2 text-gray-800">Return to Warehouse?</p>
-              <div className="mt-4 text-left">
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Return Point</label>
-                <select value={selectedReturnStore} onChange={(e) => setSelectedReturnStore(e.target.value)} className="w-full px-3 py-2 border rounded focus:ring-1 focus:ring-orange-500 outline-none bg-white transition cursor-pointer text-sm">
-                  {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
-                </select>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 flex justify-center gap-3 border-t">
-              <button onClick={() => setIsReturnModalOpen(false)} className="px-6 py-2 border rounded text-gray-500 w-full hover:bg-white transition font-medium">No, Back</button>
-              <button onClick={handleConfirmReturnToWarehouse} className="px-6 py-2 bg-orange-500 text-white font-bold rounded shadow w-full hover:bg-orange-600 transition-all flex items-center justify-center gap-2 text-sm"><i className="fa-solid fa-check"></i> Confirm</button>
+            <div className="bg-white px-8 py-5 flex justify-end gap-8 border-t">
+              <button onClick={() => setIsReturningLocalHubModalOpen(false)} className="text-[14px] text-[#7a869a] font-bold">Cancel</button>
+              <button onClick={confirmReturnAction} className="px-8 py-2.5 bg-[#52a468] text-white font-bold rounded-md shadow-md">Confirm</button>
             </div>
           </div>
         </div>
@@ -666,6 +763,27 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const FormInput: React.FC<{ 
+  label: string; 
+  required?: boolean; 
+  value?: string; 
+  onChange: (val: string) => void;
+  colSpan?: number;
+}> = ({ label, required, value, onChange, colSpan = 1 }) => (
+  <div className={`space-y-1.5 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
+    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight flex items-center gap-1">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input 
+      type="text" 
+      value={value || ''} 
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10"
+      placeholder={`Enter ${label.toLowerCase()}`}
+    />
+  </div>
+);
 
 const SidebarItem: React.FC<{ icon: string; label: string; active?: boolean; hasSubItems?: boolean; children?: React.ReactNode; onClick?: () => void }> = ({ icon, label, active, hasSubItems, children, onClick }) => (
   <div className="mb-1">
@@ -678,14 +796,11 @@ const SidebarItem: React.FC<{ icon: string; label: string; active?: boolean; has
   </div>
 );
 
-const InfoRow: React.FC<{ label: string; value: React.ReactNode; bold?: boolean; fullWidth?: boolean }> = ({ label, value, bold, fullWidth }) => {
-  if (label === 'Empty') return <div className="bg-white border-b border-r last:border-r-0 min-h-[40px] flex-1"></div>;
-  return (
-    <div className={`flex items-center min-h-[40px] border-b border-r last:border-r-0 ${fullWidth ? 'md:col-span-3' : ''}`}>
-      <div className="w-1/3 md:w-40 bg-[#f8f9fa] px-4 py-2 h-full flex items-center border-r font-bold text-gray-600 text-[9px] uppercase tracking-wider shrink-0">{label}</div>
-      <div className={`flex-1 px-4 py-2 text-[12px] ${bold ? 'font-bold text-gray-900' : 'text-gray-700'}`}>{value}</div>
-    </div>
-  );
-};
+const InfoRow: React.FC<{ label: string; value: React.ReactNode; bold?: boolean }> = ({ label, value, bold }) => (
+  <div className="flex items-center min-h-[40px] border-b border-r last:border-r-0">
+    <div className="w-40 bg-[#f8f9fa] px-4 py-2 h-full flex items-center border-r font-bold text-gray-600 text-[9px] uppercase tracking-wider">{label}</div>
+    <div className={`flex-1 px-4 py-2 text-[12px] ${bold ? 'font-bold' : ''}`}>{value}</div>
+  </div>
+);
 
 export default App;
