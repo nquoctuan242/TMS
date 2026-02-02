@@ -3,6 +3,11 @@ import React, { useState } from 'react';
 import { MOCK_SHIPMENT, MOCK_HISTORY } from './constants';
 import { ShipmentData, HistoryEntry, TransitPoint } from './types';
 
+const STORES_LIST_MOCK = [
+  { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
+  { id: '2', customer: 'Hasaki', name: 'Hasaki Warehouse', phone: '0281234567', email: 'warehouse@hasaki.vn', street: '71 Hoàng Hoa Thám', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: false },
+];
+
 const STORES = [
   'Hasaki Warehouse - 71 Hoang Hoa Tham',
   'Store 123 - 568 Luy Ban Bich',
@@ -23,6 +28,43 @@ interface Company {
   designation?: string;
   signatureImage?: string;
 }
+
+interface Store {
+  id: string;
+  customer: string;
+  name: string;
+  phone: string;
+  email: string;
+  region: string;
+  country: string;
+  stateProvince: string;
+  ward: string;
+  street: string;
+  streetSecondary: string;
+  latitude: string;
+  longitude: string;
+  postalCode: string;
+  radius: string;
+  zoneCount: string;
+  distanceFetched?: boolean;
+  lastDistance?: string;
+}
+
+interface StoreHistory {
+  id: string;
+  date: string;
+  user: string;
+  field: string;
+  oldValue: string;
+  newValue: string;
+  note: string;
+}
+
+const MOCK_STORE_HISTORY: StoreHistory[] = [
+  { id: '1', date: '20/01/2026 15:30:12', user: 'Nguyen Quoc Tuan', field: 'Radius', oldValue: '0', newValue: '5', note: 'Update delivery radius for new policy' },
+  { id: '2', date: '19/01/2026 09:12:45', user: 'Admin', field: 'Phone', oldValue: '0900000000', newValue: '0987267289', note: 'Corrected contact information' },
+  { id: '3', date: '15/01/2026 14:00:00', user: 'System', field: 'Status', oldValue: 'New', newValue: 'Active', note: 'Store verification completed' },
+];
 
 const MOCK_COMPANIES: Company[] = [
   { id: '1', code: 'CMP001', name: 'Hasaki Beauty & Spa', address: '71 Hoang Hoa Tham, Ward 13, Tan Binh', taxNo: '0313158132', contactName: 'Mr. John Doe', email: 'admin@hasaki.vn' },
@@ -51,13 +93,33 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 ];
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail'>('shipment-list');
+  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail'>('shipment-list');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
   const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
+  const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
+  const [isGettingDistance, setIsGettingDistance] = useState(false);
+  const [editingStore, setEditingStore] = useState<Partial<Store>>({
+    customer: 'Tu Van',
+    name: 'Van Store',
+    phone: '0987267289',
+    email: 'vanlnt@hasaki.vn',
+    region: 'Asian',
+    country: 'Vietnam',
+    stateProvince: 'Thành phố Hồ Chí Minh',
+    ward: 'Phường Tân Phú',
+    street: '568 Lũy Bán Bích',
+    latitude: '0',
+    longitude: '0',
+    postalCode: '700000',
+    radius: '5',
+    zoneCount: '1',
+    distanceFetched: true,
+    lastDistance: '12.5 km'
+  });
 
   // Modal states
   const [isReDeliveryModalOpen, setIsReDeliveryModalOpen] = useState(false);
@@ -174,6 +236,29 @@ const App: React.FC = () => {
     setCurrentView('company-detail');
   };
 
+  const handleUpdateStore = () => {
+    if (!editingStore.name || !editingStore.customer || !editingStore.phone) {
+        alert("Please fill in the required fields (*)");
+        return;
+    }
+    alert("Store updated successfully!");
+    setCurrentView('store-list');
+  };
+
+  const handleGetDistance = () => {
+    setIsGettingDistance(true);
+    setTimeout(() => {
+      setEditingStore(prev => ({ ...prev, distanceFetched: true, lastDistance: '15.8 km' }));
+      setIsGettingDistance(false);
+      alert("Distance information synchronized!");
+    }, 1500);
+  };
+
+  const startEditStore = (store: Store) => {
+    setEditingStore(store);
+    setCurrentView('store-detail');
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 text-[13px]">
       {/* Sidebar */}
@@ -216,12 +301,25 @@ const App: React.FC = () => {
                 >
                   Contract
                 </div>
-                <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-2 rounded-l-full cursor-pointer">Carrier</div>
-                <div className="text-xs font-medium text-white/60 hover:text-white px-3 py-2 rounded-l-full cursor-pointer">Allocate Strategy</div>
              </div>
           </SidebarItem>
           <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} />
-          <SidebarItem icon="fa-gear" label="Settings" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-gear" 
+            label="Settings" 
+            active={currentView === 'store-list' || currentView === 'store-detail'} 
+            hasSubItems 
+            onClick={() => {}}
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'store-list' || currentView === 'store-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('store-list')}
+                >
+                  Stores
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem icon="fa-user-shield" label="Admin" onClick={() => {}} />
         </nav>
       </aside>
@@ -234,7 +332,9 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 font-semibold">
               <i className="fa-solid fa-list-ul"></i>
               <span>
-                {currentView === 'company-list' ? 'Company List' : 
+                {currentView === 'store-list' ? 'Store List' :
+                 currentView === 'store-detail' ? 'Store Detail' :
+                 currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}
@@ -253,7 +353,248 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4">
-          {currentView === 'company-list' ? (
+          {currentView === 'store-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-4 py-3">
+                 <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Store List</h2>
+                 <button 
+                   onClick={() => { setEditingStore({}); setCurrentView('store-detail'); }}
+                   className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                 >
+                   <i className="fa-solid fa-plus"></i> Add Store
+                 </button>
+               </div>
+               <div className="p-4">
+                 <div className="border border-gray-100 rounded overflow-hidden">
+                   <table className="w-full text-left text-xs">
+                     <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                       <tr>
+                         <th className="px-4 py-3 border-r">Customer</th>
+                         <th className="px-4 py-3 border-r">Store Name</th>
+                         <th className="px-4 py-3 border-r">Phone</th>
+                         <th className="px-4 py-3 border-r">Address</th>
+                         <th className="px-4 py-3 text-center">Actions</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y text-gray-600 font-medium">
+                       {stores.map(store => (
+                         <tr key={store.id} className="hover:bg-gray-50/50 transition-colors">
+                           <td className="px-4 py-3 border-r">{store.customer}</td>
+                           <td className="px-4 py-3 border-r font-bold text-gray-700">{store.name}</td>
+                           <td className="px-4 py-3 border-r">{store.phone}</td>
+                           <td className="px-4 py-3 border-r truncate max-w-[300px]">{store.street}, {store.stateProvince}</td>
+                           <td className="px-4 py-3">
+                             <div className="flex items-center justify-center gap-4">
+                               <i 
+                                 onClick={() => startEditStore(store)}
+                                 className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"
+                               ></i>
+                               <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                             </div>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
+             </div>
+          ) : currentView === 'store-detail' ? (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                {/* Breadcrumb Header */}
+                <div className="px-4 py-3 border-b flex items-center justify-between text-gray-400 text-xs">
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-house"></i>
+                      <span>/</span>
+                      <span>Configs</span>
+                      <span>/</span>
+                      <span className="text-gray-800 font-medium">Stores</span>
+                    </div>
+                    <i className="fa-solid fa-link text-gray-800"></i>
+                </div>
+
+                {/* Form Content */}
+                <div className="p-6 relative bg-white">
+                    {/* Background Watermark/Pattern Overlay */}
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-x-60 gap-y-40 p-20">
+                      {Array(20).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45 text-black">qc</span>)}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 relative z-10">
+                      <FormSelect
+                          label="Customer"
+                          required
+                          value={editingStore.customer}
+                          onChange={val => setEditingStore({...editingStore, customer: val})}
+                          options={['Tu Van', 'Hasaki', 'Other']}
+                      />
+                      <FormInputDetail
+                          label="Name"
+                          required
+                          value={editingStore.name}
+                          onChange={val => setEditingStore({...editingStore, name: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Phone"
+                          required
+                          value={editingStore.phone}
+                          onChange={val => setEditingStore({...editingStore, phone: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Email"
+                          value={editingStore.email}
+                          onChange={val => setEditingStore({...editingStore, email: val})}
+                          showClear
+                      />
+                      <FormSelect
+                          label="Region"
+                          required
+                          value={editingStore.region}
+                          onChange={val => setEditingStore({...editingStore, region: val})}
+                          options={['Asian', 'Europe', 'America']}
+                      />
+                      <FormSelect
+                          label="Country"
+                          required
+                          value={editingStore.country}
+                          onChange={val => setEditingStore({...editingStore, country: val})}
+                          options={['Vietnam', 'Thailand', 'China']}
+                      />
+                      <FormSelect
+                          label="State/Province"
+                          required
+                          value={editingStore.stateProvince}
+                          onChange={val => setEditingStore({...editingStore, stateProvince: val})}
+                          options={['Thành phố Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng']}
+                      />
+                      <FormSelect
+                          label="Ward"
+                          required
+                          value={editingStore.ward}
+                          onChange={val => setEditingStore({...editingStore, ward: val})}
+                          options={['Phường Tân Phú', 'Phường 13', 'Phường Bến Thành']}
+                      />
+                      <FormInputDetail
+                          label="Street"
+                          required
+                          value={editingStore.street}
+                          onChange={val => setEditingStore({...editingStore, street: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Street Secondary"
+                          value={editingStore.streetSecondary}
+                          onChange={val => setEditingStore({...editingStore, streetSecondary: val})}
+                          placeholder="Enter Street Secondary"
+                      />
+                      <FormInputDetail
+                          label="Latitude"
+                          value={editingStore.latitude}
+                          onChange={val => setEditingStore({...editingStore, latitude: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Longitude"
+                          value={editingStore.longitude}
+                          onChange={val => setEditingStore({...editingStore, longitude: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Postal Code"
+                          required
+                          value={editingStore.postalCode}
+                          onChange={val => setEditingStore({...editingStore, postalCode: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Radius (Km)"
+                          value={editingStore.radius}
+                          onChange={val => setEditingStore({...editingStore, radius: val})}
+                          showClear
+                      />
+                      <FormInputDetail
+                          label="Zone Count"
+                          value={editingStore.zoneCount}
+                          onChange={val => setEditingStore({...editingStore, zoneCount: val})}
+                          showClear
+                      />
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-between border-t pt-6 relative z-10">
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={handleGetDistance}
+                          disabled={isGettingDistance}
+                          className={`px-6 py-2 rounded font-bold text-xs flex items-center gap-2 transition-all shadow-sm ${
+                            isGettingDistance ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#1b4d3e] text-white hover:bg-[#153a2f]'
+                          }`}
+                        >
+                          {isGettingDistance ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-arrows-spin"></i>}
+                          Get Distance
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Status:</span>
+                          {editingStore.distanceFetched ? (
+                            <span className="text-[#4d9e5f] font-bold flex items-center gap-1">
+                              <i className="fa-solid fa-circle-check"></i> Fetched ({editingStore.lastDistance})
+                            </span>
+                          ) : (
+                            <span className="text-orange-400 font-bold flex items-center gap-1">
+                              <i className="fa-solid fa-circle-exclamation"></i> Not Fetched
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button 
+                          onClick={handleUpdateStore}
+                          className="bg-[#2d6a4f] text-white px-8 py-2 rounded font-bold text-xs hover:bg-[#1b4332] transition-colors shadow-sm"
+                      >
+                          Update Store
+                      </button>
+                    </div>
+                </div>
+              </div>
+
+              {/* Store History Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-2">
+                  <i className="fa-solid fa-clock-rotate-left text-[#4d9e5f]"></i>
+                  <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">History of Changes</h3>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                        <tr>
+                          <th className="px-4 py-3 border-r whitespace-nowrap">Date & Time</th>
+                          <th className="px-4 py-3 border-r whitespace-nowrap">Performed By</th>
+                          <th className="px-4 py-3 border-r whitespace-nowrap">Field Changed</th>
+                          <th className="px-4 py-3 border-r whitespace-nowrap">Old Value</th>
+                          <th className="px-4 py-3 border-r whitespace-nowrap">New Value</th>
+                          <th className="px-4 py-3">Note</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {MOCK_STORE_HISTORY.map(entry => (
+                          <tr key={entry.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3 border-r font-mono whitespace-nowrap">{entry.date}</td>
+                            <td className="px-4 py-3 border-r">{entry.user}</td>
+                            <td className="px-4 py-3 border-r text-[#4d9e5f]">{entry.field}</td>
+                            <td className="px-4 py-3 border-r text-gray-400 line-through">{entry.oldValue}</td>
+                            <td className="px-4 py-3 border-r text-gray-800 font-bold">{entry.newValue}</td>
+                            <td className="px-4 py-3 italic">{entry.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : currentView === 'company-list' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b px-4 py-3">
                 <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Companies</h2>
@@ -440,7 +781,7 @@ const App: React.FC = () => {
                   <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
                      {/* Watermark/Pattern Overlay simulation */}
                      <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-20 p-20">
-                        {Array(10).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45">QC</span>)}
+                        {Array(10).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45 text-black">QC</span>)}
                      </div>
 
                      <div className="p-4 flex items-center justify-between border-b">
@@ -782,6 +1123,63 @@ const FormInput: React.FC<{
       className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10"
       placeholder={`Enter ${label.toLowerCase()}`}
     />
+  </div>
+);
+
+const FormInputDetail: React.FC<{ 
+  label: string; 
+  required?: boolean; 
+  value?: string; 
+  onChange: (val: string) => void;
+  placeholder?: string;
+  showClear?: boolean;
+}> = ({ label, required, value, onChange, placeholder, showClear }) => (
+  <div className="space-y-1">
+    <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+      {required && <span className="text-red-500">*</span>} {label}
+    </label>
+    <div className="relative">
+      <input 
+        type="text" 
+        value={value || ''} 
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+        placeholder={placeholder}
+      />
+      {showClear && value && (
+        <button 
+            onClick={() => onChange('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+        >
+            <i className="fa-solid fa-circle-xmark text-[11px]"></i>
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+const FormSelect: React.FC<{ 
+  label: string; 
+  required?: boolean; 
+  value?: string; 
+  onChange: (val: string) => void;
+  options: string[];
+}> = ({ label, required, value, onChange, options }) => (
+  <div className="space-y-1">
+    <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+      {required && <span className="text-red-500">*</span>} {label}
+    </label>
+    <div className="relative">
+      <select 
+        value={value || ''} 
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white appearance-none h-[34px]"
+      >
+        <option value="">Select {label.toLowerCase()}</option>
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+    </div>
   </div>
 );
 
