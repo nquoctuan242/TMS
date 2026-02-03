@@ -124,6 +124,7 @@ const MOCK_STORE_HISTORY: StoreHistory[] = [
 const MOCK_COMPANIES: Company[] = [
   { id: '1', code: 'CMP001', name: 'Hasaki Beauty & Spa', address: '71 Hoang Hoa Tham, Ward 13, Tan Binh', taxNo: '0313158132', contactName: 'Mr. John Doe', email: 'admin@hasaki.vn' },
   { id: '2', code: 'CMP002', name: 'OMS Logistics Solutions', address: '456 Le Van Sy, District 3, HCM', taxNo: '0398765432', contactName: 'Ms. Jane Smith', email: 'jane@oms.vn' },
+  { id: '3', code: 'CMP003', name: 'Hasaki Warehouse North', address: 'KCN Noi Bai, Soc Son, Hanoi', taxNo: '0313158132', contactName: 'Mr. Nguyen Van A', email: 'hanoi@hasaki.vn' },
 ];
 
 const MOCK_ROLES: Role[] = [
@@ -133,7 +134,7 @@ const MOCK_ROLES: Role[] = [
 ];
 
 const MOCK_USERS: User[] = [
-  { id: '1', username: 'tuan.nq', fullName: 'Nguyen Quoc Tuan', email: 'tuan.nq@hasaki.vn', roleId: 'r1', status: 'Active', companyIds: ['1'] },
+  { id: '1', username: 'tuan.nq', fullName: 'Nguyen Quoc Tuan', email: 'tuan.nq@hasaki.vn', roleId: 'r1', status: 'Active', companyIds: ['1', '2', '3'] },
   { id: '2', username: 'jane.smith', fullName: 'Jane Smith', email: 'jane@oms.vn', roleId: 'r3', companyIds: ['2'], status: 'Active' },
   { id: '3', username: 'driver01', fullName: 'Hung Xe Om', email: 'hung@express.vn', roleId: 'r2', status: 'Active', companyIds: [] },
 ];
@@ -160,8 +161,10 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 ];
 
 const App: React.FC = () => {
+  const currentUser = MOCK_USERS[0];
   const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail'>('shipment-list');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
+  const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
@@ -201,6 +204,8 @@ const App: React.FC = () => {
   const [selectedShipmentId, setSelectedShipmentId] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState(STORES[0]);
   const [selectedReturnStore, setSelectedReturnStore] = useState(STORES[0]);
+
+  const assignedCompanies = companies.filter(c => currentUser.companyIds?.includes(c.id));
 
   const handleAction = (action: string) => {
     if (action === 'Re-delivered') {
@@ -424,12 +429,34 @@ const App: React.FC = () => {
     <div className="flex min-h-screen bg-gray-50 text-[13px]">
       {/* Sidebar */}
       <aside className="w-64 bg-[#1b4d3e] text-white hidden md:flex flex-col sticky top-0 h-screen shrink-0 z-[60]">
-        <div className="p-4 flex items-center gap-2 border-b border-white/10 h-12">
-          <div className="bg-white p-1 rounded">
-             <i className="fa-solid fa-truck-fast text-[#1b4d3e] text-sm"></i>
+        <div className="p-4 flex flex-col gap-4 border-b border-white/10">
+          <div className="flex items-center gap-2 h-10">
+            <div className="bg-white p-1 rounded">
+               <i className="fa-solid fa-truck-fast text-[#1b4d3e] text-sm"></i>
+            </div>
+            <span className="font-bold tracking-tight text-lg">HASAKI TMS</span>
           </div>
-          <span className="font-bold tracking-tight">HASAKI TMS</span>
+          
+          {/* Company Selector */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest px-1">Active Company</label>
+            <div className="relative group">
+              <select 
+                value={activeCompanyId}
+                onChange={(e) => setActiveCompanyId(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-white/30 appearance-none cursor-pointer transition-all hover:bg-white/15"
+              >
+                {assignedCompanies.map(c => (
+                  <option key={c.id} value={c.id} className="bg-[#1b4d3e] text-white">
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/40 group-hover:text-white/70 pointer-events-none transition-colors"></i>
+            </div>
+          </div>
         </div>
+
         <nav className="flex-1 py-4 overflow-y-auto">
           <SidebarItem icon="fa-gauge" label="Dashboard" onClick={() => {}} />
           <SidebarItem icon="fa-box" label="Orders" onClick={() => {}} />
