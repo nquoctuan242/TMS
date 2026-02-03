@@ -105,6 +105,12 @@ interface User {
   status: 'Active' | 'Inactive';
 }
 
+interface UserFormState extends Partial<User> {
+  password?: string;
+  confirmPassword?: string;
+  resetPassword?: boolean;
+}
+
 interface StoreHistory {
   id: string;
   date: string;
@@ -173,7 +179,7 @@ const App: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
-  const [editingUser, setEditingUser] = useState<Partial<User>>({});
+  const [editingUser, setEditingUser] = useState<UserFormState>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [isGettingDistance, setIsGettingDistance] = useState(false);
   const [editingStore, setEditingStore] = useState<Partial<Store>>({
@@ -308,11 +314,25 @@ const App: React.FC = () => {
       return;
     }
 
+    // Password validation
+    if (!editingUser.id || editingUser.resetPassword) {
+      if (!editingUser.password || editingUser.password.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+      }
+      if (editingUser.password !== editingUser.confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+    }
+
     if (editingUser.id) {
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? (editingUser as User) : u));
+      const { password, confirmPassword, resetPassword, ...userData } = editingUser;
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? (userData as User) : u));
     } else {
+      const { password, confirmPassword, resetPassword, ...userData } = editingUser;
       const newUser: User = {
-        ...(editingUser as User),
+        ...(userData as User),
         id: Math.random().toString(36).substr(2, 9),
         status: 'Active',
         companyIds: editingUser.companyIds || []
@@ -365,7 +385,7 @@ const App: React.FC = () => {
   };
 
   const startEditUser = (user: User) => {
-    setEditingUser({ ...user, companyIds: user.companyIds || [] });
+    setEditingUser({ ...user, companyIds: user.companyIds || [], resetPassword: false });
     setCurrentView('user-detail');
   };
 
@@ -765,36 +785,112 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <FormInputDetail
-                      label="Username"
-                      required
-                      value={editingUser.username}
-                      onChange={val => setEditingUser({...editingUser, username: val})}
-                      placeholder="e.g. jsmith"
-                    />
-                    <FormInputDetail
-                      label="Full Name"
-                      required
-                      value={editingUser.fullName}
-                      onChange={val => setEditingUser({...editingUser, fullName: val})}
-                      placeholder="e.g. Jane Smith"
-                    />
-                    <FormInputDetail
-                      label="Email Address"
-                      required
-                      value={editingUser.email}
-                      onChange={val => setEditingUser({...editingUser, email: val})}
-                      placeholder="e.g. jane.smith@company.com"
-                    />
-                    <FormSelect
-                      label="User Role"
-                      required
-                      value={editingUser.roleId}
-                      onChange={val => setEditingUser({...editingUser, roleId: val as any})}
-                      options={roles.map(r => ({ label: r.name, value: r.id }))}
-                    />
-                    <div className="space-y-1 md:col-span-2">
+                  <div className="space-y-6">
+                    <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                      <i className="fa-solid fa-user"></i> General Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      <FormInputDetail
+                        label="Username"
+                        required
+                        value={editingUser.username}
+                        onChange={val => setEditingUser({...editingUser, username: val})}
+                        placeholder="e.g. jsmith"
+                      />
+                      <FormInputDetail
+                        label="Full Name"
+                        required
+                        value={editingUser.fullName}
+                        onChange={val => setEditingUser({...editingUser, fullName: val})}
+                        placeholder="e.g. Jane Smith"
+                      />
+                      <FormInputDetail
+                        label="Email Address"
+                        required
+                        value={editingUser.email}
+                        onChange={val => setEditingUser({...editingUser, email: val})}
+                        placeholder="e.g. jane.smith@company.com"
+                      />
+                      <FormSelect
+                        label="User Role"
+                        required
+                        value={editingUser.roleId}
+                        onChange={val => setEditingUser({...editingUser, roleId: val as any})}
+                        options={roles.map(r => ({ label: r.name, value: r.id }))}
+                      />
+                      <FormSelect
+                        label="Account Status"
+                        required
+                        value={editingUser.status}
+                        onChange={val => setEditingUser({...editingUser, status: val as any})}
+                        options={['Active', 'Inactive']}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                      <i className="fa-solid fa-key"></i> Security & Authentication
+                    </h3>
+                    <div className="space-y-6">
+                      {editingUser.id && (
+                        <div className="flex items-center gap-3 bg-orange-50 p-3 rounded border border-orange-100">
+                          <input 
+                            type="checkbox" 
+                            id="reset-password"
+                            checked={editingUser.resetPassword}
+                            onChange={(e) => setEditingUser({...editingUser, resetPassword: e.target.checked})}
+                            className="w-4 h-4 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                          />
+                          <label htmlFor="reset-password" className="text-xs text-orange-800 font-bold cursor-pointer select-none">
+                            Reset user password?
+                          </label>
+                        </div>
+                      )}
+                      
+                      {(!editingUser.id || editingUser.resetPassword) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 animate-in slide-in-from-top-2 duration-200">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+                              <span className="text-red-500">*</span> Password
+                            </label>
+                            <input 
+                              type="password"
+                              value={editingUser.password || ''}
+                              onChange={e => setEditingUser({...editingUser, password: e.target.value})}
+                              className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                              placeholder="Min 6 characters"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+                              <span className="text-red-500">*</span> Confirm Password
+                            </label>
+                            <input 
+                              type="password"
+                              value={editingUser.confirmPassword || ''}
+                              onChange={e => setEditingUser({...editingUser, confirmPassword: e.target.value})}
+                              className={`w-full border rounded-[4px] px-3 py-2 text-[12px] outline-none transition-all h-[34px] ${
+                                editingUser.confirmPassword && editingUser.password !== editingUser.confirmPassword 
+                                  ? 'border-red-300 focus:ring-red-100' 
+                                  : 'border-[#e5e7eb] focus:ring-[#4d9e5f]'
+                              }`}
+                              placeholder="Retype password"
+                            />
+                            {editingUser.confirmPassword && editingUser.password !== editingUser.confirmPassword && (
+                              <p className="text-[10px] text-red-500 font-medium italic">Passwords do not match</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                      <i className="fa-solid fa-building"></i> Company Access
+                    </h3>
+                    <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
                         Assigned Companies
                       </label>
@@ -816,13 +912,6 @@ const App: React.FC = () => {
                       </div>
                       <p className="text-[10px] text-gray-400 mt-1 italic">Assign multiple companies to give this user access to multiple shipping accounts.</p>
                     </div>
-                    <FormSelect
-                      label="Account Status"
-                      required
-                      value={editingUser.status}
-                      onChange={val => setEditingUser({...editingUser, status: val as any})}
-                      options={['Active', 'Inactive']}
-                    />
                   </div>
                 </div>
              </div>
