@@ -50,6 +50,61 @@ interface Store {
   lastDistance?: string;
 }
 
+interface Role {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  permissions: string[];
+}
+
+interface PermissionGroup {
+  module: string;
+  permissions: { id: string; name: string }[];
+}
+
+const PERMISSION_GROUPS: PermissionGroup[] = [
+  {
+    module: 'Shipments',
+    permissions: [
+      { id: 'shipment_view', name: 'View List' },
+      { id: 'shipment_detail', name: 'View Detail' },
+      { id: 'shipment_update', name: 'Update Status' },
+      { id: 'shipment_delete', name: 'Delete Shipment' },
+    ]
+  },
+  {
+    module: 'Partner',
+    permissions: [
+      { id: 'company_manage', name: 'Manage Company' },
+      { id: 'contract_manage', name: 'Manage Contract' },
+    ]
+  },
+  {
+    module: 'Settings',
+    permissions: [
+      { id: 'store_manage', name: 'Manage Stores' },
+    ]
+  },
+  {
+    module: 'Admin',
+    permissions: [
+      { id: 'user_manage', name: 'Manage Users' },
+      { id: 'role_manage', name: 'Manage Roles' },
+    ]
+  }
+];
+
+interface User {
+  id: string;
+  username: string;
+  fullName: string;
+  email: string;
+  roleId: string;
+  companyIds?: string[];
+  status: 'Active' | 'Inactive';
+}
+
 interface StoreHistory {
   id: string;
   date: string;
@@ -69,6 +124,18 @@ const MOCK_STORE_HISTORY: StoreHistory[] = [
 const MOCK_COMPANIES: Company[] = [
   { id: '1', code: 'CMP001', name: 'Hasaki Beauty & Spa', address: '71 Hoang Hoa Tham, Ward 13, Tan Binh', taxNo: '0313158132', contactName: 'Mr. John Doe', email: 'admin@hasaki.vn' },
   { id: '2', code: 'CMP002', name: 'OMS Logistics Solutions', address: '456 Le Van Sy, District 3, HCM', taxNo: '0398765432', contactName: 'Ms. Jane Smith', email: 'jane@oms.vn' },
+];
+
+const MOCK_ROLES: Role[] = [
+  { id: 'r1', name: 'Administrator', code: 'ADMIN', description: 'Full system access', permissions: PERMISSION_GROUPS.flatMap(g => g.permissions.map(p => p.id)) },
+  { id: 'r2', name: 'Dispatcher', code: 'DISP', description: 'Shipment and fleet operations', permissions: ['shipment_view', 'shipment_detail', 'shipment_update'] },
+  { id: 'r3', name: 'Partner User', code: 'PARTNER', description: 'External partner access', permissions: ['shipment_view', 'shipment_detail'] },
+];
+
+const MOCK_USERS: User[] = [
+  { id: '1', username: 'tuan.nq', fullName: 'Nguyen Quoc Tuan', email: 'tuan.nq@hasaki.vn', roleId: 'r1', status: 'Active', companyIds: ['1'] },
+  { id: '2', username: 'jane.smith', fullName: 'Jane Smith', email: 'jane@oms.vn', roleId: 'r3', companyIds: ['2'], status: 'Active' },
+  { id: '3', username: 'driver01', fullName: 'Hung Xe Om', email: 'hung@express.vn', roleId: 'r2', status: 'Active', companyIds: [] },
 ];
 
 interface ShipmentListItem {
@@ -93,14 +160,18 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 ];
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail'>('shipment-list');
+  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail'>('shipment-list');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
   const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
+  const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
+  const [editingUser, setEditingUser] = useState<Partial<User>>({});
+  const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [isGettingDistance, setIsGettingDistance] = useState(false);
   const [editingStore, setEditingStore] = useState<Partial<Store>>({
     customer: 'Tu Van',
@@ -226,6 +297,58 @@ const App: React.FC = () => {
     setCurrentView('company-list');
   };
 
+  const handleSaveUser = () => {
+    if (!editingUser.username || !editingUser.fullName || !editingUser.email || !editingUser.roleId) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    if (editingUser.id) {
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? (editingUser as User) : u));
+    } else {
+      const newUser: User = {
+        ...(editingUser as User),
+        id: Math.random().toString(36).substr(2, 9),
+        status: 'Active',
+        companyIds: editingUser.companyIds || []
+      };
+      setUsers(prev => [...prev, newUser]);
+    }
+    setCurrentView('user-list');
+  };
+
+  const handleSaveRole = () => {
+    if (!editingRole.name || !editingRole.code) {
+      alert("Please fill in name and code.");
+      return;
+    }
+
+    if (editingRole.id) {
+      setRoles(prev => prev.map(r => r.id === editingRole.id ? (editingRole as Role) : r));
+    } else {
+      const newRole: Role = {
+        ...(editingRole as Role),
+        id: Math.random().toString(36).substr(2, 9),
+        permissions: editingRole.permissions || [],
+        description: editingRole.description || ''
+      };
+      setRoles(prev => [...prev, newRole]);
+    }
+    setCurrentView('role-list');
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      setUsers(prev => prev.filter(u => u.id !== id));
+    }
+  };
+
+  const handleDeleteRole = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this role?")) {
+      setRoles(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
   const startEditCompany = (company: Company) => {
     setEditingCompany(company);
     setCurrentView('company-detail');
@@ -234,6 +357,26 @@ const App: React.FC = () => {
   const startCreateCompany = () => {
     setEditingCompany({});
     setCurrentView('company-detail');
+  };
+
+  const startEditUser = (user: User) => {
+    setEditingUser({ ...user, companyIds: user.companyIds || [] });
+    setCurrentView('user-detail');
+  };
+
+  const startCreateUser = () => {
+    setEditingUser({ roleId: roles[0]?.id, status: 'Active', companyIds: [] });
+    setCurrentView('user-detail');
+  };
+
+  const startEditRole = (role: Role) => {
+    setEditingRole({ ...role, permissions: role.permissions || [] });
+    setCurrentView('role-detail');
+  };
+
+  const startCreateRole = () => {
+    setEditingRole({ permissions: [] });
+    setCurrentView('role-detail');
   };
 
   const handleUpdateStore = () => {
@@ -257,6 +400,24 @@ const App: React.FC = () => {
   const startEditStore = (store: Store) => {
     setEditingStore(store);
     setCurrentView('store-detail');
+  };
+
+  const toggleCompanyAssignment = (companyId: string) => {
+    const currentIds = editingUser.companyIds || [];
+    if (currentIds.includes(companyId)) {
+      setEditingUser({ ...editingUser, companyIds: currentIds.filter(id => id !== companyId) });
+    } else {
+      setEditingUser({ ...editingUser, companyIds: [...currentIds, companyId] });
+    }
+  };
+
+  const togglePermissionAssignment = (permissionId: string) => {
+    const currentPerms = editingRole.permissions || [];
+    if (currentPerms.includes(permissionId)) {
+      setEditingRole({ ...editingRole, permissions: currentPerms.filter(id => id !== permissionId) });
+    } else {
+      setEditingRole({ ...editingRole, permissions: [...currentPerms, permissionId] });
+    }
   };
 
   return (
@@ -320,7 +481,28 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-user-shield" label="Admin" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-user-shield" 
+            label="Admin" 
+            active={currentView === 'user-list' || currentView === 'user-detail' || currentView === 'role-list' || currentView === 'role-detail'}
+            hasSubItems
+            onClick={() => {}}
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'user-list' || currentView === 'user-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('user-list')}
+                >
+                  User Management
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'role-list' || currentView === 'role-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('role-list')}
+                >
+                  Role Management
+                </div>
+             </div>
+          </SidebarItem>
         </nav>
       </aside>
 
@@ -332,7 +514,11 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 font-semibold">
               <i className="fa-solid fa-list-ul"></i>
               <span>
-                {currentView === 'store-list' ? 'Store List' :
+                {currentView === 'role-list' ? 'Role List' :
+                 currentView === 'role-detail' ? 'Role Detail' :
+                 currentView === 'user-list' ? 'User List' :
+                 currentView === 'user-detail' ? 'User Detail' :
+                 currentView === 'store-list' ? 'Store List' :
                  currentView === 'store-detail' ? 'Store Detail' :
                  currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
@@ -353,7 +539,267 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4">
-          {currentView === 'store-list' ? (
+          {currentView === 'role-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Role Management</h2>
+                  <button 
+                    onClick={startCreateRole}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-shield-halved"></i> Add Role
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Role Name</th>
+                          <th className="px-4 py-3 border-r">Code</th>
+                          <th className="px-4 py-3 border-r">Description</th>
+                          <th className="px-4 py-3 border-r">Permissions Count</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {roles.map(role => (
+                          <tr key={role.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-gray-800">{role.name}</td>
+                            <td className="px-4 py-3 border-r font-mono text-[#4d9e5f]">{role.code}</td>
+                            <td className="px-4 py-3 border-r truncate max-w-[250px]">{role.description}</td>
+                            <td className="px-4 py-3 border-r">
+                               <span className="bg-green-50 text-[#4d9e5f] border border-green-100 px-2 py-0.5 rounded-full font-bold">
+                                 {role.permissions.length} perms
+                               </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center gap-4">
+                                <i onClick={() => startEditRole(role)} className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"></i>
+                                <i onClick={() => handleDeleteRole(role.id)} className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'role-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setCurrentView('role-list')} className="text-gray-400 hover:text-gray-600">
+                      <i className="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingRole.id ? 'Update Role' : 'Create New Role'}
+                    </h2>
+                  </div>
+                  <div className="flex gap-2">
+                     <button onClick={() => setCurrentView('role-list')} className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-50">Cancel</button>
+                     <button onClick={handleSaveRole} className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] shadow-sm">Save Role</button>
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-8 max-w-5xl mx-auto w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInputDetail
+                      label="Role Name"
+                      required
+                      value={editingRole.name}
+                      onChange={val => setEditingRole({...editingRole, name: val})}
+                      placeholder="e.g. System Administrator"
+                    />
+                    <FormInputDetail
+                      label="Role Code"
+                      required
+                      value={editingRole.code}
+                      onChange={val => setEditingRole({...editingRole, code: val})}
+                      placeholder="e.g. SYS_ADMIN"
+                    />
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Description</label>
+                      <textarea 
+                        value={editingRole.description || ''}
+                        onChange={e => setEditingRole({...editingRole, description: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-20"
+                        placeholder="Describe the responsibilities of this role..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                      <i className="fa-solid fa-lock"></i> Assign Permissions
+                    </h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {PERMISSION_GROUPS.map(group => (
+                        <div key={group.module} className="border rounded-lg overflow-hidden shadow-sm">
+                          <div className="bg-[#e9f2ee] px-4 py-2 border-b">
+                            <h4 className="font-bold text-[#1b4d3e] text-[11px] uppercase tracking-wide">{group.module}</h4>
+                          </div>
+                          <div className="p-4 bg-white space-y-3">
+                            {group.permissions.map(perm => (
+                              <div key={perm.id} className="flex items-center gap-3">
+                                <input 
+                                  type="checkbox" 
+                                  id={`perm-${perm.id}`}
+                                  checked={editingRole.permissions?.includes(perm.id)}
+                                  onChange={() => togglePermissionAssignment(perm.id)}
+                                  className="w-4 h-4 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                                />
+                                <label htmlFor={`perm-${perm.id}`} className="text-xs text-gray-600 cursor-pointer font-medium select-none flex-1">
+                                  {perm.name}
+                                </label>
+                                <span className="text-[10px] text-gray-300 font-mono">{perm.id}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'user-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">User Management</h2>
+                  <button 
+                    onClick={startCreateUser}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-user-plus"></i> Add User
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Username</th>
+                          <th className="px-4 py-3 border-r">Full Name</th>
+                          <th className="px-4 py-3 border-r">Role</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {users.map(user => {
+                          const userRole = roles.find(r => r.id === user.roleId);
+                          return (
+                            <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-4 py-3 border-r font-mono text-[#4d9e5f]">{user.username}</td>
+                              <td className="px-4 py-3 border-r font-bold">{user.fullName}</td>
+                              <td className="px-4 py-3 border-r">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  userRole?.code === 'ADMIN' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                                  userRole?.code === 'PARTNER' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                  'bg-gray-50 text-gray-600 border border-gray-100'
+                                }`}>
+                                  {userRole?.name || 'No Role'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 border-r">
+                                <span className={`w-2 h-2 rounded-full inline-block mr-2 ${user.status === 'Active' ? 'bg-[#4d9e5f]' : 'bg-red-400'}`}></span>
+                                {user.status}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center justify-center gap-4">
+                                  <i onClick={() => startEditUser(user)} className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"></i>
+                                  <i onClick={() => handleDeleteUser(user.id)} className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'user-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setCurrentView('user-list')} className="text-gray-400 hover:text-gray-600">
+                      <i className="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingUser.id ? 'Update User' : 'Create New User'}
+                    </h2>
+                  </div>
+                  <div className="flex gap-2">
+                     <button onClick={() => setCurrentView('user-list')} className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-50">Cancel</button>
+                     <button onClick={handleSaveUser} className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] shadow-sm">Save User</button>
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInputDetail
+                      label="Username"
+                      required
+                      value={editingUser.username}
+                      onChange={val => setEditingUser({...editingUser, username: val})}
+                      placeholder="e.g. jsmith"
+                    />
+                    <FormInputDetail
+                      label="Full Name"
+                      required
+                      value={editingUser.fullName}
+                      onChange={val => setEditingUser({...editingUser, fullName: val})}
+                      placeholder="e.g. Jane Smith"
+                    />
+                    <FormInputDetail
+                      label="Email Address"
+                      required
+                      value={editingUser.email}
+                      onChange={val => setEditingUser({...editingUser, email: val})}
+                      placeholder="e.g. jane.smith@company.com"
+                    />
+                    <FormSelect
+                      label="User Role"
+                      required
+                      value={editingUser.roleId}
+                      onChange={val => setEditingUser({...editingUser, roleId: val as any})}
+                      options={roles.map(r => ({ label: r.name, value: r.id }))}
+                    />
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+                        Assigned Companies
+                      </label>
+                      <div className="border rounded-[4px] p-4 bg-gray-50/50 max-h-[200px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {companies.map(company => (
+                          <div key={company.id} className="flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              id={`company-${company.id}`}
+                              checked={editingUser.companyIds?.includes(company.id)}
+                              onChange={() => toggleCompanyAssignment(company.id)}
+                              className="w-4 h-4 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                            />
+                            <label htmlFor={`company-${company.id}`} className="text-xs text-gray-600 cursor-pointer font-medium select-none">
+                              {company.name} <span className="text-gray-400 ml-1">({company.code})</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-1 italic">Assign multiple companies to give this user access to multiple shipping accounts.</p>
+                    </div>
+                    <FormSelect
+                      label="Account Status"
+                      required
+                      value={editingUser.status}
+                      onChange={val => setEditingUser({...editingUser, status: val as any})}
+                      options={['Active', 'Inactive']}
+                    />
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'store-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                <div className="flex items-center justify-between border-b px-4 py-3">
                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Store List</h2>
@@ -402,7 +848,6 @@ const App: React.FC = () => {
           ) : currentView === 'store-detail' ? (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                {/* Breadcrumb Header */}
                 <div className="px-4 py-3 border-b flex items-center justify-between text-gray-400 text-xs">
                     <div className="flex items-center gap-2">
                       <i className="fa-solid fa-house"></i>
@@ -414,9 +859,7 @@ const App: React.FC = () => {
                     <i className="fa-solid fa-link text-gray-800"></i>
                 </div>
 
-                {/* Form Content */}
                 <div className="p-6 relative bg-white">
-                    {/* Background Watermark/Pattern Overlay */}
                     <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-x-60 gap-y-40 p-20">
                       {Array(20).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45 text-black">qc</span>)}
                     </div>
@@ -558,7 +1001,6 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Store History Section */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-2">
                   <i className="fa-solid fa-clock-rotate-left text-[#4d9e5f]"></i>
@@ -626,10 +1068,7 @@ const App: React.FC = () => {
                           <td className="px-4 py-3 border-r text-blue-500">{company.email || '-'}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-4">
-                              <i 
-                                onClick={() => startEditCompany(company)}
-                                className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"
-                              ></i>
+                              <i onClick={() => startEditCompany(company)} className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"></i>
                               <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
                             </div>
                           </td>
@@ -658,70 +1097,30 @@ const App: React.FC = () => {
               </div>
 
               <div className="p-8 space-y-8 max-w-5xl mx-auto w-full">
-                {/* General Information Section */}
                 <div className="space-y-6">
                   <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
                     <i className="fa-solid fa-building"></i> General Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <FormInput 
-                      label="Company Code" 
-                      required 
-                      value={editingCompany.code} 
-                      onChange={val => setEditingCompany({...editingCompany, code: val})} 
-                    />
-                    <FormInput 
-                      label="Company Name" 
-                      required 
-                      value={editingCompany.name} 
-                      onChange={val => setEditingCompany({...editingCompany, name: val})} 
-                    />
-                    <FormInput 
-                      label="Address" 
-                      required 
-                      colSpan={2}
-                      value={editingCompany.address} 
-                      onChange={val => setEditingCompany({...editingCompany, address: val})} 
-                    />
-                    <FormInput 
-                      label="Tax No" 
-                      required 
-                      value={editingCompany.taxNo} 
-                      onChange={val => setEditingCompany({...editingCompany, taxNo: val})} 
-                    />
-                    <FormInput 
-                      label="Email" 
-                      value={editingCompany.email} 
-                      onChange={val => setEditingCompany({...editingCompany, email: val})} 
-                    />
+                    <FormInput label="Company Code" required value={editingCompany.code} onChange={val => setEditingCompany({...editingCompany, code: val})} />
+                    <FormInput label="Company Name" required value={editingCompany.name} onChange={val => setEditingCompany({...editingCompany, name: val})} />
+                    <FormInput label="Address" required colSpan={2} value={editingCompany.address} onChange={val => setEditingCompany({...editingCompany, address: val})} />
+                    <FormInput label="Tax No" required value={editingCompany.taxNo} onChange={val => setEditingCompany({...editingCompany, taxNo: val})} />
+                    <FormInput label="Email" value={editingCompany.email} onChange={val => setEditingCompany({...editingCompany, email: val})} />
                   </div>
                 </div>
 
-                {/* Contact & Contract Section */}
                 <div className="space-y-6">
                   <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
                     <i className="fa-solid fa-file-signature"></i> Contact & Contract Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <FormInput 
-                      label="Contract Name" 
-                      value={editingCompany.contactName} 
-                      onChange={val => setEditingCompany({...editingCompany, contactName: val})} 
-                    />
-                    <FormInput 
-                      label="Contract Number" 
-                      value={editingCompany.contractNumber} 
-                      onChange={val => setEditingCompany({...editingCompany, contractNumber: val})} 
-                    />
-                    <FormInput 
-                      label="Designation/Title" 
-                      value={editingCompany.designation} 
-                      onChange={val => setEditingCompany({...editingCompany, designation: val})} 
-                    />
+                    <FormInput label="Contract Name" value={editingCompany.contactName} onChange={val => setEditingCompany({...editingCompany, contactName: val})} />
+                    <FormInput label="Contract Number" value={editingCompany.contractNumber} onChange={val => setEditingCompany({...editingCompany, contractNumber: val})} />
+                    <FormInput label="Designation/Title" value={editingCompany.designation} onChange={val => setEditingCompany({...editingCompany, designation: val})} />
                   </div>
                 </div>
 
-                {/* Signature Section */}
                 <div className="space-y-6">
                   <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
                     <i className="fa-solid fa-signature"></i> Image Signature
@@ -736,7 +1135,6 @@ const App: React.FC = () => {
             </div>
           ) : currentView === 'contract-list' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
-               {/* View Header Tabs */}
                <div className="flex items-center justify-between border-b px-4 py-2">
                   <div className="flex gap-6">
                     <button onClick={() => setActiveContractTab('List of Charges')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'List of Charges' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>List of Charges</button>
@@ -746,12 +1144,8 @@ const App: React.FC = () => {
                   <button className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm">Save All Changes</button>
                </div>
 
-               {/* View Body */}
                <div className="p-4 space-y-6">
-                  {/* Section Title */}
                   <h2 className="text-[#4d9e5f] font-bold text-sm">International (VN - US)</h2>
-
-                  {/* Route Bar */}
                   <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-full p-2 px-6 flex items-center gap-10 shadow-sm">
                     <div className="flex items-center gap-2">
                        <i className="fa-solid fa-earth-americas text-[#4d9e5f]"></i>
@@ -770,16 +1164,13 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Action Button */}
                   <div className="flex justify-end">
                      <button className="border border-[#4d9e5f] text-[#4d9e5f] px-3 py-1.5 rounded flex items-center gap-2 text-[12px] font-bold hover:bg-green-50 transition-colors">
                         <i className="fa-solid fa-plus"></i> Add Remote Area Surcharges
                      </button>
                   </div>
 
-                  {/* Config Box */}
                   <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
-                     {/* Watermark/Pattern Overlay simulation */}
                      <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-20 p-20">
                         {Array(10).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45 text-black">QC</span>)}
                      </div>
@@ -793,7 +1184,6 @@ const App: React.FC = () => {
 
                      <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                           {/* Define Regions */}
                            <div className="space-y-2">
                               <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
                                  Define Remote Regions <span className="text-red-500">*</span>
@@ -806,29 +1196,22 @@ const App: React.FC = () => {
                               </div>
                            </div>
 
-                           {/* LEADTIME FIELD */}
                            <div className="space-y-2">
                               <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
                                  Leadtime (h)
                               </label>
                               <div className="relative">
-                                 <input 
-                                    type="text" 
-                                    defaultValue="2"
-                                    className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10"
-                                 />
+                                 <input type="text" defaultValue="2" className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10" />
                               </div>
                            </div>
                         </div>
 
-                        {/* Add Row Button */}
                         <div className="flex justify-end relative z-10">
                            <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1 rounded flex items-center gap-2 text-[11px] font-bold hover:bg-gray-50 transition-all shadow-sm">
                               <i className="fa-solid fa-plus"></i> Add Row
                            </button>
                         </div>
 
-                        {/* Config Table */}
                         <div className="border border-gray-100 rounded overflow-hidden relative z-10">
                            <table className="w-full text-left text-[11px] border-collapse">
                               <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
@@ -865,7 +1248,6 @@ const App: React.FC = () => {
                                  </tr>
                               </tbody>
                            </table>
-                           {/* Scroll Indicator simulation */}
                            <div className="bg-gray-100 h-1.5 w-full mt-auto relative overflow-hidden">
                               <div className="absolute left-0 top-0 h-full w-1/4 bg-gray-300 rounded-full"></div>
                            </div>
@@ -876,7 +1258,6 @@ const App: React.FC = () => {
             </div>
           ) : currentView === 'shipment-list' ? (
             <div className="space-y-4 animate-in fade-in duration-300">
-               {/* Breadcrumb */}
                <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                  <i className="fa-solid fa-house"></i>
                  <span>/</span>
@@ -885,7 +1266,6 @@ const App: React.FC = () => {
                  <span className="text-gray-800 font-medium">Shipment List</span>
                </nav>
 
-               {/* Filters */}
                <div className="bg-white border rounded p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Shipment Code</label>
@@ -937,7 +1317,6 @@ const App: React.FC = () => {
                   </div>
                </div>
 
-               {/* Table Content */}
                <div className="bg-white border rounded shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-[12px]">
@@ -970,11 +1349,7 @@ const App: React.FC = () => {
                             <td className="px-4 py-3 border-r">{s.carrier}</td>
                             <td className="px-4 py-3 border-r">{s.shipper || '-'}</td>
                             <td className="px-4 py-3 border-r">
-                               <select 
-                                 value={s.status} 
-                                 onChange={(e) => handleStatusChange(s.id, e.target.value)}
-                                 className="px-2 py-1 border rounded bg-white text-[11px] font-medium min-w-[140px] focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
-                               >
+                               <select value={s.status} onChange={(e) => handleStatusChange(s.id, e.target.value)} className="px-2 py-1 border rounded bg-white text-[11px] font-medium min-w-[140px] focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all">
                                  <option value="Cancelled">Cancelled</option>
                                  <option value="Delivered">Delivered</option>
                                  <option value="Waiting for Pickup">Waiting for Pickup</option>
@@ -996,7 +1371,6 @@ const App: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Shipment Detail View */}
               <nav className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <i className="fa-solid fa-house"></i>
@@ -1076,16 +1450,8 @@ const App: React.FC = () => {
               </div>
 
               <label className="block text-[11px] font-bold text-[#7a869a] uppercase mb-2">SELECT WAREHOUSE/STORE</label>
-              
               <div className="relative">
-                <select 
-                  value={selectedReturnStore} 
-                  disabled={pendingStatus === 'Returned Local Hub'}
-                  onChange={(e) => setSelectedReturnStore(e.target.value)} 
-                  className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${
-                    pendingStatus === 'Returned Local Hub' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'
-                  }`}
-                >
+                <select value={selectedReturnStore} disabled={pendingStatus === 'Returned Local Hub'} onChange={(e) => setSelectedReturnStore(e.target.value)} className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${pendingStatus === 'Returned Local Hub' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'}`}>
                   {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -1105,27 +1471,6 @@ const App: React.FC = () => {
   );
 };
 
-const FormInput: React.FC<{ 
-  label: string; 
-  required?: boolean; 
-  value?: string; 
-  onChange: (val: string) => void;
-  colSpan?: number;
-}> = ({ label, required, value, onChange, colSpan = 1 }) => (
-  <div className={`space-y-1.5 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
-    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight flex items-center gap-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <input 
-      type="text" 
-      value={value || ''} 
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10"
-      placeholder={`Enter ${label.toLowerCase()}`}
-    />
-  </div>
-);
-
 const FormInputDetail: React.FC<{ 
   label: string; 
   required?: boolean; 
@@ -1139,18 +1484,9 @@ const FormInputDetail: React.FC<{
       {required && <span className="text-red-500">*</span>} {label}
     </label>
     <div className="relative">
-      <input 
-        type="text" 
-        value={value || ''} 
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
-        placeholder={placeholder}
-      />
+      <input type="text" value={value || ''} onChange={(e) => onChange(e.target.value)} className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]" placeholder={placeholder} />
       {showClear && value && (
-        <button 
-            onClick={() => onChange('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
-        >
+        <button onClick={() => onChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
             <i className="fa-solid fa-circle-xmark text-[11px]"></i>
         </button>
       )}
@@ -1163,23 +1499,38 @@ const FormSelect: React.FC<{
   required?: boolean; 
   value?: string; 
   onChange: (val: string) => void;
-  options: string[];
+  options: string[] | { label: string; value: string }[];
 }> = ({ label, required, value, onChange, options }) => (
   <div className="space-y-1">
     <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
       {required && <span className="text-red-500">*</span>} {label}
     </label>
     <div className="relative">
-      <select 
-        value={value || ''} 
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white appearance-none h-[34px]"
-      >
+      <select value={value || ''} onChange={(e) => onChange(e.target.value)} className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white appearance-none h-[34px]">
         <option value="">Select {label.toLowerCase()}</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {options.map(opt => {
+          const l = typeof opt === 'string' ? opt : opt.label;
+          const v = typeof opt === 'string' ? opt : opt.value;
+          return <option key={v} value={v}>{l}</option>;
+        })}
       </select>
       <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
     </div>
+  </div>
+);
+
+const FormInput: React.FC<{ 
+  label: string; 
+  required?: boolean; 
+  value?: string; 
+  onChange: (val: string) => void;
+  colSpan?: number;
+}> = ({ label, required, value, onChange, colSpan = 1 }) => (
+  <div className={`space-y-1.5 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
+    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight flex items-center gap-1">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input type="text" value={value || ''} onChange={(e) => onChange(e.target.value)} className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10" placeholder={`Enter ${label.toLowerCase()}`} />
   </div>
 );
 
