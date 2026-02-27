@@ -1,5 +1,5 @@
 
-import { ShipmentData, HistoryEntry } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer } from './types';
 
 export const MOCK_SHIPMENT: ShipmentData = {
   shipmentCode: 'S260107WAIU',
@@ -63,5 +63,44 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     performedBy: 'hungnk1',
     note: 'Create shipment',
     carrierStatus: '',
+  }
+];
+
+export const MOCK_INTERNAL_TRANSFERS: InternalTransfer[] = [
+  {
+    id: '1',
+    orderCode: '260226PTEU',
+    customerOrderCode: 'HDG11112',
+    customer: 'NOW_20250606121235',
+    carrier: 'Yun Express',
+    status: 'Dispatched',
+    createdAt: '23/02/2026 14:58:05',
+    estimatedDeliveryTime: '04/03/2026 - 08/03/2026',
+    orderType: 'SHIPPING_TYPE_DOMESTIC',
+    pickupPoint: '568 Lũy Bán Bích, Phường Hòa Thạnh, Quận Tân Phú, Hồ Chí Minh, Việt Nam',
+    totalAmount: 10,
+    currency: 'USD',
+    isReturn: false,
+    transportType: 'Unspecified',
+    paymentMethod: 'Unspecified',
+    orderCategory: 'Non-document',
+    cod: '***',
+    note: '—',
+    history: [
+      {
+        status: 'Dispatched',
+        time: '26/02/2026 18:34:49',
+        performedBy: 'hoadg',
+        note: 'Sync order with shipment',
+        carrierStatus: 'In Transit'
+      },
+      {
+        status: 'New',
+        time: '26/02/2026 18:34:47',
+        performedBy: 'hoadg',
+        note: 'Create order',
+        carrierStatus: 'Pending'
+      }
+    ]
   }
 ];

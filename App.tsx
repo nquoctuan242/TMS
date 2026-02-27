@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint } from './types';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer } from './types';
 
 const STORES_LIST_MOCK = [
   { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
@@ -168,15 +168,18 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail'>('shipment-list');
+  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail'>('shipment-list');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
+  const [internalTransfers, setInternalTransfers] = useState<InternalTransfer[]>(MOCK_INTERNAL_TRANSFERS);
   const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
+  const [selectedTransfer, setSelectedTransfer] = useState<InternalTransfer | null>(null);
+  const [activeTransferTab, setActiveTransferTab] = useState('General information');
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
   const [editingUser, setEditingUser] = useState<UserFormState>({});
@@ -479,7 +482,22 @@ const App: React.FC = () => {
 
         <nav className="flex-1 py-4 overflow-y-auto">
           <SidebarItem icon="fa-gauge" label="Dashboard" onClick={() => {}} />
-          <SidebarItem icon="fa-box" label="Orders" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-box" 
+            label="Orders" 
+            active={currentView === 'internal-transfer'} 
+            hasSubItems 
+            onClick={() => {}}
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'internal-transfer' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('internal-transfer')}
+                >
+                  Internal Transfer
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem 
             icon="fa-truck-arrow-right" 
             label="Shipments" 
@@ -569,6 +587,7 @@ const App: React.FC = () => {
                  currentView === 'store-detail' ? 'Store Detail' :
                  currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
+                 currentView === 'internal-transfer' ? 'Internal Transfer' :
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}
               </span>
@@ -1369,6 +1388,280 @@ const App: React.FC = () => {
                            </div>
                         </div>
                      </div>
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'internal-transfer-detail' && selectedTransfer ? (
+            <div className="space-y-4 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <i className="fa-solid fa-house"></i>
+                 <span>/</span>
+                 <span className="cursor-pointer hover:text-gray-800" onClick={() => setCurrentView('internal-transfer')}>Orders</span>
+                 <span>/</span>
+                 <span className="cursor-pointer hover:text-gray-800" onClick={() => setCurrentView('internal-transfer')}>Internal Transfer</span>
+                 <span>/</span>
+                 <span className="text-gray-800 font-medium">Detail</span>
+               </nav>
+
+               <div className="bg-white border rounded shadow-sm">
+                  {/* Tabs */}
+                  <div className="flex items-center justify-between px-4 border-b">
+                    <div className="flex overflow-x-auto no-scrollbar">
+                      {[
+                        { id: 'General information', icon: 'fa-circle-info', color: 'text-blue-500' },
+                        { id: 'Partner information', icon: 'fa-user-group', color: 'text-orange-500' },
+                        { id: 'Items information', icon: 'fa-cart-shopping', color: 'text-blue-400' },
+                        { id: 'Service', icon: 'fa-headset', color: 'text-green-500' },
+                        { id: 'Carrier information', icon: 'fa-truck-fast', color: 'text-red-400' }
+                      ].map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTransferTab(tab.id)}
+                          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
+                            activeTransferTab === tab.id 
+                              ? 'border-[#1b4d3e] text-[#1b4d3e]' 
+                              : 'border-transparent text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          <i className={`fa-solid ${tab.icon} ${tab.color}`}></i>
+                          {tab.id}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 py-2">
+                       <button className="px-3 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center gap-2">
+                         <i className="fa-regular fa-eye"></i> Show
+                       </button>
+                       <button className="px-3 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center gap-2">
+                         <i className="fa-regular fa-pen-to-square"></i> Edit
+                       </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-6">
+                    {activeTransferTab === 'General information' && (
+                      <div className="space-y-6">
+                        <section>
+                          <h3 className="text-sm font-bold text-gray-800 mb-4">General Information</h3>
+                          <div className="border rounded overflow-hidden">
+                            <table className="w-full text-xs">
+                              <tbody className="divide-y">
+                                <tr className="bg-gray-50/50">
+                                  <td className="px-4 py-3 font-bold text-gray-700 w-1/6 border-r">Order Code</td>
+                                  <td className="px-4 py-3 font-bold text-gray-900 w-1/3 border-r">{selectedTransfer.orderCode}</td>
+                                  <td className="px-4 py-3 font-bold text-gray-700 w-1/6 border-r">Customer Order Code</td>
+                                  <td className="px-4 py-3 w-1/3">
+                                    <span className="text-blue-500 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded">{selectedTransfer.customerOrderCode}</span>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Total Amount</td>
+                                  <td className="px-4 py-3 font-bold text-blue-500 border-r">{selectedTransfer.totalAmount} {selectedTransfer.currency}</td>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Customer</td>
+                                  <td className="px-4 py-3">
+                                    <span className="text-purple-600 border border-purple-200 bg-purple-50 px-2 py-0.5 rounded">{selectedTransfer.customer}</span>
+                                  </td>
+                                </tr>
+                                <tr className="bg-gray-50/50">
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Status</td>
+                                  <td className="px-4 py-3 border-r">
+                                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">{selectedTransfer.status}</span>
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Is Return</td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-0.5 rounded border ${selectedTransfer.isReturn ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                      {selectedTransfer.isReturn ? 'Yes' : 'No'}
+                                    </span>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Order Type</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.orderType}</td>
+                                </tr>
+                                <tr className="bg-gray-50/50">
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Transport Type</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.transportType}</td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Payment Method</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.paymentMethod}</td>
+                                </tr>
+                                <tr className="bg-gray-50/50">
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Order Category</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.orderCategory}</td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">COD</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.cod}</td>
+                                </tr>
+                                <tr className="bg-gray-50/50">
+                                  <td className="px-4 py-3 font-bold text-gray-700 border-r">Note</td>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>{selectedTransfer.note}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </section>
+
+                        <section>
+                          <h3 className="text-sm font-bold text-gray-800 mb-4">Order History</h3>
+                          <div className="border rounded overflow-hidden">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                                <tr>
+                                  <th className="px-4 py-3 border-r w-1/6">Status</th>
+                                  <th className="px-4 py-3 border-r w-1/6">Time</th>
+                                  <th className="px-4 py-3 border-r w-1/6">Performed By</th>
+                                  <th className="px-4 py-3">Note</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y text-gray-600">
+                                {selectedTransfer.history?.map((entry, idx) => (
+                                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 border-r">
+                                      <span className="bg-white border rounded px-2 py-0.5 text-[10px] font-bold">{entry.status}</span>
+                                    </td>
+                                    <td className="px-4 py-3 border-r">{entry.time}</td>
+                                    <td className="px-4 py-3 border-r">{entry.performedBy}</td>
+                                    <td className="px-4 py-3">{entry.note}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </section>
+                      </div>
+                    )}
+                    {activeTransferTab !== 'General information' && (
+                      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                        <i className="fa-solid fa-folder-open text-4xl mb-4"></i>
+                        <p className="text-sm">This section is under development</p>
+                      </div>
+                    )}
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'internal-transfer' ? (
+            <div className="space-y-4 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <i className="fa-solid fa-house"></i>
+                 <span>/</span>
+                 <span>Orders</span>
+                 <span>/</span>
+                 <span className="text-gray-800 font-medium">Internal Transfer</span>
+               </nav>
+
+               <div className="bg-white border rounded p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Order Code</label>
+                    <input type="text" placeholder="Enter order code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Customer Order Code</label>
+                    <input type="text" placeholder="Enter customer order code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Customer</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs appearance-none bg-white">
+                        <option>Input to Search customer</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Status</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs appearance-none bg-white">
+                        <option>Select order status</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <div className="space-y-1 lg:col-span-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Order Date Range</label>
+                    <div className="flex items-center gap-2 border rounded px-3 py-1.5">
+                      <input type="text" value="2026-02-21" className="w-20 outline-none text-xs" readOnly />
+                      <span className="text-gray-400">→</span>
+                      <input type="text" value="2026-02-27" className="w-20 outline-none text-xs" readOnly />
+                      <i className="fa-regular fa-calendar text-gray-400 ml-auto"></i>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 px-4 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center justify-center gap-2">
+                      <i className="fa-solid fa-rotate"></i> Reset
+                    </button>
+                    <button className="flex-1 px-4 py-1.5 bg-[#4d9e5f] text-white rounded text-xs font-medium hover:bg-[#3d7d4c] flex items-center justify-center gap-2">
+                      <i className="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                  </div>
+               </div>
+
+               <div className="bg-white border rounded shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse min-w-[1200px]">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Order code</th>
+                          <th className="px-4 py-3 border-r">Customer Order Code</th>
+                          <th className="px-4 py-3 border-r">Customer</th>
+                          <th className="px-4 py-3 border-r">Carrier</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 border-r">Created at</th>
+                          <th className="px-4 py-3 border-r">Estimated delivery time</th>
+                          <th className="px-4 py-3 border-r">Order type</th>
+                          <th className="px-4 py-3 border-r">Pickup point</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600">
+                        {internalTransfers.map(item => (
+                          <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 border-r">
+                              <div className="flex items-center gap-2">
+                                <span 
+                                  onClick={() => {
+                                    setSelectedTransfer(item);
+                                    setCurrentView('internal-transfer-detail');
+                                    setActiveTransferTab('General information');
+                                  }}
+                                  className="text-blue-500 hover:underline cursor-pointer border border-blue-200 bg-blue-50 px-2 py-0.5 rounded"
+                                >
+                                  {item.orderCode}
+                                </span>
+                                <i className="fa-solid fa-copy text-orange-400 text-[10px] cursor-pointer"></i>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 border-r">{item.customerOrderCode}</td>
+                            <td className="px-4 py-3 border-r">{item.customer}</td>
+                            <td className="px-4 py-3 border-r">{item.carrier}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">{item.status}</span>
+                            </td>
+                            <td className="px-4 py-3 border-r">{item.createdAt}</td>
+                            <td className="px-4 py-3 border-r">{item.estimatedDeliveryTime}</td>
+                            <td className="px-4 py-3 border-r">{item.orderType}</td>
+                            <td className="px-4 py-3 border-r max-w-[300px] truncate" title={item.pickupPoint}>{item.pickupPoint}</td>
+                            <td className="px-4 py-3 text-center">
+                              <i className="fa-solid fa-pen text-blue-400 cursor-pointer hover:text-blue-600"></i>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Pagination */}
+                  <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-end gap-4 text-xs">
+                    <div className="text-gray-500">Total: <span className="font-bold text-gray-800">{internalTransfers.length}</span></div>
+                    <div className="flex items-center gap-1">
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-white text-gray-400"><i className="fa-solid fa-chevron-left text-[10px]"></i></button>
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-[#1b4d3e] text-white">1</button>
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-white text-gray-400"><i className="fa-solid fa-chevron-right text-[10px]"></i></button>
+                    </div>
+                    <select className="border rounded px-2 py-1 outline-none bg-white">
+                      <option>20 / page</option>
+                    </select>
                   </div>
                </div>
             </div>

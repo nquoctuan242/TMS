@@ -38,3 +38,26 @@ export interface HistoryEntry {
   carrierStatus: string;
   podImageUrl?: string;
 }
+
+export interface InternalTransfer {
+  id: string;
+  orderCode: string;
+  customerOrderCode: string;
+  customer: string;
+  carrier: string;
+  status: string;
+  createdAt: string;
+  estimatedDeliveryTime: string;
+  orderType: string;
+  pickupPoint: string;
+  // Detail fields
+  totalAmount?: number;
+  currency?: string;
+  isReturn?: boolean;
+  transportType?: string;
+  paymentMethod?: string;
+  orderCategory?: string;
+  cod?: string;
+  note?: string;
+  history?: HistoryEntry[];
+}
