@@ -101,6 +101,69 @@ export const MOCK_INTERNAL_TRANSFERS: InternalTransfer[] = [
         note: 'Create order',
         carrierStatus: 'Pending'
       }
-    ]
+    ],
+    sender: {
+      name: 'HASAKI BEAUTY & CLINIC JSC',
+      phone: '********62',
+      email: 'No information',
+      company: 'No information',
+      street: '*** *** *** *** *** Quận Tân Bình, Hồ Chí Minh',
+      address: 'Phường 13, Quận Tân Bình, Thành phố Hồ Chí Minh',
+      countryCode: 'VN',
+      countryName: 'Vietnam',
+      postalCode: '700000',
+      addressType: 'Unspecified Address',
+      note: ''
+    },
+    receiver: {
+      name: 'Hang Doan',
+      phone: '+141******71',
+      email: 'No information',
+      street: '*** *** *** *** ***',
+      address: 'Alford, Florida',
+      countryCode: 'US',
+      countryName: 'United States',
+      postalCode: '32420',
+      latitude: '30.63637',
+      longitude: '-85.38123',
+      addressType: 'Unspecified Address',
+      note: ''
+    },
+    items: [
+      {
+        code: '—',
+        name: 'Áo Thun Nữ Synctives Mềm Mịn, Bền Màu, Thoáng Mát, Giữ Form - Rêu, M',
+        sku: '422269312',
+        quantity: 1,
+        unit: 'PCS',
+        length: 9.13,
+        width: 9.13,
+        height: 9.13,
+        weight: 0.152,
+        volume: 761.048,
+        retailPrice: 10.79,
+        wholesalePrice: 144
+      }
+    ],
+    totalPackages: 1,
+    totalCbm: 761.048,
+    convertValue: 0.152,
+    totalWeight: 0.152,
+    service: {
+      pricingCode: 'PRC090942',
+      mainServiceName: 'Delivery International Standard',
+      currency: 'VND',
+      serviceFee: 135929,
+      surchargeSum: 0,
+      vat: 10874.32,
+      totalFee: 146803.32,
+      estimatedTime: '08/03/2026 - 12/03/2026',
+      surcharges: []
+    },
+    carrierDetail: {
+      shipmentCode: 'S2602275ZE9',
+      carrierName: 'Yun Master Bill',
+      shipperName: ''
+    }
   }
 ];

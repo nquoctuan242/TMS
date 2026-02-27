@@ -1532,7 +1532,352 @@ const App: React.FC = () => {
                         </section>
                       </div>
                     )}
-                    {activeTransferTab !== 'General information' && (
+                    {activeTransferTab === 'Partner information' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Sender Information */}
+                        <div className="border rounded-lg p-4 space-y-6">
+                          <h3 className="text-sm font-bold text-gray-800">Sender Information</h3>
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
+                              <i className="fa-solid fa-user text-xl"></i>
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-gray-900">{selectedTransfer.sender?.name}</h4>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-building text-gray-400"></i>
+                                  {selectedTransfer.sender?.company}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-phone text-blue-500"></i>
+                                  {selectedTransfer.sender?.phone}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-envelope text-blue-400"></i>
+                                  {selectedTransfer.sender?.email}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-house text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Sender address</h5>
+                                <p className="text-xs text-gray-600"><span className="italic text-orange-600 font-medium">Street:</span> {selectedTransfer.sender?.street}</p>
+                                <p className="text-xs text-gray-600"><span className="italic text-orange-600 font-medium">Address:</span> {selectedTransfer.sender?.address}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-globe text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Country</h5>
+                                <div className="flex items-center gap-2">
+                                  <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-bold">{selectedTransfer.sender?.countryCode}</span>
+                                  <span className="text-xs text-gray-600">{selectedTransfer.sender?.countryName}, {selectedTransfer.sender?.postalCode}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-location-dot text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Coordinates</h5>
+                                <p className="text-xs text-gray-500 italic">No information</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-4 border-t space-y-2">
+                            <div className="text-[11px] text-gray-400">Address type: <span className="bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded">{selectedTransfer.sender?.addressType}</span></div>
+                            <div className="text-[11px] text-gray-400">Note: <span className="text-gray-600">{selectedTransfer.sender?.note || '—'}</span></div>
+                          </div>
+                        </div>
+
+                        {/* Receiver Information */}
+                        <div className="border rounded-lg p-4 space-y-6">
+                          <h3 className="text-sm font-bold text-gray-800">Receiver Information</h3>
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
+                              <i className="fa-solid fa-user text-xl"></i>
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-gray-900">{selectedTransfer.receiver?.name}</h4>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-phone text-blue-500"></i>
+                                  {selectedTransfer.receiver?.phone}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <i className="fa-solid fa-envelope text-blue-400"></i>
+                                  {selectedTransfer.receiver?.email}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-house text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Receiver address</h5>
+                                <p className="text-xs text-gray-600"><span className="italic text-orange-600 font-medium">Street:</span> {selectedTransfer.receiver?.street}</p>
+                                <p className="text-xs text-gray-600"><span className="italic text-orange-600 font-medium">Address:</span> {selectedTransfer.receiver?.address}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-globe text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Country</h5>
+                                <div className="flex items-center gap-2">
+                                  <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-bold">{selectedTransfer.receiver?.countryCode}</span>
+                                  <span className="text-xs text-gray-600">{selectedTransfer.receiver?.countryName}, {selectedTransfer.receiver?.postalCode}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <i className="fa-solid fa-location-dot text-blue-400 mt-1 shrink-0"></i>
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-gray-800">Coordinates</h5>
+                                <p className="text-xs text-gray-600">{selectedTransfer.receiver?.latitude}, {selectedTransfer.receiver?.longitude}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-4 border-t space-y-2">
+                            <div className="text-[11px] text-gray-400">Address type: <span className="bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded">{selectedTransfer.receiver?.addressType}</span></div>
+                            <div className="text-[11px] text-gray-400">Note: <span className="text-gray-600">{selectedTransfer.receiver?.note || '—'}</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {activeTransferTab === 'Items information' && (
+                      <div className="space-y-4">
+                        {/* Summary Bar */}
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex flex-wrap items-center justify-end gap-8">
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-boxes-stacked text-blue-500"></i>
+                            <span className="text-xs text-gray-500">Total packages: <span className="font-bold text-blue-600">{selectedTransfer.totalPackages}</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-box-open text-blue-400"></i>
+                            <span className="text-xs text-gray-500">Total CBM: <span className="font-bold text-blue-600">{selectedTransfer.totalCbm}</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-right-left text-gray-400"></i>
+                            <span className="text-xs text-gray-500">Convert: <span className="font-bold text-blue-600">{selectedTransfer.convertValue}</span></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-chevron-right text-orange-400"></i>
+                            <span className="text-xs text-gray-500">Total weight: <span className="font-bold text-orange-600">{selectedTransfer.totalWeight}</span></span>
+                          </div>
+                        </div>
+
+                        {/* Dimension Total Section */}
+                        <div className="border rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                          <h3 className="text-lg font-bold text-gray-800">Dimension Total:</h3>
+                          <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 flex gap-8 text-center">
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">UOM</div>
+                              <div className="text-xs font-bold text-red-500">Cm</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">Length</div>
+                              <div className="text-xs font-bold text-red-500">9.13</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">Width</div>
+                              <div className="text-xs font-bold text-red-500">9.13</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">Height</div>
+                              <div className="text-xs font-bold text-red-500">9.13</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">Weight</div>
+                              <div className="text-xs font-bold text-red-500">0.152</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-[10px] font-bold text-gray-400 uppercase">Volumetric Weight</div>
+                              <div className="text-xs font-bold text-red-500">0.152</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Items Table */}
+                        <div className="border rounded-lg overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs border-collapse min-w-[1200px]">
+                              <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                                <tr>
+                                  <th className="px-4 py-3 border-r">Item code</th>
+                                  <th className="px-4 py-3 border-r">Item name</th>
+                                  <th className="px-4 py-3 border-r">SKU</th>
+                                  <th className="px-4 py-3 border-r text-center">Quantity</th>
+                                  <th className="px-4 py-3 border-r text-center">Unit</th>
+                                  <th className="px-4 py-3 border-r text-center">Length</th>
+                                  <th className="px-4 py-3 border-r text-center">Width</th>
+                                  <th className="px-4 py-3 border-r text-center">Height</th>
+                                  <th className="px-4 py-3 border-r text-center">Weight</th>
+                                  <th className="px-4 py-3 border-r text-center">Volume</th>
+                                  <th className="px-4 py-3 border-r text-right">RetailPrice</th>
+                                  <th className="px-4 py-3 text-right">WholesalePrice</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y text-gray-600">
+                                {selectedTransfer.items?.map((item, idx) => (
+                                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 border-r text-blue-400">{item.code}</td>
+                                    <td className="px-4 py-3 border-r font-medium text-gray-900 max-w-[300px]">{item.name}</td>
+                                    <td className="px-4 py-3 border-r">
+                                      <span className="text-blue-500 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded">{item.sku}</span>
+                                    </td>
+                                    <td className="px-4 py-3 border-r text-center text-blue-500 font-bold">{item.quantity}</td>
+                                    <td className="px-4 py-3 border-r text-center">
+                                      <span className="text-blue-500 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded">{item.unit}</span>
+                                    </td>
+                                    <td className="px-4 py-3 border-r text-center">{item.length}</td>
+                                    <td className="px-4 py-3 border-r text-center">{item.width}</td>
+                                    <td className="px-4 py-3 border-r text-center">{item.height}</td>
+                                    <td className="px-4 py-3 border-r text-center">{item.weight}</td>
+                                    <td className="px-4 py-3 border-r text-center">{item.volume}</td>
+                                    <td className="px-4 py-3 border-r text-right text-green-600 font-bold">{item.retailPrice}</td>
+                                    <td className="px-4 py-3 text-right font-medium">{item.wholesalePrice}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot className="bg-gray-50 font-bold text-gray-900">
+                                <tr>
+                                  <td className="px-4 py-3 border-r" colSpan={3}>Total</td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center"></td>
+                                  <td className="px-4 py-3 border-r text-center text-green-600">{selectedTransfer.totalCbm}</td>
+                                  <td className="px-4 py-3 border-r text-right text-green-600">10.79</td>
+                                  <td className="px-4 py-3 text-right"></td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {activeTransferTab === 'Service' && (
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-xs font-bold">
+                          <span className="text-gray-700">Pricing Code:</span>
+                          <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded">{selectedTransfer.service?.pricingCode}</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Main Service */}
+                          <div className="border rounded-lg p-4 space-y-4">
+                            <h3 className="text-sm font-bold text-gray-800 border-b pb-2">Main service</h3>
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <div className="text-xs font-bold text-gray-700">Name : <span className="font-medium text-gray-600 ml-1">{selectedTransfer.service?.mainServiceName}</span></div>
+                                <div className="text-xs font-bold text-gray-700">Currency : <span className="bg-green-50 text-green-600 border border-green-100 px-2 py-0.5 rounded ml-1">{selectedTransfer.service?.currency}</span></div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <div className="text-xs font-bold text-gray-700">Service Fee : <span className="text-blue-600 ml-1">{selectedTransfer.service?.serviceFee.toLocaleString()}</span></div>
+                                <div className="text-xs font-bold text-gray-700">Surcharge (Sum) : <span className="text-green-600 ml-1">{selectedTransfer.service?.surchargeSum}</span></div>
+                                <div className="text-xs font-bold text-gray-700">VAT : <span className="text-orange-500 ml-1">{selectedTransfer.service?.vat.toLocaleString()}</span></div>
+                                <div className="text-xs font-bold text-gray-700">Total Fee : <span className="text-red-500 ml-1">{selectedTransfer.service?.totalFee.toLocaleString()}</span></div>
+                              </div>
+
+                              <div className="pt-4 border-t">
+                                <div className="text-xs font-bold text-green-600">Estimated Time : <span className="font-medium text-gray-600 ml-1">{selectedTransfer.service?.estimatedTime}</span></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Surcharge List */}
+                          <div className="border rounded-lg p-4 space-y-4">
+                            <h3 className="text-sm font-bold text-gray-800 border-b pb-2">Surcharge list</h3>
+                            <div className="border rounded overflow-hidden">
+                              <table className="w-full text-left text-xs border-collapse">
+                                <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                                  <tr>
+                                    <th className="px-4 py-2 border-r">Surcharge</th>
+                                    <th className="px-4 py-2 text-right">Amount</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {selectedTransfer.service?.surcharges.length === 0 ? (
+                                    <tr>
+                                      <td colSpan={2} className="py-12">
+                                        <div className="flex flex-col items-center justify-center text-gray-400">
+                                          <i className="fa-solid fa-box-archive text-3xl mb-2"></i>
+                                          <p className="text-[10px]">No data</p>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ) : (
+                                    selectedTransfer.service?.surcharges.map((s, idx) => (
+                                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-2 border-r">{s.name}</td>
+                                        <td className="px-4 py-2 text-right">{s.amount.toLocaleString()}</td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTransferTab === 'Carrier information' && (
+                      <div className="border rounded-lg p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-bold text-gray-800">Carrier</h3>
+                          <button className="px-4 py-1.5 bg-[#1b4d3e] text-white rounded text-xs font-medium hover:bg-[#143a2f] transition-colors">
+                            Go to Shipment page
+                          </button>
+                        </div>
+                        
+                        <div className="border rounded overflow-hidden">
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                              <tr>
+                                <th className="px-4 py-3 border-r w-1/4">Shipment Code</th>
+                                <th className="px-4 py-3 border-r w-1/3">Carrier Name</th>
+                                <th className="px-4 py-3">Shipper Name</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y text-gray-600">
+                              {selectedTransfer.carrierDetail ? (
+                                <tr className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-4 py-3 border-r">
+                                    <span className="text-blue-500 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded cursor-pointer hover:underline">
+                                      {selectedTransfer.carrierDetail.shipmentCode}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 border-r">{selectedTransfer.carrierDetail.carrierName}</td>
+                                  <td className="px-4 py-3">{selectedTransfer.carrierDetail.shipperName || '—'}</td>
+                                </tr>
+                              ) : (
+                                <tr>
+                                  <td colSpan={3} className="py-12 text-center text-gray-400">
+                                    No carrier information available
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    {activeTransferTab !== 'General information' && activeTransferTab !== 'Partner information' && activeTransferTab !== 'Items information' && activeTransferTab !== 'Service' && activeTransferTab !== 'Carrier information' && (
                       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                         <i className="fa-solid fa-folder-open text-4xl mb-4"></i>
                         <p className="text-sm">This section is under development</p>

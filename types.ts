@@ -39,6 +39,55 @@ export interface HistoryEntry {
   podImageUrl?: string;
 }
 
+export interface PartnerInfo {
+  name: string;
+  phone: string;
+  email: string;
+  company?: string;
+  street: string;
+  address: string;
+  countryCode: string;
+  countryName: string;
+  postalCode: string;
+  latitude?: string;
+  longitude?: string;
+  addressType: string;
+  note?: string;
+}
+
+export interface Item {
+  code: string;
+  name: string;
+  sku: string;
+  quantity: number;
+  unit: string;
+  length: number;
+  width: number;
+  height: number;
+  weight: number;
+  volume: number;
+  retailPrice: number;
+  wholesalePrice: number;
+}
+
+export interface ServiceInfo {
+  pricingCode: string;
+  mainServiceName: string;
+  currency: string;
+  serviceFee: number;
+  surchargeSum: number;
+  vat: number;
+  totalFee: number;
+  estimatedTime: string;
+  surcharges: Array<{ name: string; amount: number }>;
+}
+
+export interface CarrierDetail {
+  shipmentCode: string;
+  carrierName: string;
+  shipperName: string;
+}
+
 export interface InternalTransfer {
   id: string;
   orderCode: string;
@@ -60,4 +109,13 @@ export interface InternalTransfer {
   cod?: string;
   note?: string;
   history?: HistoryEntry[];
+  sender?: PartnerInfo;
+  receiver?: PartnerInfo;
+  items?: Item[];
+  totalPackages?: number;
+  totalCbm?: number;
+  convertValue?: number;
+  totalWeight?: number;
+  service?: ServiceInfo;
+  carrierDetail?: CarrierDetail;
 }
