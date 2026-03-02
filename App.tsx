@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer } from './types';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute } from './types';
 
 const STORES_LIST_MOCK = [
   { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
@@ -168,7 +168,7 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail'>('shipment-list');
+  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail'>('shipment-list');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -180,7 +180,12 @@ const App: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
   const [selectedTransfer, setSelectedTransfer] = useState<InternalTransfer | null>(null);
   const [activeTransferTab, setActiveTransferTab] = useState('General information');
+  const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
+  const [selectedRoute, setSelectedRoute] = useState<ITRoute | null>(null);
+  const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
+  const [storeSearch, setStoreSearch] = useState('');
+  const [shipperSearch, setShipperSearch] = useState('');
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
   const [editingUser, setEditingUser] = useState<UserFormState>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
@@ -491,6 +496,12 @@ const App: React.FC = () => {
           >
              <div className="ml-8 mt-2 space-y-2">
                 <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'order-online' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('order-online')}
+                >
+                  Online
+                </div>
+                <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'internal-transfer' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
                   onClick={() => setCurrentView('internal-transfer')}
                 >
@@ -529,7 +540,16 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} />
+          <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} hasSubItems>
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'it-route-list' || currentView === 'it-route-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('it-route-list')}
+                >
+                  IT Route
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem 
             icon="fa-gear" 
             label="Settings" 
@@ -587,6 +607,9 @@ const App: React.FC = () => {
                  currentView === 'store-detail' ? 'Store Detail' :
                  currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
+                 currentView === 'order-online' ? 'Online Order' :
+                 currentView === 'it-route-list' ? 'IT Route List' :
+                 currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}
@@ -1171,6 +1194,260 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+          ) : currentView === 'it-route-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">IT Route List</h2>
+                  <button 
+                    onClick={() => { setEditingRoute({ status: 'Active', assignedStores: [], assignedShippers: [] }); setCurrentView('it-route-detail'); }}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Create Route
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Route Name</th>
+                          <th className="px-4 py-3 border-r">Code</th>
+                          <th className="px-4 py-3 border-r">Stores</th>
+                          <th className="px-4 py-3 border-r">Shippers</th>
+                          <th className="px-4 py-3 border-r text-center">Status</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {itRoutes.map(route => (
+                          <tr key={route.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-gray-800">{route.name}</td>
+                            <td className="px-4 py-3 border-r font-mono text-[#4d9e5f]">{route.code}</td>
+                            <td className="px-4 py-3 border-r">
+                               <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full text-[10px]">
+                                 {route.assignedStores.length} stores
+                               </span>
+                            </td>
+                            <td className="px-4 py-3 border-r">
+                               <span className="bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded-full text-[10px]">
+                                 {route.assignedShippers.length} shippers
+                               </span>
+                            </td>
+                            <td className="px-4 py-3 border-r text-center">
+                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${route.status === 'Active' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-400 border border-gray-200'}`}>
+                                 {route.status}
+                               </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center gap-4">
+                                <i onClick={() => { setEditingRoute(route); setCurrentView('it-route-detail'); }} className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"></i>
+                                <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'it-route-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setCurrentView('it-route-list')} className="text-gray-400 hover:text-gray-600">
+                      <i className="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingRoute.id ? 'Update IT Route' : 'Create IT Route'}
+                    </h2>
+                  </div>
+                  <div className="flex gap-2">
+                     <button onClick={() => setCurrentView('it-route-list')} className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-50">Cancel</button>
+                     <button onClick={() => {
+                        if (!editingRoute.name || !editingRoute.code) {
+                          alert("Please fill in name and code.");
+                          return;
+                        }
+                        if (editingRoute.id) {
+                          setItRoutes(prev => prev.map(r => r.id === editingRoute.id ? (editingRoute as ITRoute) : r));
+                        } else {
+                          const newRoute: ITRoute = {
+                            ...(editingRoute as ITRoute),
+                            id: Math.random().toString(36).substr(2, 9),
+                            createdAt: new Date().toLocaleString()
+                          };
+                          setItRoutes(prev => [...prev, newRoute]);
+                        }
+                        setCurrentView('it-route-list');
+                     }} className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] shadow-sm">Save Route</button>
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-8 max-w-5xl mx-auto w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInputDetail
+                      label="Route Name"
+                      required
+                      value={editingRoute.name}
+                      onChange={val => setEditingRoute({...editingRoute, name: val})}
+                      placeholder="e.g. Route Tan Binh"
+                    />
+                    <FormInputDetail
+                      label="Route Code"
+                      required
+                      value={editingRoute.code}
+                      onChange={val => setEditingRoute({...editingRoute, code: val})}
+                      placeholder="e.g. RT-TB"
+                    />
+                    <FormSelect
+                      label="Status"
+                      required
+                      value={editingRoute.status}
+                      onChange={val => setEditingRoute({...editingRoute, status: val as any})}
+                      options={['Active', 'Inactive']}
+                    />
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Description</label>
+                      <textarea 
+                        value={editingRoute.description || ''}
+                        onChange={e => setEditingRoute({...editingRoute, description: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-20"
+                        placeholder="Describe this route..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Assign Stores */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2">
+                          <i className="fa-solid fa-store"></i> Assign Stores ({editingRoute.assignedStores?.length || 0})
+                        </h3>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <i className="fa-solid fa-magnifying-glass absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                            <input 
+                              type="text" 
+                              placeholder="Search stores..." 
+                              value={storeSearch}
+                              onChange={(e) => setStoreSearch(e.target.value)}
+                              className="pl-7 pr-2 py-1 border rounded text-[10px] outline-none focus:ring-1 focus:ring-[#4d9e5f] w-32"
+                            />
+                          </div>
+                          <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 cursor-pointer select-none">
+                            <input 
+                              type="checkbox" 
+                              checked={stores.length > 0 && editingRoute.assignedStores?.length === stores.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setEditingRoute({...editingRoute, assignedStores: stores.map(s => s.id)});
+                                } else {
+                                  setEditingRoute({...editingRoute, assignedStores: []});
+                                }
+                              }}
+                              className="w-3 h-3 rounded text-[#4d9e5f]"
+                            />
+                            Select All
+                          </label>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden shadow-sm bg-gray-50/30">
+                        <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+                          {stores.filter(s => s.name.toLowerCase().includes(storeSearch.toLowerCase()) || s.street.toLowerCase().includes(storeSearch.toLowerCase())).map(store => (
+                            <div key={store.id} className="flex items-center gap-3 p-2 hover:bg-white rounded transition-colors border border-transparent hover:border-gray-100">
+                              <input 
+                                type="checkbox" 
+                                id={`route-store-${store.id}`}
+                                checked={editingRoute.assignedStores?.includes(store.id)}
+                                onChange={(e) => {
+                                  const current = editingRoute.assignedStores || [];
+                                  if (e.target.checked) {
+                                    setEditingRoute({...editingRoute, assignedStores: [...current, store.id]});
+                                  } else {
+                                    setEditingRoute({...editingRoute, assignedStores: current.filter(id => id !== store.id)});
+                                  }
+                                }}
+                                className="w-4 h-4 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                              />
+                              <label htmlFor={`route-store-${store.id}`} className="text-xs text-gray-600 cursor-pointer font-medium select-none flex-1">
+                                {store.name}
+                                <div className="text-[10px] text-gray-400 font-normal">{store.street}</div>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assign Shippers */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2">
+                          <i className="fa-solid fa-user-ninja"></i> Assign Shippers ({editingRoute.assignedShippers?.length || 0})
+                        </h3>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <i className="fa-solid fa-magnifying-glass absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                            <input 
+                              type="text" 
+                              placeholder="Search shippers..." 
+                              value={shipperSearch}
+                              onChange={(e) => setShipperSearch(e.target.value)}
+                              className="pl-7 pr-2 py-1 border rounded text-[10px] outline-none focus:ring-1 focus:ring-[#4d9e5f] w-32"
+                            />
+                          </div>
+                          <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 cursor-pointer select-none">
+                            <input 
+                              type="checkbox" 
+                              checked={users.filter(u => roles.find(r => r.id === u.roleId)?.code === 'DISP' || roles.find(r => r.id === u.roleId)?.code === 'ADMIN').length > 0 && editingRoute.assignedShippers?.length === users.filter(u => roles.find(r => r.id === u.roleId)?.code === 'DISP' || roles.find(r => r.id === u.roleId)?.code === 'ADMIN').length}
+                              onChange={(e) => {
+                                const eligibleShippers = users.filter(u => roles.find(r => r.id === u.roleId)?.code === 'DISP' || roles.find(r => r.id === u.roleId)?.code === 'ADMIN');
+                                if (e.target.checked) {
+                                  setEditingRoute({...editingRoute, assignedShippers: eligibleShippers.map(u => u.id)});
+                                } else {
+                                  setEditingRoute({...editingRoute, assignedShippers: []});
+                                }
+                              }}
+                              className="w-3 h-3 rounded text-[#4d9e5f]"
+                            />
+                            Select All
+                          </label>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden shadow-sm bg-gray-50/30">
+                        <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+                          {users.filter(u => roles.find(r => r.id === u.roleId)?.code === 'DISP' || roles.find(r => r.id === u.roleId)?.code === 'ADMIN')
+                            .filter(u => u.fullName.toLowerCase().includes(shipperSearch.toLowerCase()) || u.username.toLowerCase().includes(shipperSearch.toLowerCase()))
+                            .map(user => (
+                            <div key={user.id} className="flex items-center gap-3 p-2 hover:bg-white rounded transition-colors border border-transparent hover:border-gray-100">
+                              <input 
+                                type="checkbox" 
+                                id={`route-shipper-${user.id}`}
+                                checked={editingRoute.assignedShippers?.includes(user.id)}
+                                onChange={(e) => {
+                                  const current = editingRoute.assignedShippers || [];
+                                  if (e.target.checked) {
+                                    setEditingRoute({...editingRoute, assignedShippers: [...current, user.id]});
+                                  } else {
+                                    setEditingRoute({...editingRoute, assignedShippers: current.filter(id => id !== user.id)});
+                                  }
+                                }}
+                                className="w-4 h-4 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                              />
+                              <label htmlFor={`route-shipper-${user.id}`} className="text-xs text-gray-600 cursor-pointer font-medium select-none flex-1">
+                                {user.fullName}
+                                <div className="text-[10px] text-gray-400 font-normal">@{user.username}</div>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+             </div>
           ) : currentView === 'company-list' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b px-4 py-3">
@@ -1391,6 +1668,22 @@ const App: React.FC = () => {
                   </div>
                </div>
             </div>
+          ) : currentView === 'order-online' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col items-center justify-center p-20 animate-in fade-in duration-300">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-6">
+                  <i className="fa-solid fa-globe text-4xl"></i>
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">Online Orders</h2>
+                <p className="text-gray-500 text-center max-w-md">
+                  This module is currently under development. You will be able to manage online orders from various platforms here.
+                </p>
+                <button 
+                  onClick={() => setCurrentView('shipment-list')}
+                  className="mt-8 px-6 py-2 bg-[#1b4d3e] text-white rounded-lg font-bold hover:bg-[#143a2f] transition-colors"
+                >
+                  Back to Dashboard
+                </button>
+             </div>
           ) : currentView === 'internal-transfer-detail' && selectedTransfer ? (
             <div className="space-y-4 animate-in fade-in duration-300">
                <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">

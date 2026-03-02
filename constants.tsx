@@ -1,5 +1,5 @@
 
-import { ShipmentData, HistoryEntry, InternalTransfer } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute } from './types';
 
 export const MOCK_SHIPMENT: ShipmentData = {
   shipmentCode: 'S260107WAIU',
@@ -63,6 +63,29 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     performedBy: 'hungnk1',
     note: 'Create shipment',
     carrierStatus: '',
+  }
+];
+
+export const MOCK_IT_ROUTES: ITRoute[] = [
+  {
+    id: '1',
+    name: 'Route Tan Binh - District 10',
+    code: 'RT-TB-D10',
+    description: 'Daily internal transfer route for Tan Binh and District 10 stores',
+    status: 'Active',
+    assignedStores: ['1', '2'],
+    assignedShippers: ['3'],
+    createdAt: '01/03/2026 08:00:00'
+  },
+  {
+    id: '2',
+    name: 'Route District 1 - District 3',
+    code: 'RT-D1-D3',
+    description: 'Express route for central districts',
+    status: 'Inactive',
+    assignedStores: [],
+    assignedShippers: [],
+    createdAt: '28/02/2026 14:30:00'
   }
 ];
 

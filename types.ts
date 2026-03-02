@@ -88,6 +88,17 @@ export interface CarrierDetail {
   shipperName: string;
 }
 
+export interface ITRoute {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  status: 'Active' | 'Inactive';
+  assignedStores: string[]; // Store IDs
+  assignedShippers: string[]; // User IDs (shippers)
+  createdAt: string;
+}
+
 export interface InternalTransfer {
   id: string;
   orderCode: string;
