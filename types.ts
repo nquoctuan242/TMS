@@ -101,15 +101,19 @@ export interface ITRoute {
 
 export interface InternalTransfer {
   id: string;
+  shipmentCode: string;
   orderCode: string;
-  customerOrderCode: string;
+  customerOrderCode?: string;
   customer: string;
   carrier: string;
+  shipper: string;
   status: string;
+  priority: string;
   createdAt: string;
   estimatedDeliveryTime: string;
-  orderType: string;
-  pickupPoint: string;
+  deliveryType: string;
+  orderType?: string;
+  pickupPoint?: string;
   // Detail fields
   totalAmount?: number;
   currency?: string;

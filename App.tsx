@@ -168,7 +168,7 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-list' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail'>('shipment-list');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -512,10 +512,25 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-truck-arrow-right" 
             label="Shipments" 
-            active={currentView === 'shipment-list' || currentView === 'shipment-detail'} 
+            active={currentView === 'shipment-online' || currentView === 'shipment-internal' || currentView === 'shipment-detail'} 
             hasSubItems 
-            onClick={() => setCurrentView('shipment-list')}
-          />
+            onClick={() => {}}
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-online' || currentView === 'shipment-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shipment-online')}
+                >
+                  Online
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-internal' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shipment-internal')}
+                >
+                  Internal Transfer
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem icon="fa-car-side" label="Fleet" onClick={() => {}} />
           <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
           <SidebarItem 
@@ -612,7 +627,8 @@ const App: React.FC = () => {
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
                  currentView === 'contract-list' ? 'Contract Management' : 
-                 currentView === 'shipment-list' ? 'Shipment List' : 'Shipment Detail'}
+                 currentView === 'shipment-online' ? 'Online Shipment' :
+                  currentView === 'shipment-internal' ? 'Internal Transfer Shipment' : 'Shipment Detail'}
               </span>
             </div>
           </div>
@@ -1678,7 +1694,7 @@ const App: React.FC = () => {
                   This module is currently under development. You will be able to manage online orders from various platforms here.
                 </p>
                 <button 
-                  onClick={() => setCurrentView('shipment-list')}
+                  onClick={() => setCurrentView('shipment-online')}
                   className="mt-8 px-6 py-2 bg-[#1b4d3e] text-white rounded-lg font-bold hover:bg-[#143a2f] transition-colors"
                 >
                   Back to Dashboard
@@ -2303,14 +2319,14 @@ const App: React.FC = () => {
                   </div>
                </div>
             </div>
-          ) : currentView === 'shipment-list' ? (
+          ) : currentView === 'shipment-online' ? (
             <div className="space-y-4 animate-in fade-in duration-300">
                <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                  <i className="fa-solid fa-house"></i>
                  <span>/</span>
                  <span>Shipments</span>
                  <span>/</span>
-                 <span className="text-gray-800 font-medium">Shipment List</span>
+                 <span className="text-gray-800 font-medium">Online</span>
                </nav>
 
                <div className="bg-white border rounded p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -2416,13 +2432,163 @@ const App: React.FC = () => {
                   </div>
                </div>
             </div>
+          ) : currentView === 'shipment-internal' ? (
+            <div className="space-y-4 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <i className="fa-solid fa-house"></i>
+                 <span>/</span>
+                 <span>Shipments</span>
+                 <span>/</span>
+                 <span className="text-gray-800 font-medium">Internal Transfer</span>
+               </nav>
+
+               {/* Filters Section */}
+               <div className="bg-white rounded shadow-sm p-4 border border-gray-100">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Shipment Code</label>
+                      <input type="text" placeholder="Enter shipment code" className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Order Code</label>
+                      <input type="text" placeholder="Enter order code" className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Customer</label>
+                      <div className="relative">
+                        <select className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none">
+                          <option>Input to Search customer</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400"></i>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Carrier</label>
+                      <div className="relative">
+                        <select className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none">
+                          <option>Select carrier</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400"></i>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Shipper</label>
+                      <div className="relative">
+                        <select className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none">
+                          <option>Input to Select shipper</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400"></i>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Shipment status</label>
+                      <div className="relative">
+                        <select className="w-full border rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none">
+                          <option>Select shipment status</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-end gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-orange-500 uppercase">Created at</label>
+                      <div className="flex items-center gap-2 border rounded px-3 py-1.5 bg-white">
+                        <input type="text" value="2026-02-25" className="w-24 text-xs outline-none" readOnly />
+                        <span className="text-gray-400">→</span>
+                        <input type="text" value="2026-03-03" className="w-24 text-xs outline-none" readOnly />
+                        <i className="fa-regular fa-calendar text-gray-400 ml-2"></i>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-auto">
+                      <button className="px-8 py-1.5 border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 flex items-center gap-2">
+                        <i className="fa-solid fa-rotate"></i> Reset
+                      </button>
+                      <button className="px-8 py-1.5 bg-[#4d9e5f] text-white rounded text-xs font-medium hover:bg-[#3d7d4c] flex items-center gap-2">
+                        <i className="fa-solid fa-magnifying-glass"></i> Search
+                      </button>
+                    </div>
+                  </div>
+               </div>
+
+               {/* Table Section */}
+               <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 flex justify-end gap-2 border-b">
+                    <button className="px-4 py-1.5 border border-gray-200 rounded text-xs text-gray-400 font-medium cursor-not-allowed">Assign Shipper</button>
+                    <button className="px-4 py-1.5 border border-gray-200 rounded text-xs text-gray-400 font-medium cursor-not-allowed">Dispatching</button>
+                    <button className="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600 font-medium hover:bg-gray-50">Print Label</button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs whitespace-nowrap">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                        <tr>
+                          <th className="px-4 py-3 w-10">
+                            <input type="checkbox" className="rounded" />
+                          </th>
+                          <th className="px-4 py-3">Shipment Code</th>
+                          <th className="px-4 py-3">Order Codes</th>
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Carrier</th>
+                          <th className="px-4 py-3">Shipper</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Priority</th>
+                          <th className="px-4 py-3">Created at</th>
+                          <th className="px-4 py-3">Estimated delivery time</th>
+                          <th className="px-4 py-3">Delivery type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600">
+                        {internalTransfers.map(it => (
+                          <tr key={it.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3">
+                              <input type="checkbox" className="rounded" />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setSelectedTransfer(it);
+                                    setCurrentView('internal-transfer-detail');
+                                  }}
+                                  className="text-blue-500 bg-blue-50 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 transition-colors font-medium"
+                                >
+                                  {it.shipmentCode}
+                                </button>
+                                <i className="fa-solid fa-copy text-orange-400 cursor-pointer hover:text-orange-600"></i>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 font-medium">{it.orderCode}</td>
+                            <td className="px-4 py-3">{it.customer}</td>
+                            <td className="px-4 py-3">{it.carrier}</td>
+                            <td className="px-4 py-3">{it.shipper || '—'}</td>
+                            <td className="px-4 py-3">
+                              <div className="relative w-32">
+                                <select className="w-full border rounded px-2 py-1 text-[11px] outline-none bg-white appearance-none">
+                                  <option>{it.status}</option>
+                                </select>
+                                <i className="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-[8px] text-gray-400"></i>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-blue-500 font-medium">{it.priority}</span>
+                            </td>
+                            <td className="px-4 py-3">{it.createdAt}</td>
+                            <td className="px-4 py-3">{it.estimatedDeliveryTime}</td>
+                            <td className="px-4 py-3">{it.deliveryType}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+            </div>
           ) : (
             <>
               <nav className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <i className="fa-solid fa-house"></i>
                   <span>/</span>
-                  <span className="hover:text-gray-700 cursor-pointer" onClick={() => setCurrentView('shipment-list')}>Shipments</span>
+                  <span className="hover:text-gray-700 cursor-pointer" onClick={() => setCurrentView('shipment-online')}>Shipments</span>
                   <span>/</span>
                   <span className="text-gray-800 font-medium">Shipment Detail</span>
                 </div>
