@@ -105,12 +105,34 @@ export const MOCK_INTERNAL_TRANSFERS: InternalTransfer[] = [
     totalAmount: 10,
     currency: 'USD',
     isReturn: false,
-    history: [],
-    sender: { name: 'HASAKI WAREHOUSE', phone: '0281234567', email: 'wh@hasaki.vn', street: '71 Hoang Hoa Tham', address: 'Tan Binh, HCM', countryCode: 'VN', countryName: 'Vietnam', postalCode: '700000', addressType: 'Warehouse' },
     receiver: { name: 'HASAKI STORE 123', phone: '0987267289', email: 's123@hasaki.vn', street: '568 Luy Ban Bich', address: 'Tan Phu, HCM', countryCode: 'VN', countryName: 'Vietnam', postalCode: '700000', addressType: 'Store' },
     items: [],
     totalPackages: 1,
-    totalWeight: 2.5
+    totalWeight: 0.1,
+    dimensions: '8.43x8.43x8.43',
+    volume: 599.077,
+    shippingCost: 0,
+    trackingNumber: 'S260303KCRL',
+    sector: '-',
+    statusDescription: '-',
+    note: '-',
+    history: [
+      {
+        status: 'Dispatched',
+        time: '03/03/2026 10:18:35',
+        performedBy: 'NOW_20250606121235',
+        note: 'Pushed to carrier, update shipment with carrier info',
+        carrierStatus: '-',
+      },
+      {
+        status: 'New',
+        time: '03/03/2026 10:18:33',
+        performedBy: 'NOW_20250606121235',
+        note: 'Create shipment',
+        carrierStatus: '-',
+      }
+    ],
+    sender: { name: 'HASAKI WAREHOUSE', phone: '0281234567', email: 'wh@hasaki.vn', street: '71 Hoang Hoa Tham', address: 'Tan Binh, HCM', countryCode: 'VN', countryName: 'Vietnam', postalCode: '700000', addressType: 'Warehouse' }
   },
   {
     id: '2',

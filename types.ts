@@ -131,6 +131,12 @@ export interface InternalTransfer {
   totalCbm?: number;
   convertValue?: number;
   totalWeight?: number;
+  dimensions?: string;
+  volume?: number;
+  shippingCost?: number;
+  trackingNumber?: string;
+  sector?: string;
+  statusDescription?: string;
   service?: ServiceInfo;
   carrierDetail?: CarrierDetail;
 }

@@ -555,20 +555,10 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-gears" label="Configs" onClick={() => {}} hasSubItems>
-             <div className="ml-8 mt-2 space-y-2">
-                <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'it-route-list' || currentView === 'it-route-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('it-route-list')}
-                >
-                  IT Route
-                </div>
-             </div>
-          </SidebarItem>
           <SidebarItem 
             icon="fa-gear" 
             label="Settings" 
-            active={currentView === 'store-list' || currentView === 'store-detail'} 
+            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -578,6 +568,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('store-list')}
                 >
                   Stores
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'it-route-list' || currentView === 'it-route-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('it-route-list')}
+                >
+                  IT Route
                 </div>
              </div>
           </SidebarItem>
