@@ -151,6 +151,7 @@ export interface Shipper {
   identificationNumber: string;
   note?: string;
   assignedStoreIds: string[];
+  defaultStoreId?: string;
   joinedAt?: string;
   leftAt?: string;
   street?: string;

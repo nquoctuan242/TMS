@@ -191,6 +191,7 @@ export const MOCK_SHIPPERS: Shipper[] = [
     identificationNumber: '9021839048325',
     note: 'USA - HAWAII',
     assignedStoreIds: ['1'],
+    defaultStoreId: '1',
     joinedAt: '2026-01-01',
     leftAt: '',
     street: '71 Hoang Hoa Tham',

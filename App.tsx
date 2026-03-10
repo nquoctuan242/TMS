@@ -857,8 +857,10 @@ const App: React.FC = () => {
                               <div className="flex flex-wrap gap-1">
                                 {shipper.assignedStoreIds.map(storeId => {
                                   const store = stores.find(s => s.id === storeId);
+                                  const isDefault = shipper.defaultStoreId === storeId;
                                   return (
-                                    <span key={storeId} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px]">
+                                    <span key={storeId} className={`px-2 py-0.5 rounded text-[10px] flex items-center gap-1 ${isDefault ? 'bg-[#e9f2ee] text-[#1b4d3e] font-bold border border-[#4d9e5f]' : 'bg-gray-100 text-gray-600'}`}>
+                                      {isDefault && <i className="fa-solid fa-star text-[8px]"></i>}
                                       {store?.name || storeId}
                                     </span>
                                   );
@@ -967,9 +969,11 @@ const App: React.FC = () => {
                                   className="fa-solid fa-xmark cursor-pointer hover:text-red-500"
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    const newIds = editingShipper.assignedStoreIds?.filter(id => id !== storeId) || [];
                                     setEditingShipper({
                                       ...editingShipper,
-                                      assignedStoreIds: editingShipper.assignedStoreIds?.filter(id => id !== storeId)
+                                      assignedStoreIds: newIds,
+                                      defaultStoreId: editingShipper.defaultStoreId === storeId ? undefined : editingShipper.defaultStoreId
                                     });
                                   }}
                                 ></i>
@@ -988,9 +992,11 @@ const App: React.FC = () => {
                               onClick={() => {
                                 const currentIds = editingShipper.assignedStoreIds || [];
                                 if (currentIds.includes(store.id)) {
+                                  const newIds = currentIds.filter(id => id !== store.id);
                                   setEditingShipper({
                                     ...editingShipper,
-                                    assignedStoreIds: currentIds.filter(id => id !== store.id)
+                                    assignedStoreIds: newIds,
+                                    defaultStoreId: editingShipper.defaultStoreId === store.id ? undefined : editingShipper.defaultStoreId
                                   });
                                 } else {
                                   setEditingShipper({
@@ -1011,6 +1017,29 @@ const App: React.FC = () => {
                           ))}
                         </div>
                       </div>
+                    </div>
+                    <div className="md:col-span-1 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+                        Default Store
+                      </label>
+                      <select 
+                        value={editingShipper.defaultStoreId || ''}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setEditingShipper({...editingShipper, defaultStoreId: val});
+                        }}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                      >
+                        <option value="">Select default store...</option>
+                        {editingShipper.assignedStoreIds?.map(storeId => {
+                          const store = stores.find(s => s.id === storeId);
+                          return (
+                            <option key={storeId} value={storeId}>
+                              {store?.name || storeId}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </div>
                     <div className="md:col-span-2 space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight">Participation period</label>
