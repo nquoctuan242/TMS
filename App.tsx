@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute } from './types';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper } from './types';
 
 const STORES_LIST_MOCK = [
   { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
@@ -168,7 +168,7 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -181,8 +181,10 @@ const App: React.FC = () => {
   const [selectedTransfer, setSelectedTransfer] = useState<InternalTransfer | null>(null);
   const [activeTransferTab, setActiveTransferTab] = useState('General information');
   const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
+  const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
   const [selectedRoute, setSelectedRoute] = useState<ITRoute | null>(null);
   const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
+  const [editingShipper, setEditingShipper] = useState<Partial<Shipper>>({});
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [storeSearch, setStoreSearch] = useState('');
   const [shipperSearch, setShipperSearch] = useState('');
@@ -370,6 +372,41 @@ const App: React.FC = () => {
     setCurrentView('role-list');
   };
 
+  const handleSaveShipper = () => {
+    if (!editingShipper.name || !editingShipper.email || !editingShipper.phone || !editingShipper.employeeId || !editingShipper.identificationNumber) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    if (editingShipper.id) {
+      setShippers(prev => prev.map(s => s.id === editingShipper.id ? (editingShipper as Shipper) : s));
+    } else {
+      const newShipper: Shipper = {
+        ...(editingShipper as Shipper),
+        id: Math.random().toString(36).substr(2, 9),
+        assignedStoreIds: editingShipper.assignedStoreIds || []
+      };
+      setShippers(prev => [...prev, newShipper]);
+    }
+    setCurrentView('shipper-list');
+  };
+
+  const startEditShipper = (shipper: Shipper) => {
+    setEditingShipper(shipper);
+    setCurrentView('shipper-detail');
+  };
+
+  const startCreateShipper = () => {
+    setEditingShipper({ type: 'Motorbike', assignedStoreIds: [] });
+    setCurrentView('shipper-detail');
+  };
+
+  const handleDeleteShipper = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this shipper?")) {
+      setShippers(prev => prev.filter(s => s.id !== id));
+    }
+  };
+
   const handleDeleteUser = (id: string) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       setUsers(prev => prev.filter(u => u.id !== id));
@@ -531,7 +568,22 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-car-side" label="Fleet" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-car-side" 
+            label="Fleet" 
+            active={currentView === 'shipper-list' || currentView === 'shipper-detail'} 
+            hasSubItems
+            onClick={() => {}}
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipper-list' || currentView === 'shipper-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shipper-list')}
+                >
+                  Shipper
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
           <SidebarItem 
             icon="fa-handshake" 
@@ -619,6 +671,8 @@ const App: React.FC = () => {
                  currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
                  currentView === 'order-online' ? 'Online Order' :
+                 currentView === 'shipper-list' ? 'Shipper List' :
+                 currentView === 'shipper-detail' ? 'Shipper Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
@@ -760,6 +814,267 @@ const App: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'shipper-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Shipper Management</h2>
+                  <button 
+                    onClick={startCreateShipper}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-user-plus"></i> Add Shipper
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Name</th>
+                          <th className="px-4 py-3 border-r">Employee ID</th>
+                          <th className="px-4 py-3 border-r">Phone</th>
+                          <th className="px-4 py-3 border-r">Type</th>
+                          <th className="px-4 py-3 border-r">Assigned Stores</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {shippers.map(shipper => (
+                          <tr key={shipper.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-gray-800">{shipper.name}</td>
+                            <td className="px-4 py-3 border-r font-mono text-[#4d9e5f]">{shipper.employeeId}</td>
+                            <td className="px-4 py-3 border-r">{shipper.phone}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                                {shipper.type}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 border-r">
+                              <div className="flex flex-wrap gap-1">
+                                {shipper.assignedStoreIds.map(storeId => {
+                                  const store = stores.find(s => s.id === storeId);
+                                  return (
+                                    <span key={storeId} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px]">
+                                      {store?.name || storeId}
+                                    </span>
+                                  );
+                                })}
+                                {shipper.assignedStoreIds.length === 0 && <span className="text-gray-400 italic">No stores assigned</span>}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center gap-4">
+                                <i onClick={() => startEditShipper(shipper)} className="fa-regular fa-pen-to-square text-gray-400 cursor-pointer hover:text-[#4d9e5f] transition-colors"></i>
+                                <i onClick={() => handleDeleteShipper(shipper.id)} className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'shipper-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setCurrentView('shipper-list')} className="text-gray-400 hover:text-gray-600">
+                      <i className="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingShipper.id ? 'Edit Shipper' : 'Add Shipper'}
+                    </h2>
+                  </div>
+                  <div className="flex gap-2">
+                     <button onClick={() => setCurrentView('shipper-list')} className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-50">Cancel</button>
+                     <button onClick={handleSaveShipper} className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] shadow-sm">
+                       {editingShipper.id ? 'Update' : 'Save'}
+                     </button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6 max-w-6xl mx-auto w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FormInputDetail
+                      label="Name"
+                      required
+                      value={editingShipper.name}
+                      onChange={val => setEditingShipper({...editingShipper, name: val})}
+                      placeholder="e.g. Phuong Phan"
+                    />
+                    <FormInputDetail
+                      label="Email"
+                      required
+                      value={editingShipper.email}
+                      onChange={val => setEditingShipper({...editingShipper, email: val})}
+                      placeholder="e.g. p1@hasaki.vn"
+                    />
+                    <FormInputDetail
+                      label="Phone"
+                      required
+                      value={editingShipper.phone}
+                      onChange={val => setEditingShipper({...editingShipper, phone: val})}
+                      placeholder="e.g. 0972655076"
+                    />
+                    <FormInputDetail
+                      label="EmployeeId"
+                      required
+                      value={editingShipper.employeeId}
+                      onChange={val => setEditingShipper({...editingShipper, employeeId: val})}
+                      placeholder="e.g. Phuongplat"
+                    />
+                    <FormSelect
+                      label="Type"
+                      required
+                      value={editingShipper.type}
+                      onChange={val => setEditingShipper({...editingShipper, type: val as any})}
+                      options={['Motorbike', 'Truck', 'Van']}
+                    />
+                    <FormInputDetail
+                      label="Identification Number"
+                      required
+                      value={editingShipper.identificationNumber}
+                      onChange={val => setEditingShipper({...editingShipper, identificationNumber: val})}
+                      placeholder="e.g. 9021839048325"
+                    />
+                    <div className="md:col-span-1 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Note</label>
+                      <input 
+                        type="text"
+                        value={editingShipper.note || ''}
+                        onChange={e => setEditingShipper({...editingShipper, note: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. USA - HAWAII"
+                      />
+                    </div>
+                    <div className="md:col-span-1 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight flex items-center gap-1">
+                        <span className="text-red-500">*</span> Store
+                      </label>
+                      <div className="relative group">
+                        <div className="min-h-[34px] border border-[#e5e7eb] rounded-[4px] px-3 py-1 flex flex-wrap gap-1 bg-white cursor-pointer hover:border-[#4d9e5f] transition-all">
+                          {editingShipper.assignedStoreIds?.map(storeId => {
+                            const store = stores.find(s => s.id === storeId);
+                            return (
+                              <span key={storeId} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
+                                {store?.name || storeId}
+                                <i 
+                                  className="fa-solid fa-xmark cursor-pointer hover:text-red-500"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingShipper({
+                                      ...editingShipper,
+                                      assignedStoreIds: editingShipper.assignedStoreIds?.filter(id => id !== storeId)
+                                    });
+                                  }}
+                                ></i>
+                              </span>
+                            );
+                          })}
+                          {(!editingShipper.assignedStoreIds || editingShipper.assignedStoreIds.length === 0) && (
+                            <span className="text-gray-400 text-[12px] py-1">Select stores...</span>
+                          )}
+                        </div>
+                        <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-y-auto hidden group-hover:block hover:block">
+                          {stores.map(store => (
+                            <div 
+                              key={store.id}
+                              className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 cursor-pointer text-[12px]"
+                              onClick={() => {
+                                const currentIds = editingShipper.assignedStoreIds || [];
+                                if (currentIds.includes(store.id)) {
+                                  setEditingShipper({
+                                    ...editingShipper,
+                                    assignedStoreIds: currentIds.filter(id => id !== store.id)
+                                  });
+                                } else {
+                                  setEditingShipper({
+                                    ...editingShipper,
+                                    assignedStoreIds: [...currentIds, store.id]
+                                  });
+                                }
+                              }}
+                            >
+                              <input 
+                                type="checkbox" 
+                                checked={editingShipper.assignedStoreIds?.includes(store.id)}
+                                readOnly
+                                className="w-3 h-3 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
+                              />
+                              <span className="flex-1">{store.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Participation period</label>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 relative">
+                          <input 
+                            type="date"
+                            value={editingShipper.joinedAt || ''}
+                            onChange={e => setEditingShipper({...editingShipper, joinedAt: e.target.value})}
+                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <span className="absolute left-3 -top-2 bg-white px-1 text-[9px] text-gray-400">joined At</span>
+                        </div>
+                        <div className="flex-1 relative">
+                          <input 
+                            type="date"
+                            value={editingShipper.leftAt || ''}
+                            onChange={e => setEditingShipper({...editingShipper, leftAt: e.target.value})}
+                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <span className="absolute left-3 -top-2 bg-white px-1 text-[9px] text-gray-400">left At</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-2 border-b flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                        <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Address Information</span>
+                      </div>
+                    </div>
+                    <div className="p-6 bg-white grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                      <FormInputDetail
+                        label="Street"
+                        value={editingShipper.street}
+                        onChange={val => setEditingShipper({...editingShipper, street: val})}
+                        placeholder="e.g. 71 Hoang Hoa Tham"
+                      />
+                      <FormInputDetail
+                        label="Address"
+                        value={editingShipper.address}
+                        onChange={val => setEditingShipper({...editingShipper, address: val})}
+                        placeholder="e.g. Tan Binh, HCM"
+                      />
+                      <FormInputDetail
+                        label="Country Code"
+                        value={editingShipper.countryCode}
+                        onChange={val => setEditingShipper({...editingShipper, countryCode: val})}
+                        placeholder="e.g. VN"
+                      />
+                      <FormInputDetail
+                        label="Country Name"
+                        value={editingShipper.countryName}
+                        onChange={val => setEditingShipper({...editingShipper, countryName: val})}
+                        placeholder="e.g. Vietnam"
+                      />
+                      <FormInputDetail
+                        label="Postal Code"
+                        value={editingShipper.postalCode}
+                        onChange={val => setEditingShipper({...editingShipper, postalCode: val})}
+                        placeholder="e.g. 700000"
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 
-import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper } from './types';
 
 export const MOCK_SHIPMENT: ShipmentData = {
   shipmentCode: 'S260107WAIU',
@@ -177,5 +177,26 @@ export const MOCK_INTERNAL_TRANSFERS: InternalTransfer[] = [
     items: [],
     totalPackages: 1,
     totalWeight: 1.2
+  }
+];
+
+export const MOCK_SHIPPERS: Shipper[] = [
+  {
+    id: '1',
+    name: 'Phuong Phan',
+    email: 'p1@hasaki.vn',
+    phone: '0972655076',
+    employeeId: 'Phuongplat',
+    type: 'Motorbike',
+    identificationNumber: '9021839048325',
+    note: 'USA - HAWAII',
+    assignedStoreIds: ['1'],
+    joinedAt: '2026-01-01',
+    leftAt: '',
+    street: '71 Hoang Hoa Tham',
+    address: 'Tan Binh, HCM',
+    countryCode: 'VN',
+    countryName: 'Vietnam',
+    postalCode: '700000'
   }
 ];

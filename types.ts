@@ -140,3 +140,22 @@ export interface InternalTransfer {
   service?: ServiceInfo;
   carrierDetail?: CarrierDetail;
 }
+
+export interface Shipper {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  employeeId: string;
+  type: string;
+  identificationNumber: string;
+  note?: string;
+  assignedStoreIds: string[];
+  joinedAt?: string;
+  leftAt?: string;
+  street?: string;
+  address?: string;
+  countryCode?: string;
+  countryName?: string;
+  postalCode?: string;
+}
