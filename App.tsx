@@ -185,6 +185,13 @@ const App: React.FC = () => {
   const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
   const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
+  const [ticketFilters, setTicketFilters] = useState({
+    ticketType: '',
+    shipper: '',
+    orderCode: '',
+    fromDate: '',
+    toDate: ''
+  });
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>(MOCK_TICKET_TYPES);
   const [selectedRoute, setSelectedRoute] = useState<ITRoute | null>(null);
   const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
@@ -1273,6 +1280,73 @@ const App: React.FC = () => {
                     <i className="fa-solid fa-plus"></i> Create Ticket
                   </button>
                 </div>
+
+                {/* Filter Bar */}
+                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ticket Type</label>
+                      <select 
+                        value={ticketFilters.ticketType}
+                        onChange={e => setTicketFilters({...ticketFilters, ticketType: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      >
+                        <option value="">All Types</option>
+                        {ticketTypes.map(tt => (
+                          <option key={tt.id} value={tt.name}>{tt.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Shipper (Name/ID)</label>
+                      <input 
+                        type="text"
+                        value={ticketFilters.shipper}
+                        onChange={e => setTicketFilters({...ticketFilters, shipper: e.target.value})}
+                        placeholder="Search shipper..."
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Order Code</label>
+                      <input 
+                        type="text"
+                        value={ticketFilters.orderCode}
+                        onChange={e => setTicketFilters({...ticketFilters, orderCode: e.target.value})}
+                        placeholder="Search order..."
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">From Date</label>
+                      <input 
+                        type="date"
+                        value={ticketFilters.fromDate}
+                        onChange={e => setTicketFilters({...ticketFilters, fromDate: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">To Date</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="date"
+                          value={ticketFilters.toDate}
+                          onChange={e => setTicketFilters({...ticketFilters, toDate: e.target.value})}
+                          className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                        />
+                        <button 
+                          onClick={() => setTicketFilters({ ticketType: '', shipper: '', orderCode: '', fromDate: '', toDate: '' })}
+                          className="bg-gray-200 text-gray-600 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-gray-300 transition-colors"
+                          title="Clear Filters"
+                        >
+                          <i className="fa-solid fa-rotate-left"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="p-4">
                   <div className="border border-gray-100 rounded overflow-hidden">
                     <table className="w-full text-left text-xs">
@@ -1292,7 +1366,34 @@ const App: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y text-gray-600 font-medium">
-                        {tickets.map(ticket => (
+                        {tickets.filter(ticket => {
+                          const matchType = !ticketFilters.ticketType || ticket.ticketType === ticketFilters.ticketType;
+                          const matchShipper = !ticketFilters.shipper || 
+                            ticket.shipperName?.toLowerCase().includes(ticketFilters.shipper.toLowerCase()) ||
+                            ticket.shipperId?.toLowerCase().includes(ticketFilters.shipper.toLowerCase());
+                          const matchOrder = !ticketFilters.orderCode || ticket.orderCode?.toLowerCase().includes(ticketFilters.orderCode.toLowerCase());
+                          
+                          let matchDate = true;
+                          if (ticketFilters.fromDate || ticketFilters.toDate) {
+                            // Parse DD/MM/YYYY
+                            const dateStr = ticket.createdAt.split(' ')[0];
+                            const [day, month, year] = dateStr.split('/').map(Number);
+                            const ticketDate = new Date(year, month - 1, day);
+                            
+                            if (ticketFilters.fromDate) {
+                              const from = new Date(ticketFilters.fromDate);
+                              from.setHours(0, 0, 0, 0);
+                              if (ticketDate < from) matchDate = false;
+                            }
+                            if (ticketFilters.toDate) {
+                              const to = new Date(ticketFilters.toDate);
+                              to.setHours(23, 59, 59, 999);
+                              if (ticketDate > to) matchDate = false;
+                            }
+                          }
+                          
+                          return matchType && matchShipper && matchOrder && matchDate;
+                        }).map(ticket => (
                           <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{ticket.ticketCode}</td>
                             <td className="px-4 py-3 border-r max-w-[150px] truncate" title={ticket.explanationContent}>{ticket.explanationContent}</td>
