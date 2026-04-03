@@ -161,6 +161,15 @@ export interface Shipper {
   postalCode?: string;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: string;
+  uploadedAt: string;
+}
+
 export interface Ticket {
   id: string;
   ticketCode: string;
@@ -176,6 +185,7 @@ export interface Ticket {
   createdBy: string;
   status: 'Open' | 'Explained' | 'Approved' | 'Rejected';
   orderCode?: string;
+  attachments?: Attachment[];
   
   // Explanation fields
   explanationCode?: string;

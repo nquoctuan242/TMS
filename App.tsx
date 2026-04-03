@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType } from './types';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment } from './types';
 
 const STORES_LIST_MOCK = [
   { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
@@ -450,6 +450,32 @@ const App: React.FC = () => {
       approvalDate: now,
       approvedBy: 'nquoctuan242@gmail.com'
     });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const newAttachment: Attachment = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: file.type,
+      size: `${(file.size / 1024).toFixed(1)} KB`,
+      uploadedAt: new Date().toLocaleString()
+    };
+
+    setEditingTicket(prev => ({
+      ...prev,
+      attachments: [...(prev.attachments || []), newAttachment]
+    }));
+  };
+
+  const removeAttachment = (id: string) => {
+    setEditingTicket(prev => ({
+      ...prev,
+      attachments: (prev.attachments || []).filter(a => a.id !== id)
+    }));
   };
 
   const handleSaveTicket = () => {
@@ -1358,7 +1384,7 @@ const App: React.FC = () => {
                           <th className="px-4 py-3 border-r">Shipper ID</th>
                           <th className="px-4 py-3 border-r">Shipper Name</th>
                           <th className="px-4 py-3 border-r text-nowrap">Incident Date</th>
-                          <th className="px-4 py-3 border-r">Reason</th>
+                          <th className="px-4 py-3 border-r">Order Code</th>
                           <th className="px-4 py-3 border-r text-nowrap">Created Date</th>
                           <th className="px-4 py-3 border-r text-nowrap">Created By</th>
                           <th className="px-4 py-3 border-r">Status</th>
@@ -1401,7 +1427,15 @@ const App: React.FC = () => {
                             <td className="px-4 py-3 border-r font-mono text-[10px]">{ticket.shipperId}</td>
                             <td className="px-4 py-3 border-r">{ticket.shipperName}</td>
                             <td className="px-4 py-3 border-r">{ticket.incidentReportDate}</td>
-                            <td className="px-4 py-3 border-r max-w-[120px] truncate" title={ticket.reason}>{ticket.reason}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span 
+                                className="text-blue-600 hover:text-blue-800 cursor-pointer hover:underline font-bold"
+                                onClick={() => setCurrentView('shipment-detail')}
+                                title="View Order Detail"
+                              >
+                                {ticket.orderCode}
+                              </span>
+                            </td>
                             <td className="px-4 py-3 border-r text-nowrap">{ticket.createdAt}</td>
                             <td className="px-4 py-3 border-r">{ticket.createdBy}</td>
                             <td className="px-4 py-3 border-r">
@@ -1558,7 +1592,17 @@ const App: React.FC = () => {
                               </select>
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order Code</label>
+                              <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order Code</label>
+                                {editingTicket.orderCode && (
+                                  <button 
+                                    onClick={() => setCurrentView('shipment-detail')}
+                                    className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                                  >
+                                    <i className="fa-solid fa-up-right-from-square"></i> View Detail
+                                  </button>
+                                )}
+                              </div>
                               <input 
                                 type="text" 
                                 value={editingTicket.orderCode || ''} 
@@ -1641,6 +1685,63 @@ const App: React.FC = () => {
                                 placeholder="Enter the detailed explanation content here..."
                               />
                             </div>
+                          </div>
+                        </div>
+
+                        {/* Evidence & Attachments Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-paperclip text-green-500"></i> Evidence & Attachments
+                            </h3>
+                            <label className="cursor-pointer bg-green-50 text-green-700 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-green-100 transition-all flex items-center gap-2">
+                              <i className="fa-solid fa-plus"></i> Upload File
+                              <input type="file" className="hidden" onChange={handleFileUpload} />
+                            </label>
+                          </div>
+                          <div className="p-6">
+                            {(!editingTicket.attachments || editingTicket.attachments.length === 0) ? (
+                              <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
+                                <i className="fa-solid fa-cloud-arrow-up text-gray-200 text-3xl mb-2"></i>
+                                <p className="text-xs text-gray-400 font-medium">No attachments yet. Upload images or documents as evidence.</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {editingTicket.attachments.map((file) => (
+                                  <div key={file.id} className="group relative bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-3 hover:border-green-200 transition-all">
+                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm">
+                                      {file.type.startsWith('image/') ? (
+                                        <img src={file.url} alt={file.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
+                                      ) : (
+                                        <i className="fa-solid fa-file-lines text-lg"></i>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-bold text-gray-700 truncate">{file.name}</p>
+                                      <p className="text-[10px] text-gray-400">{file.size} • {file.uploadedAt}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <a 
+                                        href={file.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-blue-500 transition-all"
+                                        title="View"
+                                      >
+                                        <i className="fa-solid fa-eye text-xs"></i>
+                                      </a>
+                                      <button 
+                                        onClick={() => removeAttachment(file.id)}
+                                        className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-red-500 transition-all"
+                                        title="Remove"
+                                      >
+                                        <i className="fa-solid fa-trash-can text-xs"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
