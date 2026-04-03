@@ -1338,229 +1338,303 @@ const App: React.FC = () => {
                 </div>
              </div>
           ) : currentView === 'ticket-detail' ? (
-             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in slide-in-from-right duration-300">
-                <div className="flex items-center justify-between border-b px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => setCurrentView('ticket-list')}
-                      className="text-gray-400 hover:text-[#1b4d3e] transition-colors"
-                    >
-                      <i className="fa-solid fa-arrow-left text-sm"></i>
-                    </button>
-                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
-                      {editingTicket.id ? `Edit Ticket: ${editingTicket.ticketCode}` : 'Create New Ticket'}
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {editingTicket.id && (
-                      <>
-                        <button 
-                          onClick={handleApproveTicket}
-                          className="bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-check"></i> Approve
-                        </button>
-                        <button 
-                          onClick={handleRejectTicket}
-                          className="bg-red-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2"
-                        >
-                          <i className="fa-solid fa-xmark"></i> Reject
-                        </button>
-                      </>
-                    )}
-                    <button 
-                      onClick={handleSaveTicket}
-                      className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
-                    >
-                      Save Ticket
-                    </button>
+             <div className="bg-[#f8fafc] min-h-full flex flex-col animate-in slide-in-from-right duration-300">
+                {/* Modern Header */}
+                <div className="bg-white border-b px-6 py-4 sticky top-0 z-10 shadow-sm">
+                  <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => setCurrentView('ticket-list')}
+                        className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-[#1b4d3e] transition-all"
+                      >
+                        <i className="fa-solid fa-arrow-left"></i>
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-3 mb-0.5">
+                          <h2 className="text-[#1b4d3e] font-bold text-lg tracking-tight">
+                            {editingTicket.id ? editingTicket.ticketCode : 'New Ticket'}
+                          </h2>
+                          {editingTicket.status && (
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              editingTicket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                              editingTicket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
+                              editingTicket.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                              editingTicket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {editingTicket.status}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-500 text-xs font-medium">
+                          {editingTicket.id ? `Last updated: ${editingTicket.updatedAt || editingTicket.createdAt}` : 'Fill in the details to create a new ticket'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {editingTicket.id && (
+                        <div className="flex items-center bg-gray-100 p-1 rounded-lg gap-1 mr-2">
+                          <button 
+                            onClick={handleApproveTicket}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                              editingTicket.status === 'Approved' 
+                              ? 'bg-white text-green-600 shadow-sm' 
+                              : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
+                            }`}
+                          >
+                            <i className="fa-solid fa-check"></i> Approve
+                          </button>
+                          <button 
+                            onClick={handleRejectTicket}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                              editingTicket.status === 'Rejected' 
+                              ? 'bg-white text-red-600 shadow-sm' 
+                              : 'text-gray-500 hover:text-red-600 hover:bg-white/50'
+                            }`}
+                          >
+                            <i className="fa-solid fa-xmark"></i> Reject
+                          </button>
+                        </div>
+                      )}
+                      <button 
+                        onClick={handleSaveTicket}
+                        className="bg-[#1b4d3e] text-white px-6 py-2 rounded-lg text-xs font-bold hover:bg-[#153a2f] transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                      >
+                        <i className="fa-solid fa-floppy-disk"></i> Save Changes
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="p-6 overflow-y-auto">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Ticket Table */}
-                    <div className="border border-gray-200 rounded overflow-hidden shadow-sm h-fit">
-                      <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i className="fa-solid fa-ticket"></i> Ticket Information
-                      </div>
-                      <table className="w-full text-[12px]">
-                        <tbody className="divide-y divide-gray-100">
-                          <DetailTableRow label="Ticket Code">
-                            <input 
-                              type="text" 
-                              value={editingTicket.ticketCode || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, ticketCode: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                              placeholder="Auto-generated if empty"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Ticket Type">
-                            <select 
-                              value={editingTicket.ticketType || ''}
-                              onChange={e => {
-                                const selectedTypeName = e.target.value;
-                                const selectedType = ticketTypes.find(tt => tt.name === selectedTypeName);
-                                setEditingTicket({
-                                  ...editingTicket,
-                                  ticketType: selectedTypeName,
-                                  ticketRecord: selectedType ? `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}` : editingTicket.ticketRecord
-                                });
-                              }}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            >
-                              <option value="">Select Ticket Type</option>
-                              {ticketTypes.map(tt => (
-                                <option key={tt.id} value={tt.name}>{tt.name}</option>
-                              ))}
-                            </select>
-                          </DetailTableRow>
-                          <DetailTableRow label="Shipper ID">
-                            <input 
-                              type="text" 
-                              value={editingTicket.shipperId || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, shipperId: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Shipper Name / Shipper">
-                            <input 
-                              type="text" 
-                              value={editingTicket.shipperName || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, shipperName: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Incident Report Date">
-                            <input 
-                              type="text" 
-                              value={editingTicket.incidentReportDate || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, incidentReportDate: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                              placeholder="DD/MM/YYYY"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Reason">
-                            <input 
-                              type="text" 
-                              value={editingTicket.reason || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, reason: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Ticket Record">
-                            <input 
-                              type="text" 
-                              value={editingTicket.ticketRecord || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, ticketRecord: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            />
-                          </DetailTableRow>
-                          <DetailTableRow label="Approval Date">
-                            <div className="text-gray-700 font-medium">{editingTicket.approvalDate || '-'}</div>
-                          </DetailTableRow>
-                          <DetailTableRow label="Approved By">
-                            <div className="text-gray-700 font-medium">{editingTicket.approvedBy || '-'}</div>
-                          </DetailTableRow>
-                          <DetailTableRow label="Created Date">
-                            <div className="text-gray-400 italic">{editingTicket.createdAt || 'Auto-generated'}</div>
-                          </DetailTableRow>
-                          <DetailTableRow label="Created By">
-                            <div className="text-gray-400 italic">{editingTicket.createdBy || 'nquoctuan242@gmail.com'}</div>
-                          </DetailTableRow>
-                          <DetailTableRow label="Status">
-                            <select 
-                              value={editingTicket.status || 'Open'}
-                              onChange={e => setEditingTicket({...editingTicket, status: e.target.value as any})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            >
-                              <option value="Open">Open</option>
-                              <option value="Explained">Explained</option>
-                              <option value="Approved">Approved</option>
-                              <option value="Rejected">Rejected</option>
-                            </select>
-                          </DetailTableRow>
-                          <DetailTableRow label="Order Code">
-                            <input 
-                              type="text" 
-                              value={editingTicket.orderCode || ''} 
-                              onChange={e => setEditingTicket({...editingTicket, orderCode: e.target.value})}
-                              className="w-full outline-none bg-transparent font-medium text-gray-700"
-                            />
-                          </DetailTableRow>
-                        </tbody>
-                      </table>
-                    </div>
 
-                    {/* Explanation Table */}
-                    <div className="space-y-6">
-                      <div className="border border-gray-200 rounded overflow-hidden shadow-sm h-fit">
-                        <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
-                          <i className="fa-solid fa-comment-dots"></i> Explanation Information
+                <div className="p-6 overflow-y-auto">
+                  <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      
+                      {/* Left Column: Main Info */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {/* Ticket Overview Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-circle-info text-blue-500"></i> Ticket Overview
+                            </h3>
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">General Details</span>
+                          </div>
+                          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticket Type</label>
+                              <select 
+                                value={editingTicket.ticketType || ''}
+                                onChange={e => {
+                                  const selectedTypeName = e.target.value;
+                                  const selectedType = ticketTypes.find(tt => tt.name === selectedTypeName);
+                                  setEditingTicket({
+                                    ...editingTicket,
+                                    ticketType: selectedTypeName,
+                                    ticketRecord: selectedType ? `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}` : editingTicket.ticketRecord
+                                  });
+                                }}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              >
+                                <option value="">Select Type</option>
+                                {ticketTypes.map(tt => (
+                                  <option key={tt.id} value={tt.name}>{tt.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Priority</label>
+                              <select 
+                                value={editingTicket.priority || 'Medium'}
+                                onChange={e => setEditingTicket({...editingTicket, priority: e.target.value as any})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              >
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order Code</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.orderCode || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, orderCode: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Enter order code"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticket Code (Auto)</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.ticketCode || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, ticketCode: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Generated on save"
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Subject</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.subject || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, subject: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Short summary of the issue"
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Description</label>
+                              <textarea 
+                                value={editingTicket.description || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, description: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px]"
+                                placeholder="Provide detailed information about the incident..."
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <table className="w-full text-[12px]">
-                          <tbody className="divide-y divide-gray-100">
-                            <DetailTableRow label="Explanation Code">
-                              <div className="text-gray-700 font-medium">{editingTicket.explanationCode || 'Auto-generated'}</div>
-                            </DetailTableRow>
-                            <DetailTableRow label="Reason">
+
+                        {/* Explanation Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-comment-dots text-purple-500"></i> Explanation Information
+                            </h3>
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">Response Details</span>
+                          </div>
+                          <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Code</label>
+                                <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                  {editingTicket.explanationCode || 'Auto-generated on save'}
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Date</label>
+                                <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                  {editingTicket.explanationDate || 'Auto-recorded on save'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
                               <input 
                                 type="text" 
                                 value={editingTicket.explanationReason || ''} 
                                 onChange={e => setEditingTicket({...editingTicket, explanationReason: e.target.value})}
-                                className="w-full outline-none bg-transparent font-medium text-gray-700"
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Reason for explanation"
                               />
-                            </DetailTableRow>
-                            <DetailTableRow label="Explanation Content">
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Content</label>
                               <textarea 
                                 value={editingTicket.explanationContent || ''} 
                                 onChange={e => setEditingTicket({...editingTicket, explanationContent: e.target.value})}
-                                className="w-full outline-none bg-transparent font-medium text-gray-700 min-h-[80px] py-1"
-                                placeholder="Enter explanation content..."
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[120px]"
+                                placeholder="Enter the detailed explanation content here..."
                               />
-                            </DetailTableRow>
-                            <DetailTableRow label="Explanation Date">
-                              <div className="text-gray-700 font-medium">{editingTicket.explanationDate || 'Auto-recorded on save'}</div>
-                            </DetailTableRow>
-                          </tbody>
-                        </table>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Additional Details */}
-                      <div className="border border-gray-200 rounded overflow-hidden shadow-sm">
-                        <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
-                          <i className="fa-solid fa-circle-info"></i> Additional Details
-                        </div>
-                        <div className="p-4 space-y-4">
-                          <FormInputDetail
-                            label="Subject"
-                            value={editingTicket.subject || ''}
-                            onChange={val => setEditingTicket({...editingTicket, subject: val})}
-                            placeholder="Brief summary"
-                          />
-                          <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-gray-700 tracking-tight block mb-1">Description</label>
-                            <textarea 
-                              value={editingTicket.description || ''}
-                              onChange={e => setEditingTicket({...editingTicket, description: e.target.value})}
-                              className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all min-h-[80px]"
-                              placeholder="Detailed explanation..."
-                            />
+                      {/* Right Column: Side Info */}
+                      <div className="space-y-6">
+                        {/* Shipper & Incident Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-truck-fast text-orange-500"></i> Shipper & Incident
+                            </h3>
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Priority</label>
-                            <select 
-                              value={editingTicket.priority || 'Medium'}
-                              onChange={e => setEditingTicket({...editingTicket, priority: e.target.value as any})}
-                              className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
-                            >
-                              <option value="Low">Low</option>
-                              <option value="Medium">Medium</option>
-                              <option value="High">High</option>
-                              <option value="Urgent">Urgent</option>
-                            </select>
+                          <div className="p-6 space-y-4">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipper ID</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.shipperId || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, shipperId: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipper Name</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.shipperName || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, shipperName: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Incident Date</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.incidentReportDate || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, incidentReportDate: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="DD/MM/YYYY"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.reason || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, reason: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="pt-2">
+                              <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
+                                <label className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1 block">Ticket Record / Penalty</label>
+                                <div className="text-lg font-black text-orange-700">
+                                  {editingTicket.ticketRecord || '0 USD'}
+                                </div>
+                                <p className="text-[10px] text-orange-500 mt-1 italic">Based on selected ticket type</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Audit Trail Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-clock-rotate-left text-gray-500"></i> Audit Trail
+                            </h3>
+                          </div>
+                          <div className="p-6 space-y-4">
+                            <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Created By</p>
+                                <p className="text-xs font-bold text-gray-700">{editingTicket.createdBy || 'nquoctuan242@gmail.com'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Created Date</p>
+                                <p className="text-xs font-medium text-gray-600 italic">{editingTicket.createdAt || 'New'}</p>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approved By</p>
+                                <p className="text-xs font-bold text-gray-700">{editingTicket.approvedBy || '-'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approval Date</p>
+                                <p className="text-xs font-medium text-gray-600 italic">{editingTicket.approvalDate || '-'}</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
+
                     </div>
                   </div>
                 </div>
