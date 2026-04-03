@@ -1,5 +1,88 @@
 
-import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType } from './types';
+
+export const MOCK_TICKET_TYPES: TicketType[] = [
+  {
+    id: '1',
+    name: 'Delivery Issue',
+    code: 'DELIVERY',
+    description: 'Issues related to shipment delivery',
+    status: 'Active',
+    explanationDeadlineDays: 1,
+    violationPenaltyAmount: 5,
+    currency: 'USD',
+    createdAt: '01/01/2026 08:00:00'
+  },
+  {
+    id: '2',
+    name: 'Product Quality',
+    code: 'PRODUCT',
+    description: 'Issues related to product quality or damage',
+    status: 'Active',
+    explanationDeadlineDays: 2,
+    violationPenaltyAmount: 10,
+    currency: 'USD',
+    createdAt: '01/01/2026 08:00:00'
+  }
+];
+
+export const MOCK_TICKETS: Ticket[] = [
+  {
+    id: '1',
+    ticketCode: 'TK-001',
+    ticketType: 'Delivery Issue',
+    shipperId: 'S-001',
+    shipperName: 'Nguyen Van A',
+    incidentReportDate: '03/04/2026',
+    reason: 'Heavy rain',
+    ticketRecord: 'Violation recorded',
+    approvalDate: '03/04/2026',
+    approvedBy: 'Admin',
+    createdAt: '03/04/2026 09:00:00',
+    createdBy: 'hungnk1',
+    status: 'Approved',
+    orderCode: '260107HMX9',
+    
+    explanationCode: 'EXP-001',
+    explanationReason: 'Weather condition',
+    explanationContent: 'Delayed due to heavy rain and flood.',
+    explanationDate: '03/04/2026',
+
+    priority: 'High',
+    requester: 'hungnk1',
+    assignee: 'Phuong Phan',
+    description: 'Order 260107HMX9 is delayed due to heavy rain.',
+    subject: 'Delayed Shipment',
+    updatedAt: '03/04/2026 10:30:00'
+  },
+  {
+    id: '2',
+    ticketCode: 'TK-002',
+    ticketType: 'Product Quality',
+    shipperId: 'S-002',
+    shipperName: 'Tran Thi B',
+    incidentReportDate: '03/04/2026',
+    reason: 'Warehouse error',
+    ticketRecord: 'Pending review',
+    approvalDate: '-',
+    approvedBy: '-',
+    createdAt: '03/04/2026 11:15:00',
+    createdBy: 'customer_service_1',
+    status: 'Open',
+    orderCode: '260303GCG4',
+
+    explanationCode: 'EXP-002',
+    explanationReason: 'Picking error',
+    explanationContent: 'Wrong item picked by warehouse staff.',
+    explanationDate: '03/04/2026',
+
+    priority: 'Medium',
+    requester: 'customer_service_1',
+    description: 'Customer reported receiving a different product than ordered.',
+    subject: 'Wrong Item Received',
+    updatedAt: '03/04/2026 11:15:00'
+  }
+];
 
 export const MOCK_SHIPMENT: ShipmentData = {
   shipmentCode: 'S260107WAIU',

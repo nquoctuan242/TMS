@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper } from './types';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType } from './types';
 
 const STORES_LIST_MOCK = [
   { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
@@ -15,6 +15,8 @@ const STORES = [
   'Tan Binh Hub',
   'District 10 Hub'
 ];
+
+const CURRENCIES = ['USD', 'VND', 'THB', 'MYR', 'IDR', 'PHP', 'SGD'];
 
 interface Company {
   id: string;
@@ -168,7 +170,7 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -182,9 +184,13 @@ const App: React.FC = () => {
   const [activeTransferTab, setActiveTransferTab] = useState('General information');
   const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
   const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
+  const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>(MOCK_TICKET_TYPES);
   const [selectedRoute, setSelectedRoute] = useState<ITRoute | null>(null);
   const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
   const [editingShipper, setEditingShipper] = useState<Partial<Shipper>>({});
+  const [editingTicket, setEditingTicket] = useState<Partial<Ticket>>({});
+  const [editingTicketType, setEditingTicketType] = useState<Partial<TicketType>>({});
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [storeSearch, setStoreSearch] = useState('');
   const [shipperSearch, setShipperSearch] = useState('');
@@ -419,6 +425,118 @@ const App: React.FC = () => {
     }
   };
 
+  const handleApproveTicket = () => {
+    const now = new Date().toLocaleString();
+    setEditingTicket({
+      ...editingTicket,
+      status: 'Approved',
+      approvalDate: now,
+      approvedBy: 'nquoctuan242@gmail.com'
+    });
+  };
+
+  const handleRejectTicket = () => {
+    const now = new Date().toLocaleString();
+    setEditingTicket({
+      ...editingTicket,
+      status: 'Rejected',
+      approvalDate: now,
+      approvedBy: 'nquoctuan242@gmail.com'
+    });
+  };
+
+  const handleSaveTicket = () => {
+    if (!editingTicket.ticketType) {
+      alert("Please select a ticket type.");
+      return;
+    }
+
+    const now = new Date().toLocaleString();
+    let updatedTicket = { ...editingTicket };
+
+    // Auto-generate Explanation Code if content exists but code doesn't
+    if (updatedTicket.explanationContent && !updatedTicket.explanationCode) {
+      updatedTicket.explanationCode = `EXP-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    // Auto-log Explanation Date if content is provided
+    if (updatedTicket.explanationContent && !updatedTicket.explanationDate) {
+      updatedTicket.explanationDate = now.split(',')[0]; // Just the date part
+    }
+
+    if (updatedTicket.id) {
+      setTickets(prev => prev.map(t => t.id === updatedTicket.id ? ({ ...updatedTicket, updatedAt: now } as Ticket) : t));
+    } else {
+      const newTicket: Ticket = {
+        ...(updatedTicket as Ticket),
+        id: Math.random().toString(36).substr(2, 9),
+        ticketCode: updatedTicket.ticketCode || `TK-${Math.floor(1000 + Math.random() * 9000)}`,
+        status: updatedTicket.status || 'Open',
+        priority: updatedTicket.priority || 'Medium',
+        createdBy: 'nquoctuan242@gmail.com',
+        requester: 'nquoctuan242@gmail.com',
+        createdAt: now,
+        updatedAt: now
+      };
+      setTickets(prev => [...prev, newTicket]);
+    }
+    setCurrentView('ticket-list');
+  };
+
+  const startEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setCurrentView('ticket-detail');
+  };
+
+  const startCreateTicket = () => {
+    setEditingTicket({ status: 'Open', priority: 'Medium', ticketType: 'Delivery Issue' });
+    setCurrentView('ticket-detail');
+  };
+
+  const handleDeleteTicket = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this ticket?")) {
+      setTickets(prev => prev.filter(t => t.id !== id));
+    }
+  };
+
+  const handleSaveTicketType = () => {
+    if (!editingTicketType.name || !editingTicketType.code) {
+      alert("Please fill in name and code.");
+      return;
+    }
+
+    const now = new Date().toLocaleString();
+
+    if (editingTicketType.id) {
+      setTicketTypes(prev => prev.map(tt => tt.id === editingTicketType.id ? (editingTicketType as TicketType) : tt));
+    } else {
+      const newTicketType: TicketType = {
+        ...(editingTicketType as TicketType),
+        id: Math.random().toString(36).substr(2, 9),
+        status: editingTicketType.status || 'Active',
+        createdAt: now
+      };
+      setTicketTypes(prev => [...prev, newTicketType]);
+    }
+    setCurrentView('ticket-type-list');
+  };
+
+  const startEditTicketType = (tt: TicketType) => {
+    setEditingTicketType(tt);
+    setCurrentView('ticket-type-detail');
+  };
+
+  const startCreateTicketType = () => {
+    setEditingTicketType({ status: 'Active' });
+    setCurrentView('ticket-type-detail');
+  };
+
+  const handleDeleteTicketType = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this ticket type?")) {
+      setTicketTypes(prev => prev.filter(tt => tt.id !== id));
+    }
+  };
+
   const startEditCompany = (company: Company) => {
     setEditingCompany(company);
     setCurrentView('company-detail');
@@ -581,6 +699,28 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('shipper-list')}
                 >
                   Shipper
+                </div>
+             </div>
+          </SidebarItem>
+          <SidebarItem 
+            icon="fa-ticket" 
+            label="Ticket Management" 
+            active={currentView === 'ticket-list' || currentView === 'ticket-detail' || currentView === 'ticket-type-list' || currentView === 'ticket-type-detail'} 
+            hasSubItems
+            onClick={() => {}} 
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'ticket-list' || currentView === 'ticket-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('ticket-list')}
+                >
+                  Ticket List
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'ticket-type-list' || currentView === 'ticket-type-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('ticket-type-list')}
+                >
+                  Ticket Type
                 </div>
              </div>
           </SidebarItem>
@@ -962,11 +1102,20 @@ const App: React.FC = () => {
                         <div className="min-h-[34px] border border-[#e5e7eb] rounded-[4px] px-3 py-1 flex flex-wrap gap-1 bg-white cursor-pointer hover:border-[#4d9e5f] transition-all">
                           {editingShipper.assignedStoreIds?.map(storeId => {
                             const store = stores.find(s => s.id === storeId);
+                            const isDefault = editingShipper.defaultStoreId === storeId;
                             return (
-                              <span key={storeId} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
-                                {store?.name || storeId}
+                              <span key={storeId} className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1.5 transition-all ${isDefault ? 'bg-[#e9f2ee] text-[#1b4d3e] border border-[#4d9e5f]' : 'bg-gray-100 text-gray-600 border border-transparent'}`}>
                                 <i 
-                                  className="fa-solid fa-xmark cursor-pointer hover:text-red-500"
+                                  className={`fa-solid fa-star cursor-pointer transition-colors ${isDefault ? 'text-[#4d9e5f]' : 'text-gray-300 hover:text-[#4d9e5f]'}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingShipper({...editingShipper, defaultStoreId: storeId});
+                                  }}
+                                  title={isDefault ? "Default Store" : "Set as default"}
+                                ></i>
+                                <span className="max-w-[120px] truncate">{store?.name || storeId}</span>
+                                <i 
+                                  className="fa-solid fa-xmark cursor-pointer hover:text-red-500 ml-0.5"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     const newIds = editingShipper.assignedStoreIds?.filter(id => id !== storeId) || [];
@@ -999,9 +1148,11 @@ const App: React.FC = () => {
                                     defaultStoreId: editingShipper.defaultStoreId === store.id ? undefined : editingShipper.defaultStoreId
                                   });
                                 } else {
+                                  const newIds = [...currentIds, store.id];
                                   setEditingShipper({
                                     ...editingShipper,
-                                    assignedStoreIds: [...currentIds, store.id]
+                                    assignedStoreIds: newIds,
+                                    defaultStoreId: newIds.length === 1 ? store.id : editingShipper.defaultStoreId
                                   });
                                 }
                               }}
@@ -1013,6 +1164,9 @@ const App: React.FC = () => {
                                 className="w-3 h-3 rounded text-[#4d9e5f] focus:ring-[#4d9e5f]" 
                               />
                               <span className="flex-1">{store.name}</span>
+                              {editingShipper.defaultStoreId === store.id && (
+                                <i className="fa-solid fa-star text-[#4d9e5f] text-[10px]"></i>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1104,6 +1258,462 @@ const App: React.FC = () => {
                         onChange={val => setEditingShipper({...editingShipper, postalCode: val})}
                         placeholder="e.g. 700000"
                       />
+                    </div>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'ticket-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Management</h2>
+                  <button 
+                    onClick={startCreateTicket}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Create Ticket
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Ticket Code</th>
+                          <th className="px-4 py-3 border-r">Explanation</th>
+                          <th className="px-4 py-3 border-r">Ticket Type</th>
+                          <th className="px-4 py-3 border-r">Shipper ID</th>
+                          <th className="px-4 py-3 border-r">Shipper Name</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Incident Date</th>
+                          <th className="px-4 py-3 border-r">Reason</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Created Date</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Created By</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {tickets.map(ticket => (
+                          <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{ticket.ticketCode}</td>
+                            <td className="px-4 py-3 border-r max-w-[150px] truncate" title={ticket.explanationContent}>{ticket.explanationContent}</td>
+                            <td className="px-4 py-3 border-r">{ticket.ticketType}</td>
+                            <td className="px-4 py-3 border-r font-mono text-[10px]">{ticket.shipperId}</td>
+                            <td className="px-4 py-3 border-r">{ticket.shipperName}</td>
+                            <td className="px-4 py-3 border-r">{ticket.incidentReportDate}</td>
+                            <td className="px-4 py-3 border-r max-w-[120px] truncate" title={ticket.reason}>{ticket.reason}</td>
+                            <td className="px-4 py-3 border-r text-nowrap">{ticket.createdAt}</td>
+                            <td className="px-4 py-3 border-r">{ticket.createdBy}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                ticket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                                ticket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
+                                ticket.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                                ticket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {ticket.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                              <button 
+                                onClick={() => startEditTicket(ticket)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="Edit"
+                              >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteTicket(ticket.id)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'ticket-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in slide-in-from-right duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setCurrentView('ticket-list')}
+                      className="text-gray-400 hover:text-[#1b4d3e] transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-left text-sm"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingTicket.id ? `Edit Ticket: ${editingTicket.ticketCode}` : 'Create New Ticket'}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {editingTicket.id && (
+                      <>
+                        <button 
+                          onClick={handleApproveTicket}
+                          className="bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button 
+                          onClick={handleRejectTicket}
+                          className="bg-red-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-xmark"></i> Reject
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={handleSaveTicket}
+                      className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
+                    >
+                      Save Ticket
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Ticket Table */}
+                    <div className="border border-gray-200 rounded overflow-hidden shadow-sm h-fit">
+                      <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
+                        <i className="fa-solid fa-ticket"></i> Ticket Information
+                      </div>
+                      <table className="w-full text-[12px]">
+                        <tbody className="divide-y divide-gray-100">
+                          <DetailTableRow label="Ticket Code">
+                            <input 
+                              type="text" 
+                              value={editingTicket.ticketCode || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, ticketCode: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                              placeholder="Auto-generated if empty"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Ticket Type">
+                            <select 
+                              value={editingTicket.ticketType || ''}
+                              onChange={e => {
+                                const selectedTypeName = e.target.value;
+                                const selectedType = ticketTypes.find(tt => tt.name === selectedTypeName);
+                                setEditingTicket({
+                                  ...editingTicket,
+                                  ticketType: selectedTypeName,
+                                  ticketRecord: selectedType ? `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}` : editingTicket.ticketRecord
+                                });
+                              }}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            >
+                              <option value="">Select Ticket Type</option>
+                              {ticketTypes.map(tt => (
+                                <option key={tt.id} value={tt.name}>{tt.name}</option>
+                              ))}
+                            </select>
+                          </DetailTableRow>
+                          <DetailTableRow label="Shipper ID">
+                            <input 
+                              type="text" 
+                              value={editingTicket.shipperId || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, shipperId: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Shipper Name / Shipper">
+                            <input 
+                              type="text" 
+                              value={editingTicket.shipperName || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, shipperName: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Incident Report Date">
+                            <input 
+                              type="text" 
+                              value={editingTicket.incidentReportDate || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, incidentReportDate: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                              placeholder="DD/MM/YYYY"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Reason">
+                            <input 
+                              type="text" 
+                              value={editingTicket.reason || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, reason: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Ticket Record">
+                            <input 
+                              type="text" 
+                              value={editingTicket.ticketRecord || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, ticketRecord: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            />
+                          </DetailTableRow>
+                          <DetailTableRow label="Approval Date">
+                            <div className="text-gray-700 font-medium">{editingTicket.approvalDate || '-'}</div>
+                          </DetailTableRow>
+                          <DetailTableRow label="Approved By">
+                            <div className="text-gray-700 font-medium">{editingTicket.approvedBy || '-'}</div>
+                          </DetailTableRow>
+                          <DetailTableRow label="Created Date">
+                            <div className="text-gray-400 italic">{editingTicket.createdAt || 'Auto-generated'}</div>
+                          </DetailTableRow>
+                          <DetailTableRow label="Created By">
+                            <div className="text-gray-400 italic">{editingTicket.createdBy || 'nquoctuan242@gmail.com'}</div>
+                          </DetailTableRow>
+                          <DetailTableRow label="Status">
+                            <select 
+                              value={editingTicket.status || 'Open'}
+                              onChange={e => setEditingTicket({...editingTicket, status: e.target.value as any})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            >
+                              <option value="Open">Open</option>
+                              <option value="Explained">Explained</option>
+                              <option value="Approved">Approved</option>
+                              <option value="Rejected">Rejected</option>
+                            </select>
+                          </DetailTableRow>
+                          <DetailTableRow label="Order Code">
+                            <input 
+                              type="text" 
+                              value={editingTicket.orderCode || ''} 
+                              onChange={e => setEditingTicket({...editingTicket, orderCode: e.target.value})}
+                              className="w-full outline-none bg-transparent font-medium text-gray-700"
+                            />
+                          </DetailTableRow>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Explanation Table */}
+                    <div className="space-y-6">
+                      <div className="border border-gray-200 rounded overflow-hidden shadow-sm h-fit">
+                        <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
+                          <i className="fa-solid fa-comment-dots"></i> Explanation Information
+                        </div>
+                        <table className="w-full text-[12px]">
+                          <tbody className="divide-y divide-gray-100">
+                            <DetailTableRow label="Explanation Code">
+                              <div className="text-gray-700 font-medium">{editingTicket.explanationCode || 'Auto-generated'}</div>
+                            </DetailTableRow>
+                            <DetailTableRow label="Reason">
+                              <input 
+                                type="text" 
+                                value={editingTicket.explanationReason || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, explanationReason: e.target.value})}
+                                className="w-full outline-none bg-transparent font-medium text-gray-700"
+                              />
+                            </DetailTableRow>
+                            <DetailTableRow label="Explanation Content">
+                              <textarea 
+                                value={editingTicket.explanationContent || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, explanationContent: e.target.value})}
+                                className="w-full outline-none bg-transparent font-medium text-gray-700 min-h-[80px] py-1"
+                                placeholder="Enter explanation content..."
+                              />
+                            </DetailTableRow>
+                            <DetailTableRow label="Explanation Date">
+                              <div className="text-gray-700 font-medium">{editingTicket.explanationDate || 'Auto-recorded on save'}</div>
+                            </DetailTableRow>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Additional Details */}
+                      <div className="border border-gray-200 rounded overflow-hidden shadow-sm">
+                        <div className="bg-[#f8fafc] px-4 py-2.5 border-b border-gray-200 font-bold text-[#1b4d3e] text-xs uppercase tracking-wider flex items-center gap-2">
+                          <i className="fa-solid fa-circle-info"></i> Additional Details
+                        </div>
+                        <div className="p-4 space-y-4">
+                          <FormInputDetail
+                            label="Subject"
+                            value={editingTicket.subject || ''}
+                            onChange={val => setEditingTicket({...editingTicket, subject: val})}
+                            placeholder="Brief summary"
+                          />
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-gray-700 tracking-tight block mb-1">Description</label>
+                            <textarea 
+                              value={editingTicket.description || ''}
+                              onChange={e => setEditingTicket({...editingTicket, description: e.target.value})}
+                              className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all min-h-[80px]"
+                              placeholder="Detailed explanation..."
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Priority</label>
+                            <select 
+                              value={editingTicket.priority || 'Medium'}
+                              onChange={e => setEditingTicket({...editingTicket, priority: e.target.value as any})}
+                              className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                            >
+                              <option value="Low">Low</option>
+                              <option value="Medium">Medium</option>
+                              <option value="High">High</option>
+                              <option value="Urgent">Urgent</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : currentView === 'ticket-type-list' ? (
+              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Type</h2>
+                  <button 
+                    onClick={startCreateTicketType}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Create Ticket Type
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Name</th>
+                          <th className="px-4 py-3 border-r">Code</th>
+                          <th className="px-4 py-3 border-r">Description</th>
+                          <th className="px-4 py-3 border-r text-center">Deadline (Days)</th>
+                          <th className="px-4 py-3 border-r text-center">Penalty Amount</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 border-r">Created At</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {ticketTypes.map(tt => (
+                          <tr key={tt.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{tt.name}</td>
+                            <td className="px-4 py-3 border-r">{tt.code}</td>
+                            <td className="px-4 py-3 border-r">{tt.description}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold">{tt.explanationDeadlineDays || 0}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold text-red-600">-{tt.violationPenaltyAmount || 0} {tt.currency || 'USD'}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                tt.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {tt.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 border-r">{tt.createdAt}</td>
+                            <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                              <button 
+                                onClick={() => startEditTicketType(tt)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="Edit"
+                              >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteTicketType(tt.id)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'ticket-type-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in slide-in-from-right duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setCurrentView('ticket-type-list')}
+                      className="text-gray-400 hover:text-[#1b4d3e] transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-left text-sm"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingTicketType.id ? `Edit Ticket Type: ${editingTicketType.name}` : 'Create New Ticket Type'}
+                    </h2>
+                  </div>
+                  <button 
+                    onClick={handleSaveTicketType}
+                    className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
+                  >
+                    Save Ticket Type
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInputDetail
+                      label="Name"
+                      value={editingTicketType.name}
+                      onChange={val => setEditingTicketType({...editingTicketType, name: val})}
+                      placeholder="e.g. Delivery Issue"
+                    />
+                    <FormInputDetail
+                      label="Code"
+                      value={editingTicketType.code}
+                      onChange={val => setEditingTicketType({...editingTicketType, code: val})}
+                      placeholder="e.g. DELIVERY"
+                    />
+                    <div className="md:col-span-2">
+                      <FormInputDetail
+                        label="Description"
+                        value={editingTicketType.description}
+                        onChange={val => setEditingTicketType({...editingTicketType, description: val})}
+                        placeholder="Detailed explanation of this ticket type"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Deadline (Days)</label>
+                      <input 
+                        type="number"
+                        value={editingTicketType.explanationDeadlineDays || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, explanationDeadlineDays: parseInt(e.target.value) || 0})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. 1"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Violation Penalty</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="number"
+                          value={editingTicketType.violationPenaltyAmount || ''}
+                          onChange={e => setEditingTicketType({...editingTicketType, violationPenaltyAmount: parseInt(e.target.value) || 0})}
+                          className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          placeholder="e.g. 5"
+                        />
+                        <select 
+                          value={editingTicketType.currency || 'USD'}
+                          onChange={e => setEditingTicketType({...editingTicketType, currency: e.target.value})}
+                          className="w-24 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        >
+                          {CURRENCIES.map(curr => (
+                            <option key={curr} value={curr}>{curr}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Status</label>
+                      <select 
+                        value={editingTicketType.status || 'Active'}
+                        onChange={e => setEditingTicketType({...editingTicketType, status: e.target.value as any})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -3023,6 +3633,17 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const DetailTableRow: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <tr className="hover:bg-gray-50/50 transition-colors">
+    <td className="w-1/3 px-4 py-3 bg-[#fcfdfd] border-r border-gray-100 font-bold text-gray-600 text-[11px] uppercase tracking-tight">
+      {label}
+    </td>
+    <td className="px-4 py-2">
+      {children}
+    </td>
+  </tr>
+);
 
 const FormInputDetail: React.FC<{ 
   label: string; 

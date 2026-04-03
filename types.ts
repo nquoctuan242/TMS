@@ -160,3 +160,46 @@ export interface Shipper {
   countryName?: string;
   postalCode?: string;
 }
+
+export interface Ticket {
+  id: string;
+  ticketCode: string;
+  ticketType: string;
+  shipperId?: string;
+  shipperName?: string;
+  incidentReportDate?: string;
+  reason?: string;
+  ticketRecord?: string;
+  approvalDate?: string;
+  approvedBy?: string;
+  createdAt: string;
+  createdBy: string;
+  status: 'Open' | 'Explained' | 'Approved' | 'Rejected';
+  orderCode?: string;
+  
+  // Explanation fields
+  explanationCode?: string;
+  explanationReason?: string;
+  explanationContent?: string;
+  explanationDate?: string;
+
+  // Legacy/Internal fields
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  requester: string;
+  assignee?: string;
+  description: string;
+  subject: string;
+  updatedAt: string;
+}
+
+export interface TicketType {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  status: 'Active' | 'Inactive';
+  explanationDeadlineDays?: number;
+  violationPenaltyAmount?: number;
+  currency?: string;
+  createdAt: string;
+}
