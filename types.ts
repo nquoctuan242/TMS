@@ -183,7 +183,7 @@ export interface Ticket {
   approvedBy?: string;
   createdAt: string;
   createdBy: string;
-  status: 'Open' | 'Explained' | 'Approved' | 'Rejected';
+  status: 'Open' | 'Waiting Clarification' | 'Explained' | 'Approved' | 'Rejected';
   orderCode?: string;
   attachments?: Attachment[];
   
@@ -192,6 +192,7 @@ export interface Ticket {
   explanationReason?: string;
   explanationContent?: string;
   explanationDate?: string;
+  clarificationDeadline?: string;
 
   // Legacy/Internal fields
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';

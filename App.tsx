@@ -190,7 +190,8 @@ const App: React.FC = () => {
     shipper: '',
     orderCode: '',
     fromDate: '',
-    toDate: ''
+    toDate: '',
+    status: ''
   });
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>(MOCK_TICKET_TYPES);
   const [selectedRoute, setSelectedRoute] = useState<ITRoute | null>(null);
@@ -205,6 +206,12 @@ const App: React.FC = () => {
   const [editingUser, setEditingUser] = useState<UserFormState>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [isGettingDistance, setIsGettingDistance] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ show: false, title: '', message: '', onConfirm: () => {} });
   const [editingStore, setEditingStore] = useState<Partial<Store>>({
     customer: 'Tu Van',
     name: 'Van Store',
@@ -415,21 +422,21 @@ const App: React.FC = () => {
   };
 
   const handleDeleteShipper = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this shipper?")) {
+    confirmAction('Delete Shipper', 'Are you sure you want to delete this shipper?', () => {
       setShippers(prev => prev.filter(s => s.id !== id));
-    }
+    });
   };
 
   const handleDeleteUser = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    confirmAction('Delete User', 'Are you sure you want to delete this user?', () => {
       setUsers(prev => prev.filter(u => u.id !== id));
-    }
+    });
   };
 
   const handleDeleteRole = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this role?")) {
+    confirmAction('Delete Role', 'Are you sure you want to delete this role?', () => {
       setRoles(prev => prev.filter(r => r.id !== id));
-    }
+    });
   };
 
   const handleApproveTicket = () => {
@@ -442,6 +449,22 @@ const App: React.FC = () => {
     });
   };
 
+  const handleClarifyTicket = () => {
+    const ticketType = ticketTypes.find(tt => tt.name === editingTicket.ticketType);
+    const deadlineDays = ticketType?.explanationDeadlineDays || 0;
+    
+    const deadlineDate = new Date();
+    deadlineDate.setDate(deadlineDate.getDate() + deadlineDays);
+    
+    const deadlineStr = deadlineDate.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    
+    setEditingTicket({
+      ...editingTicket,
+      status: 'Waiting Clarification',
+      clarificationDeadline: deadlineStr
+    });
+  };
+
   const handleRejectTicket = () => {
     const now = new Date().toLocaleString();
     setEditingTicket({
@@ -449,6 +472,18 @@ const App: React.FC = () => {
       status: 'Rejected',
       approvalDate: now,
       approvedBy: 'nquoctuan242@gmail.com'
+    });
+  };
+
+  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({
+      show: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm();
+        setConfirmModal(prev => ({ ...prev, show: false }));
+      }
     });
   };
 
@@ -495,6 +530,11 @@ const App: React.FC = () => {
     // Auto-log Explanation Date if content is provided
     if (updatedTicket.explanationContent && !updatedTicket.explanationDate) {
       updatedTicket.explanationDate = now.split(',')[0]; // Just the date part
+    }
+
+    // Auto-update status to Explained if content is provided and status is Waiting Clarification
+    if (updatedTicket.explanationContent && updatedTicket.status === 'Waiting Clarification') {
+      updatedTicket.status = 'Explained';
     }
 
     if (updatedTicket.id) {
@@ -1353,6 +1393,21 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                      <select 
+                        value={ticketFilters.status}
+                        onChange={e => setTicketFilters({...ticketFilters, status: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="Waiting Clarification">Waiting Clarification</option>
+                        <option value="Explained">Explained</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">To Date</label>
                       <div className="flex gap-2">
                         <input 
@@ -1362,7 +1417,7 @@ const App: React.FC = () => {
                           className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
                         />
                         <button 
-                          onClick={() => setTicketFilters({ ticketType: '', shipper: '', orderCode: '', fromDate: '', toDate: '' })}
+                          onClick={() => setTicketFilters({ ticketType: '', shipper: '', orderCode: '', fromDate: '', toDate: '', status: '' })}
                           className="bg-gray-200 text-gray-600 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-gray-300 transition-colors"
                           title="Clear Filters"
                         >
@@ -1398,6 +1453,7 @@ const App: React.FC = () => {
                             ticket.shipperName?.toLowerCase().includes(ticketFilters.shipper.toLowerCase()) ||
                             ticket.shipperId?.toLowerCase().includes(ticketFilters.shipper.toLowerCase());
                           const matchOrder = !ticketFilters.orderCode || ticket.orderCode?.toLowerCase().includes(ticketFilters.orderCode.toLowerCase());
+                          const matchStatus = !ticketFilters.status || ticket.status === ticketFilters.status;
                           
                           let matchDate = true;
                           if (ticketFilters.fromDate || ticketFilters.toDate) {
@@ -1418,7 +1474,7 @@ const App: React.FC = () => {
                             }
                           }
                           
-                          return matchType && matchShipper && matchOrder && matchDate;
+                          return matchType && matchShipper && matchOrder && matchDate && matchStatus;
                         }).map(ticket => (
                           <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{ticket.ticketCode}</td>
@@ -1441,6 +1497,7 @@ const App: React.FC = () => {
                             <td className="px-4 py-3 border-r">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                 ticket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                                ticket.status === 'Waiting Clarification' ? 'bg-purple-100 text-purple-700' :
                                 ticket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
                                 ticket.status === 'Approved' ? 'bg-green-100 text-green-700' :
                                 ticket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
@@ -1492,6 +1549,7 @@ const App: React.FC = () => {
                           {editingTicket.status && (
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               editingTicket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                              editingTicket.status === 'Waiting Clarification' ? 'bg-purple-100 text-purple-700' :
                               editingTicket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
                               editingTicket.status === 'Approved' ? 'bg-green-100 text-green-700' :
                               editingTicket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
@@ -1510,30 +1568,50 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {editingTicket.id && (
                         <div className="flex items-center bg-gray-100 p-1 rounded-lg gap-1 mr-2">
-                          <button 
-                            onClick={handleApproveTicket}
-                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
-                              editingTicket.status === 'Approved' 
-                              ? 'bg-white text-green-600 shadow-sm' 
-                              : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
-                            }`}
-                          >
-                            <i className="fa-solid fa-check"></i> Approve
-                          </button>
-                          <button 
-                            onClick={handleRejectTicket}
-                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
-                              editingTicket.status === 'Rejected' 
-                              ? 'bg-white text-red-600 shadow-sm' 
-                              : 'text-gray-500 hover:text-red-600 hover:bg-white/50'
-                            }`}
-                          >
-                            <i className="fa-solid fa-xmark"></i> Reject
-                          </button>
+                          {editingTicket.status === 'Open' && (
+                            <button 
+                              onClick={() => confirmAction('Request Clarification', 'Are you sure you want to request clarification for this ticket?', handleClarifyTicket)}
+                              className="px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 text-gray-500 hover:text-purple-600 hover:bg-white/50"
+                            >
+                              <i className="fa-solid fa-user-tag"></i> Request Clarification
+                            </button>
+                          )}
+                          {editingTicket.status === 'Explained' && (
+                            <button 
+                              onClick={() => confirmAction('Request Clarification (2nd time)', 'Are you sure you want to request a second clarification for this ticket?', handleClarifyTicket)}
+                              className="px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 text-gray-500 hover:text-purple-600 hover:bg-white/50"
+                            >
+                              <i className="fa-solid fa-user-tag"></i> Clarify (2nd)
+                            </button>
+                          )}
+                          {(editingTicket.status === 'Explained' || editingTicket.status === 'Approved' || editingTicket.status === 'Rejected') && (
+                            <>
+                              <button 
+                                onClick={() => confirmAction('Approve Ticket', 'Are you sure you want to approve this ticket?', handleApproveTicket)}
+                                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                  editingTicket.status === 'Approved' 
+                                  ? 'bg-white text-green-600 shadow-sm' 
+                                  : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
+                                }`}
+                              >
+                                <i className="fa-solid fa-check"></i> Approve
+                              </button>
+                              <button 
+                                onClick={() => confirmAction('Reject Ticket', 'Are you sure you want to reject this ticket?', handleRejectTicket)}
+                                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                  editingTicket.status === 'Rejected' 
+                                  ? 'bg-white text-red-600 shadow-sm' 
+                                  : 'text-gray-500 hover:text-red-600 hover:bg-white/50'
+                                }`}
+                              >
+                                <i className="fa-solid fa-xmark"></i> Reject
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                       <button 
-                        onClick={handleSaveTicket}
+                        onClick={() => confirmAction('Save Changes', 'Are you sure you want to save these changes?', handleSaveTicket)}
                         className="bg-[#1b4d3e] text-white px-6 py-2 rounded-lg text-xs font-bold hover:bg-[#153a2f] transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                       >
                         <i className="fa-solid fa-floppy-disk"></i> Save Changes
@@ -1663,6 +1741,16 @@ const App: React.FC = () => {
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Date</label>
                                 <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
                                   {editingTicket.explanationDate || 'Auto-recorded on save'}
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clarification Deadline</label>
+                                <div className={`border rounded-lg px-3 py-2 text-sm font-bold ${
+                                  editingTicket.clarificationDeadline 
+                                  ? 'bg-orange-50 border-orange-200 text-orange-700' 
+                                  : 'bg-gray-100 border-gray-200 text-gray-500 italic'
+                                }`}>
+                                  {editingTicket.clarificationDeadline || 'Calculated on request'}
                                 </div>
                               </div>
                             </div>
@@ -3902,6 +3990,36 @@ const App: React.FC = () => {
             <div className="bg-white px-8 py-5 flex justify-end gap-8 border-t">
               <button onClick={() => setIsReturningLocalHubModalOpen(false)} className="text-[14px] text-[#7a869a] font-bold">Cancel</button>
               <button onClick={confirmReturnAction} className="px-8 py-2.5 bg-[#52a468] text-white font-bold rounded-md shadow-md">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Global Confirmation Modal */}
+      {confirmModal.show && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fa-solid fa-circle-question text-3xl"></i>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{confirmModal.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="flex border-t">
+              <button 
+                onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                className="flex-1 px-6 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors border-r"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmModal.onConfirm}
+                className="flex-1 px-6 py-4 text-sm font-bold text-[#1b4d3e] hover:bg-green-50 transition-colors"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>

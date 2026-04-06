@@ -47,6 +47,7 @@ export const MOCK_TICKETS: Ticket[] = [
     explanationReason: 'Weather condition',
     explanationContent: 'Delayed due to heavy rain and flood.',
     explanationDate: '03/04/2026',
+    clarificationDeadline: '04/04/2026',
 
     priority: 'High',
     requester: 'hungnk1',
