@@ -173,6 +173,7 @@ export interface Attachment {
 export interface Ticket {
   id: string;
   ticketCode: string;
+  ticketTypeId?: string;
   ticketType: string;
   shipperId?: string;
   shipperName?: string;
@@ -209,6 +210,7 @@ export interface TicketType {
   code: string;
   description: string;
   status: 'Active' | 'Inactive';
+  country?: string;
   explanationDeadlineDays?: number;
   violationPenaltyAmount?: number;
   currency?: string;

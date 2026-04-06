@@ -17,6 +17,7 @@ const STORES = [
 ];
 
 const CURRENCIES = ['USD', 'VND', 'THB', 'MYR', 'IDR', 'PHP', 'SGD'];
+const COUNTRIES = ['Vietnam', 'Thailand', 'Malaysia', 'Indonesia', 'Philippines', 'Singapore', 'Global'];
 
 interface Company {
   id: string;
@@ -1479,7 +1480,14 @@ const App: React.FC = () => {
                           <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{ticket.ticketCode}</td>
                             <td className="px-4 py-3 border-r max-w-[150px] truncate" title={ticket.explanationContent}>{ticket.explanationContent}</td>
-                            <td className="px-4 py-3 border-r">{ticket.ticketType}</td>
+                            <td className="px-4 py-3 border-r">
+                              {ticket.ticketType}
+                              {ticketTypes.find(tt => tt.id === ticket.ticketTypeId)?.country && (
+                                <span className="ml-1 text-[9px] text-gray-400">
+                                  ({ticketTypes.find(tt => tt.id === ticket.ticketTypeId)?.country})
+                                </span>
+                              )}
+                            </td>
                             <td className="px-4 py-3 border-r font-mono text-[10px]">{ticket.shipperId}</td>
                             <td className="px-4 py-3 border-r">{ticket.shipperName}</td>
                             <td className="px-4 py-3 border-r">{ticket.incidentReportDate}</td>
@@ -1637,24 +1645,43 @@ const App: React.FC = () => {
                           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticket Type</label>
-                              <select 
-                                value={editingTicket.ticketType || ''}
-                                onChange={e => {
-                                  const selectedTypeName = e.target.value;
-                                  const selectedType = ticketTypes.find(tt => tt.name === selectedTypeName);
-                                  setEditingTicket({
-                                    ...editingTicket,
-                                    ticketType: selectedTypeName,
-                                    ticketRecord: selectedType ? `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}` : editingTicket.ticketRecord
-                                  });
-                                }}
-                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
-                              >
-                                <option value="">Select Type</option>
-                                {ticketTypes.map(tt => (
-                                  <option key={tt.id} value={tt.name}>{tt.name}</option>
-                                ))}
-                              </select>
+                              <div className="flex gap-2">
+                                <select 
+                                  value={editingTicket.ticketTypeId || ''}
+                                  onChange={e => {
+                                    const selectedTypeId = e.target.value;
+                                    const selectedType = ticketTypes.find(tt => tt.id === selectedTypeId);
+                                    if (selectedType) {
+                                      setEditingTicket({
+                                        ...editingTicket,
+                                        ticketTypeId: selectedTypeId,
+                                        ticketType: selectedType.name,
+                                        ticketRecord: `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}`
+                                      });
+                                    } else {
+                                      setEditingTicket({
+                                        ...editingTicket,
+                                        ticketTypeId: '',
+                                        ticketType: '',
+                                        ticketRecord: ''
+                                      });
+                                    }
+                                  }}
+                                  className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                >
+                                  <option value="">Select Type</option>
+                                  {ticketTypes.map(tt => (
+                                    <option key={tt.id} value={tt.id}>
+                                      {tt.name} ({tt.country || 'Global'})
+                                    </option>
+                                  ))}
+                                </select>
+                                {editingTicket.ticketTypeId && (
+                                  <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-xs font-bold flex items-center border border-blue-100">
+                                    {ticketTypes.find(tt => tt.id === editingTicket.ticketTypeId)?.country || 'Global'}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Priority</label>
@@ -1946,6 +1973,7 @@ const App: React.FC = () => {
                       <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                         <tr>
                           <th className="px-4 py-3 border-r">Name</th>
+                          <th className="px-4 py-3 border-r">Country</th>
                           <th className="px-4 py-3 border-r">Code</th>
                           <th className="px-4 py-3 border-r">Description</th>
                           <th className="px-4 py-3 border-r text-center">Deadline (Days)</th>
@@ -1959,6 +1987,11 @@ const App: React.FC = () => {
                         {ticketTypes.map(tt => (
                           <tr key={tt.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{tt.name}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                                {tt.country || 'Global'}
+                              </span>
+                            </td>
                             <td className="px-4 py-3 border-r">{tt.code}</td>
                             <td className="px-4 py-3 border-r">{tt.description}</td>
                             <td className="px-4 py-3 border-r text-center font-bold">{tt.explanationDeadlineDays || 0}</td>
@@ -2067,6 +2100,18 @@ const App: React.FC = () => {
                           ))}
                         </select>
                       </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Country</label>
+                      <select 
+                        value={editingTicketType.country || 'Global'}
+                        onChange={e => setEditingTicketType({...editingTicketType, country: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                      >
+                        {COUNTRIES.map(country => (
+                          <option key={country} value={country}>{country}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Status</label>

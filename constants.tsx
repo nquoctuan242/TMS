@@ -8,9 +8,10 @@ export const MOCK_TICKET_TYPES: TicketType[] = [
     code: 'DELIVERY',
     description: 'Issues related to shipment delivery',
     status: 'Active',
+    country: 'Vietnam',
     explanationDeadlineDays: 1,
     violationPenaltyAmount: 5,
-    currency: 'USD',
+    currency: 'VND',
     createdAt: '01/01/2026 08:00:00'
   },
   {
@@ -19,9 +20,10 @@ export const MOCK_TICKET_TYPES: TicketType[] = [
     code: 'PRODUCT',
     description: 'Issues related to product quality or damage',
     status: 'Active',
+    country: 'Thailand',
     explanationDeadlineDays: 2,
     violationPenaltyAmount: 10,
-    currency: 'USD',
+    currency: 'THB',
     createdAt: '01/01/2026 08:00:00'
   }
 ];
@@ -30,6 +32,7 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: '1',
     ticketCode: 'TK-001',
+    ticketTypeId: '1',
     ticketType: 'Delivery Issue',
     shipperId: 'S-001',
     shipperName: 'Nguyen Van A',
@@ -59,6 +62,7 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: '2',
     ticketCode: 'TK-002',
+    ticketTypeId: '2',
     ticketType: 'Product Quality',
     shipperId: 'S-002',
     shipperName: 'Tran Thi B',
