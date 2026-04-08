@@ -523,18 +523,21 @@ const App: React.FC = () => {
     const now = new Date().toLocaleString();
     let updatedTicket = { ...editingTicket };
 
-    // Auto-generate Explanation Code if content exists but code doesn't
+    // Handle First Explanation
     if (updatedTicket.explanationContent && !updatedTicket.explanationCode) {
       updatedTicket.explanationCode = `EXP-${Math.floor(1000 + Math.random() * 9000)}`;
     }
-
-    // Auto-log Explanation Date if content is provided
     if (updatedTicket.explanationContent && !updatedTicket.explanationDate) {
-      updatedTicket.explanationDate = now.split(',')[0]; // Just the date part
+      updatedTicket.explanationDate = now.split(',')[0];
+    }
+
+    // Handle Second Explanation
+    if (updatedTicket.explanationContent2 && !updatedTicket.explanationDate2) {
+      updatedTicket.explanationDate2 = now.split(',')[0];
     }
 
     // Auto-update status to Explained if content is provided and status is Waiting Clarification
-    if (updatedTicket.explanationContent && updatedTicket.status === 'Waiting Clarification') {
+    if ((updatedTicket.explanationContent || updatedTicket.explanationContent2) && updatedTicket.status === 'Waiting Clarification') {
       updatedTicket.status = 'Explained';
     }
 
@@ -1756,50 +1759,105 @@ const App: React.FC = () => {
                             </h3>
                             <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">Response Details</span>
                           </div>
-                          <div className="p-6 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Code</label>
-                                <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
-                                  {editingTicket.explanationCode || 'Auto-generated on save'}
+                          <div className="p-6 space-y-8">
+                            {/* First Explanation Section */}
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                                <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] font-bold">1</span>
+                                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-tight">First Explanation</h4>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Code</label>
+                                  <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                    {editingTicket.explanationCode || 'Auto-generated'}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Date</label>
+                                  <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                    {editingTicket.explanationDate || 'Auto-recorded'}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clarification Deadline</label>
+                                  <div className={`border rounded-lg px-3 py-2 text-sm font-bold ${
+                                    editingTicket.clarificationDeadline 
+                                    ? 'bg-orange-50 border-orange-200 text-orange-700' 
+                                    : 'bg-gray-100 border-gray-200 text-gray-500 italic'
+                                  }`}>
+                                    {editingTicket.clarificationDeadline || 'Calculated on request'}
+                                  </div>
                                 </div>
                               </div>
+
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Date</label>
-                                <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
-                                  {editingTicket.explanationDate || 'Auto-recorded on save'}
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
+                                <input 
+                                  type="text" 
+                                  value={editingTicket.explanationReason || ''} 
+                                  onChange={e => setEditingTicket({...editingTicket, explanationReason: e.target.value})}
+                                  disabled={!!editingTicket.explanationContent2}
+                                  className={`w-full border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all ${
+                                    editingTicket.explanationContent2 ? 'bg-gray-50 text-gray-400 italic' : 'bg-gray-50'
+                                  }`}
+                                  placeholder="Reason for first explanation"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Content</label>
+                                <textarea 
+                                  value={editingTicket.explanationContent || ''} 
+                                  onChange={e => setEditingTicket({...editingTicket, explanationContent: e.target.value})}
+                                  disabled={!!editingTicket.explanationContent2}
+                                  className={`w-full border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px] ${
+                                    editingTicket.explanationContent2 ? 'bg-gray-50 text-gray-400 italic' : 'bg-gray-50'
+                                  }`}
+                                  placeholder="Enter the detailed first explanation content here..."
+                                />
+                              </div>
+                            </div>
+
+                            {/* Second Explanation Section - Only show if first one exists or if we are in 2nd clarification mode */}
+                            {(editingTicket.explanationContent || editingTicket.status === 'Waiting Clarification') && (
+                              <div className="space-y-4 pt-4 border-t border-dashed border-gray-200">
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">2</span>
+                                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-tight">Second Explanation (Follow-up)</h4>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Date</label>
+                                    <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                      {editingTicket.explanationDate2 || 'Auto-recorded'}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Reason</label>
+                                    <input 
+                                      type="text" 
+                                      value={editingTicket.explanationReason2 || ''} 
+                                      onChange={e => setEditingTicket({...editingTicket, explanationReason2: e.target.value})}
+                                      className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                      placeholder="Reason for second explanation"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Content</label>
+                                  <textarea 
+                                    value={editingTicket.explanationContent2 || ''} 
+                                    onChange={e => setEditingTicket({...editingTicket, explanationContent2: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px]"
+                                    placeholder="Enter the detailed follow-up explanation content here..."
+                                  />
                                 </div>
                               </div>
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clarification Deadline</label>
-                                <div className={`border rounded-lg px-3 py-2 text-sm font-bold ${
-                                  editingTicket.clarificationDeadline 
-                                  ? 'bg-orange-50 border-orange-200 text-orange-700' 
-                                  : 'bg-gray-100 border-gray-200 text-gray-500 italic'
-                                }`}>
-                                  {editingTicket.clarificationDeadline || 'Calculated on request'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
-                              <input 
-                                type="text" 
-                                value={editingTicket.explanationReason || ''} 
-                                onChange={e => setEditingTicket({...editingTicket, explanationReason: e.target.value})}
-                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
-                                placeholder="Reason for explanation"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Content</label>
-                              <textarea 
-                                value={editingTicket.explanationContent || ''} 
-                                onChange={e => setEditingTicket({...editingTicket, explanationContent: e.target.value})}
-                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[120px]"
-                                placeholder="Enter the detailed explanation content here..."
-                              />
-                            </div>
+                            )}
                           </div>
                         </div>
 

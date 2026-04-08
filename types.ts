@@ -195,6 +195,11 @@ export interface Ticket {
   explanationDate?: string;
   clarificationDeadline?: string;
 
+  // Second explanation fields
+  explanationContent2?: string;
+  explanationDate2?: string;
+  explanationReason2?: string;
+
   // Legacy/Internal fields
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';
   requester: string;
