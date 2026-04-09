@@ -1760,6 +1760,60 @@ const App: React.FC = () => {
                             <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">Response Details</span>
                           </div>
                           <div className="p-6 space-y-8">
+                            {/* Mobile Feedback Section */}
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-inner ${
+                                  editingTicket.understandingStatus === 'Understood' 
+                                  ? 'bg-green-100 text-green-600 border border-green-200' 
+                                  : editingTicket.understandingStatus === 'Not Understood'
+                                  ? 'bg-orange-100 text-orange-600 border border-orange-200'
+                                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+                                }`}>
+                                  <i className={`fa-solid fa-2xl ${
+                                    editingTicket.understandingStatus === 'Understood' 
+                                    ? 'fa-circle-check' 
+                                    : editingTicket.understandingStatus === 'Not Understood'
+                                    ? 'fa-circle-exclamation'
+                                    : 'fa-mobile-screen-button'
+                                  }`}></i>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Shipper Understanding (Mobile)</p>
+                                  <div className="flex items-center gap-2">
+                                    <select 
+                                      value={editingTicket.understandingStatus || ''}
+                                      onChange={e => setEditingTicket({...editingTicket, understandingStatus: e.target.value as any})}
+                                      className={`text-sm font-black uppercase tracking-tight bg-transparent border-none p-0 focus:ring-0 cursor-pointer ${
+                                        editingTicket.understandingStatus === 'Understood' 
+                                        ? 'text-green-600' 
+                                        : editingTicket.understandingStatus === 'Not Understood'
+                                        ? 'text-orange-600'
+                                        : 'text-gray-400'
+                                      }`}
+                                    >
+                                      <option value="">Pending Feedback</option>
+                                      <option value="Understood">Understood</option>
+                                      <option value="Not Understood">Not Understood</option>
+                                    </select>
+                                    <i className="fa-solid fa-chevron-down text-[10px] text-gray-300"></i>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-sm ${
+                                  editingTicket.understandingStatus === 'Understood' 
+                                  ? 'bg-green-500 text-white' 
+                                  : editingTicket.understandingStatus === 'Not Understood'
+                                  ? 'bg-orange-500 text-white'
+                                  : 'bg-gray-200 text-gray-500'
+                                }`}>
+                                  {editingTicket.understandingStatus === 'Understood' ? 'Confirmed' : editingTicket.understandingStatus === 'Not Understood' ? 'Action Required' : 'Waiting'}
+                                </span>
+                                <p className="text-[9px] text-gray-400 font-medium italic">Last sync: Just now</p>
+                              </div>
+                            </div>
+
                             {/* First Explanation Section */}
                             <div className="space-y-4">
                               <div className="flex items-center gap-2 pb-2 border-b border-gray-50">

@@ -200,6 +200,9 @@ export interface Ticket {
   explanationDate2?: string;
   explanationReason2?: string;
 
+  // Mobile feedback
+  understandingStatus?: 'Understood' | 'Not Understood';
+
   // Legacy/Internal fields
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';
   requester: string;

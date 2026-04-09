@@ -51,6 +51,7 @@ export const MOCK_TICKETS: Ticket[] = [
     explanationContent: 'Delayed due to heavy rain and flood.',
     explanationDate: '03/04/2026',
     clarificationDeadline: '04/04/2026',
+    understandingStatus: 'Understood',
 
     priority: 'High',
     requester: 'hungnk1',
@@ -80,6 +81,7 @@ export const MOCK_TICKETS: Ticket[] = [
     explanationReason: 'Picking error',
     explanationContent: 'Wrong item picked by warehouse staff.',
     explanationDate: '03/04/2026',
+    understandingStatus: 'Not Understood',
 
     priority: 'Medium',
     requester: 'customer_service_1',
