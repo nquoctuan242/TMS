@@ -10,6 +10,7 @@ export const MOCK_TICKET_TYPES: TicketType[] = [
     status: 'Active',
     country: 'Vietnam',
     explanationDeadlineDays: 1,
+    maxExplanationCount: 2,
     violationPenaltyAmount: 5,
     currency: 'VND',
     createdAt: '01/01/2026 08:00:00'
@@ -22,6 +23,7 @@ export const MOCK_TICKET_TYPES: TicketType[] = [
     status: 'Active',
     country: 'Thailand',
     explanationDeadlineDays: 2,
+    maxExplanationCount: 3,
     violationPenaltyAmount: 10,
     currency: 'THB',
     createdAt: '01/01/2026 08:00:00'

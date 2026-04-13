@@ -220,6 +220,7 @@ export interface TicketType {
   status: 'Active' | 'Inactive';
   country?: string;
   explanationDeadlineDays?: number;
+  maxExplanationCount?: number;
   violationPenaltyAmount?: number;
   currency?: string;
   createdAt: string;

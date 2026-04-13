@@ -2089,6 +2089,7 @@ const App: React.FC = () => {
                           <th className="px-4 py-3 border-r">Code</th>
                           <th className="px-4 py-3 border-r">Description</th>
                           <th className="px-4 py-3 border-r text-center">Deadline (Days)</th>
+                          <th className="px-4 py-3 border-r text-center">Max Explanations</th>
                           <th className="px-4 py-3 border-r text-center">Penalty Amount</th>
                           <th className="px-4 py-3 border-r">Status</th>
                           <th className="px-4 py-3 border-r">Created At</th>
@@ -2107,6 +2108,7 @@ const App: React.FC = () => {
                             <td className="px-4 py-3 border-r">{tt.code}</td>
                             <td className="px-4 py-3 border-r">{tt.description}</td>
                             <td className="px-4 py-3 border-r text-center font-bold">{tt.explanationDeadlineDays || 0}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold">{tt.maxExplanationCount || 0}</td>
                             <td className="px-4 py-3 border-r text-center font-bold text-red-600">-{tt.violationPenaltyAmount || 0} {tt.currency || 'USD'}</td>
                             <td className="px-4 py-3 border-r">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
@@ -2190,6 +2192,16 @@ const App: React.FC = () => {
                         onChange={e => setEditingTicketType({...editingTicketType, explanationDeadlineDays: parseInt(e.target.value) || 0})}
                         className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
                         placeholder="e.g. 1"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Count (Max)</label>
+                      <input 
+                        type="number"
+                        value={editingTicketType.maxExplanationCount || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, maxExplanationCount: parseInt(e.target.value) || 0})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. 3"
                       />
                     </div>
                     <div className="space-y-1">
