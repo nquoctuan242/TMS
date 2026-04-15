@@ -4,7 +4,21 @@ import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, M
 import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment } from './types';
 
 const STORES_LIST_MOCK = [
-  { id: '1', customer: 'Tu Van', name: 'Van Store', phone: '0987267289', email: 'vanlnt@hasaki.vn', street: '568 Lũy Bán Bích', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: true, lastDistance: '12.5 km' },
+  { 
+    id: '1', 
+    customer: 'Tu Van', 
+    name: 'Van Store', 
+    phone: '0987267289', 
+    email: 'vanlnt@hasaki.vn', 
+    street: '568 Lũy Bán Bích', 
+    stateProvince: 'Thành phố Hồ Chí Minh', 
+    distanceFetched: true, 
+    lastDistance: '12.5 km',
+    dropOffPoints: [
+      { id: 'dp1', carrier: 'GHTK', address: '123 Phan Xích Long, Phú Nhuận, HCM' },
+      { id: 'dp2', carrier: 'J&T', address: '456 Lê Văn Sỹ, Tân Bình, HCM' }
+    ]
+  },
   { id: '2', customer: 'Hasaki', name: 'Hasaki Warehouse', phone: '0281234567', email: 'warehouse@hasaki.vn', street: '71 Hoàng Hoa Thám', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: false },
 ];
 
@@ -32,6 +46,20 @@ interface Company {
   signatureImage?: string;
 }
 
+interface DropOffPoint {
+  id: string;
+  carrier: string;
+  address: string;
+  cutoffTime?: string;
+  country?: string;
+  stateProvince?: string;
+  wardCity?: string;
+  street?: string;
+  latitude?: string;
+  longitude?: string;
+  postalCode?: string;
+}
+
 interface Store {
   id: string;
   customer: string;
@@ -51,6 +79,7 @@ interface Store {
   zoneCount: string;
   distanceFetched?: boolean;
   lastDistance?: string;
+  dropOffPoints?: DropOffPoint[];
 }
 
 interface Role {
@@ -652,6 +681,8 @@ const App: React.FC = () => {
     alert("Store updated successfully!");
     setCurrentView('store-list');
   };
+
+  const [configuringDropOffPoint, setConfiguringDropOffPoint] = useState<{index: number, point: DropOffPoint} | null>(null);
 
   const handleGetDistance = () => {
     setIsGettingDistance(true);
@@ -2659,6 +2690,85 @@ const App: React.FC = () => {
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-truck-ramp-box text-[#4d9e5f]"></i>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Carrier Drop-off Points</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newPoint: DropOffPoint = { id: Math.random().toString(36).substr(2, 9), carrier: '', address: '' };
+                      setEditingStore({ ...editingStore, dropOffPoints: [...(editingStore.dropOffPoints || []), newPoint] });
+                    }}
+                    className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <i className="fa-solid fa-plus-circle"></i> Add Drop-off Point
+                  </button>
+                </div>
+                <div className="p-4">
+                  {(!editingStore.dropOffPoints || editingStore.dropOffPoints.length === 0) ? (
+                    <div className="text-center py-8 text-gray-400 italic text-xs">
+                      No drop-off points configured for this store.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {editingStore.dropOffPoints.map((point, index) => (
+                        <div key={point.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50/50 p-4 rounded-lg border border-gray-100 group transition-all hover:border-green-100">
+                          <div className="md:col-span-3 space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Carrier</label>
+                            <input 
+                              type="text"
+                              value={point.carrier}
+                              onChange={e => {
+                                const newPoints = [...(editingStore.dropOffPoints || [])];
+                                newPoints[index] = { ...point, carrier: e.target.value };
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              placeholder="e.g. GHTK, J&T"
+                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
+                            />
+                          </div>
+                          <div className="md:col-span-8 space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Drop-off Address</label>
+                            <input 
+                              type="text"
+                              value={point.address}
+                              onChange={e => {
+                                const newPoints = [...(editingStore.dropOffPoints || [])];
+                                newPoints[index] = { ...point, address: e.target.value };
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              placeholder="Enter full address for drop-off"
+                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
+                            />
+                          </div>
+                          <div className="md:col-span-1 flex justify-center gap-1">
+                            <button 
+                              onClick={() => setConfiguringDropOffPoint({ index, point })}
+                              className="text-gray-300 hover:text-[#4d9e5f] transition-colors p-2"
+                              title="Configure Detailed Address"
+                            >
+                              <i className="fa-solid fa-gear"></i>
+                            </button>
+                            <button 
+                              onClick={() => {
+                                const newPoints = (editingStore.dropOffPoints || []).filter(p => p.id !== point.id);
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              className="text-gray-300 hover:text-red-500 transition-colors p-2"
+                              title="Remove"
+                            >
+                              <i className="fa-solid fa-trash-can"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-2">
                   <i className="fa-solid fa-clock-rotate-left text-[#4d9e5f]"></i>
                   <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">History of Changes</h3>
@@ -4188,6 +4298,147 @@ const App: React.FC = () => {
                 className="flex-1 px-6 py-4 text-sm font-bold text-[#1b4d3e] hover:bg-green-50 transition-colors"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drop-off Point Configuration Modal */}
+      {configuringDropOffPoint && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-gray-50 border-b flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#1b4d3e] uppercase tracking-wider flex items-center gap-2">
+                <i className="fa-solid fa-location-dot"></i> Detailed Address: {configuringDropOffPoint.point.carrier || 'New Carrier'}
+              </h3>
+              <button onClick={() => setConfiguringDropOffPoint(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                <i className="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Cutoff Time</label>
+                <input 
+                  type="time" 
+                  value={configuringDropOffPoint.point.cutoffTime || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, cutoffTime: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Country</label>
+                <select 
+                  value={configuringDropOffPoint.point.country || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, country: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                >
+                  <option value="">Select Country</option>
+                  {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">State/Province</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.stateProvince || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, stateProvince: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="e.g. Ho Chi Minh City"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ward/City</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.wardCity || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, wardCity: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="e.g. District 1"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Street</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.street || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, street: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="Street name and number"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Latitude</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.latitude || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, latitude: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="e.g. 10.762622"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Longitude</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.longitude || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, longitude: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="e.g. 106.660172"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Postal Code</label>
+                <input 
+                  type="text" 
+                  value={configuringDropOffPoint.point.postalCode || ''} 
+                  onChange={e => {
+                    const updated = { ...configuringDropOffPoint.point, postalCode: e.target.value };
+                    setConfiguringDropOffPoint({ ...configuringDropOffPoint, point: updated });
+                  }}
+                  placeholder="e.g. 700000"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
+              <button 
+                onClick={() => setConfiguringDropOffPoint(null)}
+                className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  const newPoints = [...(editingStore.dropOffPoints || [])];
+                  newPoints[configuringDropOffPoint.index] = configuringDropOffPoint.point;
+                  setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                  setConfiguringDropOffPoint(null);
+                }}
+                className="px-6 py-2 bg-[#1b4d3e] text-white rounded font-bold text-xs hover:bg-[#153a2f] transition-all shadow-sm"
+              >
+                Apply Changes
               </button>
             </div>
           </div>
