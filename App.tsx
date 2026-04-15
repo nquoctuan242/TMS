@@ -82,6 +82,20 @@ interface Store {
   dropOffPoints?: DropOffPoint[];
 }
 
+interface DropOffShipment {
+  id: string;
+  code: string;
+  carrier: string;
+  store: string;
+  dropOffPoint: string;
+  cutoffTime: string;
+  status: 'Open' | 'Sealed' | 'In Transit' | 'Completed';
+  shipmentCount: number;
+  totalWeight: number;
+  createdAt: string;
+  sealedAt?: string;
+}
+
 interface Role {
   id: string;
   name: string;
@@ -198,9 +212,37 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
   { id: '5', code: 'S260119LNC4', order: '260119KEBK', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Waiting for Pickup', priority: 'normal', createdAt: '19/01/2026 09:23:06' },
 ];
 
+const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
+  {
+    id: '1',
+    code: 'DO-260415-001',
+    carrier: 'GHTK',
+    store: 'Van Store',
+    dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
+    cutoffTime: '17:00',
+    status: 'Open',
+    shipmentCount: 12,
+    totalWeight: 24.5,
+    createdAt: '15/04/2026 08:30:00'
+  },
+  {
+    id: '2',
+    code: 'DO-260414-005',
+    carrier: 'J&T',
+    store: 'Van Store',
+    dropOffPoint: '456 Lê Văn Sỹ, Tân Bình, HCM',
+    cutoffTime: '16:30',
+    status: 'Sealed',
+    shipmentCount: 8,
+    totalWeight: 15.2,
+    createdAt: '14/04/2026 09:15:00',
+    sealedAt: '14/04/2026 16:30:00'
+  }
+];
+
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -235,6 +277,8 @@ const App: React.FC = () => {
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
   const [editingUser, setEditingUser] = useState<UserFormState>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
+  const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
+  const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
   const [isGettingDistance, setIsGettingDistance] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean;
@@ -682,6 +726,31 @@ const App: React.FC = () => {
     setCurrentView('store-list');
   };
 
+  const handleAutoCombine = () => {
+    const newShipment: DropOffShipment = {
+      id: (dropOffShipments.length + 1).toString(),
+      code: `DO-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${(dropOffShipments.length + 1).toString().padStart(3, '0')}`,
+      carrier: 'GHTK',
+      store: 'Van Store',
+      dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
+      cutoffTime: '17:00',
+      status: 'Open',
+      shipmentCount: 5,
+      totalWeight: 10.5,
+      createdAt: new Date().toLocaleString()
+    };
+    setDropOffShipments([newShipment, ...dropOffShipments]);
+    alert("Auto-combined 5 shipments into a new Drop-off Shipment!");
+  };
+
+  const handleSealDropOff = (id: string) => {
+    setDropOffShipments(prev => prev.map(s => s.id === id ? { ...s, status: 'Sealed', sealedAt: new Date().toLocaleString() } : s));
+    if (selectedDropOffShipment && selectedDropOffShipment.id === id) {
+      setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Sealed', sealedAt: new Date().toLocaleString() });
+    }
+    alert("Shipment sealed successfully!");
+  };
+
   const [configuringDropOffPoint, setConfiguringDropOffPoint] = useState<{index: number, point: DropOffPoint} | null>(null);
 
   const handleGetDistance = () => {
@@ -775,7 +844,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-truck-arrow-right" 
             label="Shipments" 
-            active={currentView === 'shipment-online' || currentView === 'shipment-internal' || currentView === 'shipment-detail'} 
+            active={currentView === 'shipment-online' || currentView === 'shipment-internal' || currentView === 'shipment-detail' || currentView === 'shipment-drop-off' || currentView === 'shipment-drop-off-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -791,6 +860,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('shipment-internal')}
                 >
                   Internal Transfer
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-drop-off' || currentView === 'shipment-drop-off-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shipment-drop-off')}
+                >
+                  Drop-off
                 </div>
              </div>
           </SidebarItem>
@@ -926,6 +1001,8 @@ const App: React.FC = () => {
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'shipment-online' ? 'Online Shipment' :
+                  currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
+                  currentView === 'shipment-drop-off-detail' ? 'Drop-off Detail' :
                   currentView === 'shipment-internal' ? 'Internal Transfer Shipment' : 'Shipment Detail'}
               </span>
             </div>
@@ -4168,6 +4245,174 @@ const App: React.FC = () => {
                             <td className="px-4 py-3">{it.createdAt}</td>
                             <td className="px-4 py-3">{it.estimatedDeliveryTime}</td>
                             <td className="px-4 py-3">{it.deliveryType}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'shipment-drop-off' ? (
+            <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Drop-off Shipment List</h2>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleAutoCombine}
+                      className="px-4 py-1.5 bg-[#4d9e5f] text-white rounded text-xs font-bold hover:bg-[#3d7d4c] flex items-center gap-2 transition-all active:scale-95"
+                    >
+                      <i className="fa-solid fa-arrows-rotate"></i> Auto Combine
+                    </button>
+                  </div>
+               </div>
+               <div className="p-4 flex-1 overflow-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                      <tr>
+                        <th className="px-4 py-3 border-r">Code</th>
+                        <th className="px-4 py-3 border-r">Carrier</th>
+                        <th className="px-4 py-3 border-r">Store</th>
+                        <th className="px-4 py-3 border-r">Drop-off Point</th>
+                        <th className="px-4 py-3 border-r text-center">Cutoff</th>
+                        <th className="px-4 py-3 border-r text-center">Shipments</th>
+                        <th className="px-4 py-3 border-r text-center">Weight (kg)</th>
+                        <th className="px-4 py-3 border-r text-center">Status</th>
+                        <th className="px-4 py-3">Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y text-gray-600 font-medium">
+                      {dropOffShipments.map(item => (
+                        <tr 
+                          key={item.id} 
+                          className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                          onClick={() => { setSelectedDropOffShipment(item); setCurrentView('shipment-drop-off-detail'); }}
+                        >
+                          <td className="px-4 py-3 border-r font-mono text-[#4d9e5f] font-bold">{item.code}</td>
+                          <td className="px-4 py-3 border-r">{item.carrier}</td>
+                          <td className="px-4 py-3 border-r">{item.store}</td>
+                          <td className="px-4 py-3 border-r text-[11px] max-w-[200px] truncate" title={item.dropOffPoint}>{item.dropOffPoint}</td>
+                          <td className="px-4 py-3 border-r text-center font-mono">{item.cutoffTime}</td>
+                          <td className="px-4 py-3 border-r text-center font-bold">{item.shipmentCount}</td>
+                          <td className="px-4 py-3 border-r text-center">{item.totalWeight}</td>
+                          <td className="px-4 py-3 border-r text-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              item.status === 'Open' ? 'bg-blue-50 text-blue-600' :
+                              item.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
+                              item.status === 'In Transit' ? 'bg-purple-50 text-purple-600' :
+                              'bg-green-50 text-green-600'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-400">{item.createdAt}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+               </div>
+            </div>
+          ) : currentView === 'shipment-drop-off-detail' && selectedDropOffShipment ? (
+            <div className="space-y-6 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500">
+                  <i className="fa-solid fa-house"></i>
+                  <span>/</span>
+                  <span className="hover:text-gray-700 cursor-pointer" onClick={() => setCurrentView('shipment-drop-off')}>Shipments</span>
+                  <span>/</span>
+                  <span className="text-gray-800 font-medium">Drop-off Detail</span>
+               </nav>
+
+               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-4 bg-gray-50 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-bold text-[#1b4d3e]">{selectedDropOffShipment.code}</h2>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        selectedDropOffShipment.status === 'Open' ? 'bg-blue-50 text-blue-600' :
+                        selectedDropOffShipment.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
+                        selectedDropOffShipment.status === 'In Transit' ? 'bg-purple-50 text-purple-600' :
+                        'bg-green-50 text-green-600'
+                      }`}>
+                        {selectedDropOffShipment.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedDropOffShipment.status === 'Open' && (
+                        <button 
+                          onClick={() => handleSealDropOff(selectedDropOffShipment.id)}
+                          className="px-6 py-2 bg-orange-500 text-white rounded font-bold text-xs hover:bg-orange-600 transition-all shadow-sm flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-lock"></i> Seal Shipment
+                        </button>
+                      )}
+                      <button className="px-6 py-2 bg-[#1b4d3e] text-white rounded font-bold text-xs hover:bg-[#153a2f] transition-all shadow-sm flex items-center gap-2">
+                        <i className="fa-solid fa-print"></i> Print Manifest
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Carrier</label>
+                      <p className="text-sm font-bold text-gray-800">{selectedDropOffShipment.carrier}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pickup Store</label>
+                      <p className="text-sm font-bold text-gray-800">{selectedDropOffShipment.store}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Drop-off Point</label>
+                      <p className="text-sm font-bold text-gray-800">{selectedDropOffShipment.dropOffPoint}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Cutoff Time</label>
+                      <p className="text-sm font-bold text-orange-600">{selectedDropOffShipment.cutoffTime}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Shipments</label>
+                      <p className="text-sm font-bold text-gray-800">{selectedDropOffShipment.shipmentCount}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Weight</label>
+                      <p className="text-sm font-bold text-gray-800">{selectedDropOffShipment.totalWeight} kg</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Created At</label>
+                      <p className="text-sm font-medium text-gray-600">{selectedDropOffShipment.createdAt}</p>
+                    </div>
+                    {selectedDropOffShipment.sealedAt && (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sealed At</label>
+                        <p className="text-sm font-medium text-gray-600">{selectedDropOffShipment.sealedAt}</p>
+                      </div>
+                    )}
+                  </div>
+               </div>
+
+               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                    <h3 className="font-bold text-[#1b4d3e] text-xs uppercase tracking-wider">Combined Shipments</h3>
+                    <span className="text-[10px] text-gray-400 font-bold">Total: {selectedDropOffShipment.shipmentCount} items</span>
+                  </div>
+                  <div className="p-0">
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead className="bg-gray-50 text-gray-500 font-bold border-b">
+                        <tr>
+                          <th className="px-4 py-2 border-r">Shipment Code</th>
+                          <th className="px-4 py-2 border-r">Order Code</th>
+                          <th className="px-4 py-2 border-r">Receiver</th>
+                          <th className="px-4 py-2 border-r text-center">Weight</th>
+                          <th className="px-4 py-2 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => (
+                          <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-2 border-r font-mono text-blue-600">S260415-{(1000 + i).toString()}</td>
+                            <td className="px-4 py-2 border-r font-mono">ORD-{(5000 + i).toString()}</td>
+                            <td className="px-4 py-2 border-r">Customer {i + 1}</td>
+                            <td className="px-4 py-2 border-r text-center">{(Math.random() * 5).toFixed(1)} kg</td>
+                            <td className="px-4 py-2 text-center">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">Combined</span>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
