@@ -89,7 +89,7 @@ interface DropOffShipment {
   store: string;
   dropOffPoint: string;
   cutoffTime: string;
-  status: 'Open' | 'Sealed' | 'In Transit' | 'Completed';
+  status: 'Open' | 'Sealed' | 'Waiting for pickup' | 'Picked Up Waiting Confirmation' | 'Picked Up' | 'InTransit' | 'Delivery to local carrier' | 'Completed';
   shipmentCount: number;
   totalWeight: number;
   createdAt: string;
@@ -237,6 +237,54 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
     totalWeight: 15.2,
     createdAt: '14/04/2026 09:15:00',
     sealedAt: '14/04/2026 16:30:00'
+  },
+  {
+    id: '3',
+    code: 'DO-260414-006',
+    carrier: 'Ninja Van',
+    store: 'Van Store',
+    dropOffPoint: '789 Nguyễn Đình Chiểu, Q3, HCM',
+    cutoffTime: '18:00',
+    status: 'Waiting for pickup',
+    shipmentCount: 5,
+    totalWeight: 10.0,
+    createdAt: '14/04/2026 10:00:00'
+  },
+  {
+    id: '4',
+    code: 'DO-260414-007',
+    carrier: 'GHTK',
+    store: 'Van Store',
+    dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
+    cutoffTime: '17:00',
+    status: 'InTransit',
+    shipmentCount: 15,
+    totalWeight: 30.2,
+    createdAt: '14/04/2026 11:00:00'
+  },
+  {
+    id: '5',
+    code: 'DO-260414-008',
+    carrier: 'J&T',
+    store: 'Van Store',
+    dropOffPoint: '456 Lê Văn Sỹ, Tân Bình, HCM',
+    cutoffTime: '16:30',
+    status: 'Delivery to local carrier',
+    shipmentCount: 20,
+    totalWeight: 45.0,
+    createdAt: '14/04/2026 12:00:00'
+  },
+  {
+    id: '6',
+    code: 'DO-260414-009',
+    carrier: 'Ninja Van',
+    store: 'Van Store',
+    dropOffPoint: '789 Nguyễn Đình Chiểu, Q3, HCM',
+    cutoffTime: '18:00',
+    status: 'Completed',
+    shipmentCount: 10,
+    totalWeight: 20.0,
+    createdAt: '14/04/2026 13:00:00'
   }
 ];
 
@@ -279,6 +327,7 @@ const App: React.FC = () => {
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
   const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
+  const [selectedDropOffIds, setSelectedDropOffIds] = useState<string[]>([]);
   const [isGettingDistance, setIsGettingDistance] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean;
@@ -749,6 +798,59 @@ const App: React.FC = () => {
       setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Sealed', sealedAt: new Date().toLocaleString() });
     }
     alert("Shipment sealed successfully!");
+  };
+
+  const handleCombineSelectedDropOffs = () => {
+    if (selectedDropOffIds.length < 2) {
+      alert("Please select at least 2 shipments to combine.");
+      return;
+    }
+
+    const selectedShipments = dropOffShipments.filter(s => selectedDropOffIds.includes(s.id));
+    
+    // Check if all have same carrier and store
+    const first = selectedShipments[0];
+    const sameCarrierAndStore = selectedShipments.every(s => s.carrier === first.carrier && s.store === first.store);
+    
+    if (!sameCarrierAndStore) {
+      alert("Selected shipments must have the same Carrier and Store to be combined.");
+      return;
+    }
+
+    // Check statuses (Open or Sealed)
+    const validStatuses = selectedShipments.every(s => s.status === 'Open' || s.status === 'Sealed');
+    if (!validStatuses) {
+      alert("Only shipments with status 'Open' or 'Sealed' can be combined.");
+      return;
+    }
+
+    // Combine
+    const totalCount = selectedShipments.reduce((sum, s) => sum + s.shipmentCount, 0);
+    const totalWeight = selectedShipments.reduce((sum, s) => sum + s.totalWeight, 0);
+    
+    // Status of the shipment created after (latest createdAt)
+    // We'll sort by createdAt to find the latest
+    const sortedByDate = [...selectedShipments].sort((a, b) => {
+      const dateA = new Date(a.createdAt.split(' ')[0].split('/').reverse().join('-') + ' ' + a.createdAt.split(' ')[1]);
+      const dateB = new Date(b.createdAt.split(' ')[0].split('/').reverse().join('-') + ' ' + b.createdAt.split(' ')[1]);
+      return dateB.getTime() - dateA.getTime();
+    });
+    const latestStatus = sortedByDate[0].status;
+
+    const combinedShipment: DropOffShipment = {
+      ...sortedByDate[0], // Take properties from the latest one
+      id: Math.random().toString(36).substr(2, 9),
+      code: `DO-COMB-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(Math.random() * 1000)}`,
+      shipmentCount: totalCount,
+      totalWeight: Number(totalWeight.toFixed(2)),
+      status: latestStatus,
+      createdAt: new Date().toLocaleString()
+    };
+
+    const remainingShipments = dropOffShipments.filter(s => !selectedDropOffIds.includes(s.id));
+    setDropOffShipments([combinedShipment, ...remainingShipments]);
+    setSelectedDropOffIds([]);
+    alert(`Successfully combined ${selectedShipments.length} shipments into ${combinedShipment.code}`);
   };
 
   const [configuringDropOffPoint, setConfiguringDropOffPoint] = useState<{index: number, point: DropOffPoint} | null>(null);
@@ -4255,7 +4357,26 @@ const App: React.FC = () => {
           ) : currentView === 'shipment-drop-off' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                <div className="flex items-center justify-between border-b px-4 py-3">
-                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Drop-off Shipment List</h2>
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Drop-off Shipment List</h2>
+                    {selectedDropOffIds.length > 0 && (
+                      <div className="flex items-center gap-2 animate-in slide-in-from-left duration-200">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase">{selectedDropOffIds.length} selected</span>
+                        <button 
+                          onClick={handleCombineSelectedDropOffs}
+                          className="px-4 py-1.5 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700 flex items-center gap-2 transition-all shadow-sm"
+                        >
+                          <i className="fa-solid fa-layer-group"></i> Combine Selected
+                        </button>
+                        <button 
+                          onClick={() => setSelectedDropOffIds([])}
+                          className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={handleAutoCombine}
@@ -4269,6 +4390,20 @@ const App: React.FC = () => {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
                       <tr>
+                        <th className="px-4 py-3 border-r w-10">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedDropOffIds.length === dropOffShipments.length && dropOffShipments.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedDropOffIds(dropOffShipments.map(s => s.id));
+                              } else {
+                                setSelectedDropOffIds([]);
+                              }
+                            }}
+                            className="rounded border-gray-300 text-[#4d9e5f] focus:ring-[#4d9e5f]"
+                          />
+                        </th>
                         <th className="px-4 py-3 border-r">Code</th>
                         <th className="px-4 py-3 border-r">Carrier</th>
                         <th className="px-4 py-3 border-r">Store</th>
@@ -4284,9 +4419,29 @@ const App: React.FC = () => {
                       {dropOffShipments.map(item => (
                         <tr 
                           key={item.id} 
-                          className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                          onClick={() => { setSelectedDropOffShipment(item); setCurrentView('shipment-drop-off-detail'); }}
+                          className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedDropOffIds.includes(item.id) ? 'bg-green-50/30' : ''}`}
+                          onClick={(e) => {
+                            // If clicking the checkbox itself, don't trigger row click
+                            if ((e.target as HTMLElement).tagName === 'INPUT') return;
+                            setSelectedDropOffShipment(item); 
+                            setCurrentView('shipment-drop-off-detail'); 
+                          }}
                         >
+                          <td className="px-4 py-3 border-r text-center">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedDropOffIds.includes(item.id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                if (e.target.checked) {
+                                  setSelectedDropOffIds([...selectedDropOffIds, item.id]);
+                                } else {
+                                  setSelectedDropOffIds(selectedDropOffIds.filter(id => id !== item.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-[#4d9e5f] focus:ring-[#4d9e5f]"
+                            />
+                          </td>
                           <td className="px-4 py-3 border-r font-mono text-[#4d9e5f] font-bold">{item.code}</td>
                           <td className="px-4 py-3 border-r">{item.carrier}</td>
                           <td className="px-4 py-3 border-r">{item.store}</td>
@@ -4298,7 +4453,11 @@ const App: React.FC = () => {
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                               item.status === 'Open' ? 'bg-blue-50 text-blue-600' :
                               item.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
-                              item.status === 'In Transit' ? 'bg-purple-50 text-purple-600' :
+                              item.status === 'Waiting for pickup' ? 'bg-yellow-50 text-yellow-600' :
+                              item.status === 'Picked Up Waiting Confirmation' ? 'bg-indigo-50 text-indigo-600' :
+                              item.status === 'Picked Up' ? 'bg-teal-50 text-teal-600' :
+                              item.status === 'InTransit' ? 'bg-purple-50 text-purple-600' :
+                              item.status === 'Delivery to local carrier' ? 'bg-pink-50 text-pink-600' :
                               'bg-green-50 text-green-600'
                             }`}>
                               {item.status}
@@ -4328,7 +4487,11 @@ const App: React.FC = () => {
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
                         selectedDropOffShipment.status === 'Open' ? 'bg-blue-50 text-blue-600' :
                         selectedDropOffShipment.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
-                        selectedDropOffShipment.status === 'In Transit' ? 'bg-purple-50 text-purple-600' :
+                        selectedDropOffShipment.status === 'Waiting for pickup' ? 'bg-yellow-50 text-yellow-600' :
+                        selectedDropOffShipment.status === 'Picked Up Waiting Confirmation' ? 'bg-indigo-50 text-indigo-600' :
+                        selectedDropOffShipment.status === 'Picked Up' ? 'bg-teal-50 text-teal-600' :
+                        selectedDropOffShipment.status === 'InTransit' ? 'bg-purple-50 text-purple-600' :
+                        selectedDropOffShipment.status === 'Delivery to local carrier' ? 'bg-pink-50 text-pink-600' :
                         'bg-green-50 text-green-600'
                       }`}>
                         {selectedDropOffShipment.status}
