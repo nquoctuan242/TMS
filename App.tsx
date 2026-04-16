@@ -328,6 +328,14 @@ const App: React.FC = () => {
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
   const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
   const [selectedDropOffIds, setSelectedDropOffIds] = useState<string[]>([]);
+  const [dropOffFilters, setDropOffFilters] = useState({
+    code: '',
+    carrier: '',
+    store: '',
+    status: '',
+    fromDate: '',
+    toDate: ''
+  });
   const [isGettingDistance, setIsGettingDistance] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean;
@@ -800,6 +808,10 @@ const App: React.FC = () => {
     alert("Shipment sealed successfully!");
   };
 
+  const handlePrintManifest = () => {
+    window.print();
+  };
+
   const handleCombineSelectedDropOffs = () => {
     if (selectedDropOffIds.length < 2) {
       alert("Please select at least 2 shipments to combine.");
@@ -852,6 +864,39 @@ const App: React.FC = () => {
     setSelectedDropOffIds([]);
     alert(`Successfully combined ${selectedShipments.length} shipments into ${combinedShipment.code}`);
   };
+
+  const filteredDropOffShipments = dropOffShipments.filter(item => {
+    const matchCode = !dropOffFilters.code || item.code.toLowerCase().includes(dropOffFilters.code.toLowerCase());
+    const matchCarrier = !dropOffFilters.carrier || item.carrier.toLowerCase().includes(dropOffFilters.carrier.toLowerCase());
+    const matchStore = !dropOffFilters.store || item.store.toLowerCase().includes(dropOffFilters.store.toLowerCase());
+    const matchStatus = !dropOffFilters.status || item.status === dropOffFilters.status;
+    
+    // Date filtering
+    if (dropOffFilters.fromDate || dropOffFilters.toDate) {
+      // Parse DD/MM/YYYY HH:mm:ss
+      const parseDate = (dateStr: string) => {
+        const [dmy] = dateStr.split(' ');
+        const [d, m, y] = dmy.split('/').map(Number);
+        return new Date(y, m - 1, d);
+      };
+      
+      const itemDate = parseDate(item.createdAt);
+      
+      if (dropOffFilters.fromDate) {
+        const from = new Date(dropOffFilters.fromDate);
+        from.setHours(0, 0, 0, 0);
+        if (itemDate < from) return false;
+      }
+      
+      if (dropOffFilters.toDate) {
+        const to = new Date(dropOffFilters.toDate);
+        to.setHours(23, 59, 59, 999);
+        if (itemDate > to) return false;
+      }
+    }
+
+    return matchCode && matchCarrier && matchStore && matchStatus;
+  });
 
   const [configuringDropOffPoint, setConfiguringDropOffPoint] = useState<{index: number, point: DropOffPoint} | null>(null);
 
@@ -1079,7 +1124,7 @@ const App: React.FC = () => {
         </nav>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden print:hidden">
         {/* Header */}
         <header className="bg-[#4d9e5f] text-white px-4 h-12 flex items-center justify-between sticky top-0 z-50 shadow-sm">
           <div className="flex items-center gap-4 shrink-0">
@@ -4386,6 +4431,88 @@ const App: React.FC = () => {
                     </button>
                   </div>
                </div>
+
+               {/* Filters Section */}
+               <div className="p-4 bg-gray-50/50 border-b">
+                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipment Code</label>
+                     <input 
+                       type="text" 
+                       value={dropOffFilters.code}
+                       onChange={e => setDropOffFilters({...dropOffFilters, code: e.target.value})}
+                       placeholder="Enter code..."
+                       className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" 
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Carrier</label>
+                     <input 
+                       type="text" 
+                       value={dropOffFilters.carrier}
+                       onChange={e => setDropOffFilters({...dropOffFilters, carrier: e.target.value})}
+                       placeholder="Enter carrier..."
+                       className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" 
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Store</label>
+                     <input 
+                       type="text" 
+                       value={dropOffFilters.store}
+                       onChange={e => setDropOffFilters({...dropOffFilters, store: e.target.value})}
+                       placeholder="Enter store..."
+                       className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" 
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</label>
+                     <select 
+                       value={dropOffFilters.status}
+                       onChange={e => setDropOffFilters({...dropOffFilters, status: e.target.value})}
+                       className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none"
+                     >
+                       <option value="">All Status</option>
+                       <option value="Open">Open</option>
+                       <option value="Sealed">Sealed</option>
+                       <option value="Waiting for pickup">Waiting for pickup</option>
+                       <option value="Picked Up Waiting Confirmation">Picked Up Waiting Confirmation</option>
+                       <option value="Picked Up">Picked Up</option>
+                       <option value="InTransit">InTransit</option>
+                       <option value="Delivery to local carrier">Delivery to local carrier</option>
+                       <option value="Completed">Completed</option>
+                     </select>
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From Date</label>
+                     <input 
+                       type="date" 
+                       value={dropOffFilters.fromDate}
+                       onChange={e => setDropOffFilters({...dropOffFilters, fromDate: e.target.value})}
+                       className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" 
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To Date</label>
+                     <div className="flex items-center gap-2">
+                       <input 
+                         type="date" 
+                         value={dropOffFilters.toDate}
+                         onChange={e => setDropOffFilters({...dropOffFilters, toDate: e.target.value})}
+                         className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]" 
+                       />
+                       <button 
+                         onClick={() => setDropOffFilters({code: '', carrier: '', store: '', status: '', fromDate: '', toDate: ''})}
+                         className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                         title="Reset Filters"
+                       >
+                         <i className="fa-solid fa-rotate-left"></i>
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
                <div className="p-4 flex-1 overflow-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
@@ -4393,10 +4520,10 @@ const App: React.FC = () => {
                         <th className="px-4 py-3 border-r w-10">
                           <input 
                             type="checkbox" 
-                            checked={selectedDropOffIds.length === dropOffShipments.length && dropOffShipments.length > 0}
+                            checked={selectedDropOffIds.length === filteredDropOffShipments.length && filteredDropOffShipments.length > 0}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedDropOffIds(dropOffShipments.map(s => s.id));
+                                setSelectedDropOffIds(filteredDropOffShipments.map(s => s.id));
                               } else {
                                 setSelectedDropOffIds([]);
                               }
@@ -4416,33 +4543,40 @@ const App: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y text-gray-600 font-medium">
-                      {dropOffShipments.map(item => (
-                        <tr 
-                          key={item.id} 
-                          className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedDropOffIds.includes(item.id) ? 'bg-green-50/30' : ''}`}
-                          onClick={(e) => {
-                            // If clicking the checkbox itself, don't trigger row click
-                            if ((e.target as HTMLElement).tagName === 'INPUT') return;
-                            setSelectedDropOffShipment(item); 
-                            setCurrentView('shipment-drop-off-detail'); 
-                          }}
-                        >
-                          <td className="px-4 py-3 border-r text-center">
-                            <input 
-                              type="checkbox" 
-                              checked={selectedDropOffIds.includes(item.id)}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                if (e.target.checked) {
-                                  setSelectedDropOffIds([...selectedDropOffIds, item.id]);
-                                } else {
-                                  setSelectedDropOffIds(selectedDropOffIds.filter(id => id !== item.id));
-                                }
-                              }}
-                              className="rounded border-gray-300 text-[#4d9e5f] focus:ring-[#4d9e5f]"
-                            />
+                      {filteredDropOffShipments.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="px-4 py-12 text-center text-gray-400 italic">
+                            No shipments found matching your filters.
                           </td>
-                          <td className="px-4 py-3 border-r font-mono text-[#4d9e5f] font-bold">{item.code}</td>
+                        </tr>
+                      ) : (
+                        filteredDropOffShipments.map(item => (
+                          <tr 
+                            key={item.id} 
+                            className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${selectedDropOffIds.includes(item.id) ? 'bg-green-50/30' : ''}`}
+                            onClick={(e) => {
+                              // If clicking the checkbox itself, don't trigger row click
+                              if ((e.target as HTMLElement).tagName === 'INPUT') return;
+                              setSelectedDropOffShipment(item); 
+                              setCurrentView('shipment-drop-off-detail'); 
+                            }}
+                          >
+                            <td className="px-4 py-3 border-r text-center">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedDropOffIds.includes(item.id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  if (e.target.checked) {
+                                    setSelectedDropOffIds([...selectedDropOffIds, item.id]);
+                                  } else {
+                                    setSelectedDropOffIds(selectedDropOffIds.filter(id => id !== item.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300 text-[#4d9e5f] focus:ring-[#4d9e5f]"
+                              />
+                            </td>
+                            <td className="px-4 py-3 border-r font-mono text-[#4d9e5f] font-bold">{item.code}</td>
                           <td className="px-4 py-3 border-r">{item.carrier}</td>
                           <td className="px-4 py-3 border-r">{item.store}</td>
                           <td className="px-4 py-3 border-r text-[11px] max-w-[200px] truncate" title={item.dropOffPoint}>{item.dropOffPoint}</td>
@@ -4465,8 +4599,9 @@ const App: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-gray-400">{item.createdAt}</td>
                         </tr>
-                      ))}
-                    </tbody>
+                      ))
+                    )}
+                  </tbody>
                   </table>
                </div>
             </div>
@@ -4506,7 +4641,10 @@ const App: React.FC = () => {
                           <i className="fa-solid fa-lock"></i> Seal Shipment
                         </button>
                       )}
-                      <button className="px-6 py-2 bg-[#1b4d3e] text-white rounded font-bold text-xs hover:bg-[#153a2f] transition-all shadow-sm flex items-center gap-2">
+                      <button 
+                        onClick={handlePrintManifest}
+                        className="px-6 py-2 bg-[#1b4d3e] text-white rounded font-bold text-xs hover:bg-[#153a2f] transition-all shadow-sm flex items-center gap-2"
+                      >
                         <i className="fa-solid fa-print"></i> Print Manifest
                       </button>
                     </div>
@@ -4849,6 +4987,101 @@ const App: React.FC = () => {
                 Apply Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Printable Manifest Section */}
+      {selectedDropOffShipment && (
+        <div className="hidden print:block p-8 bg-white text-black font-sans min-h-screen w-[210mm]">
+          <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-8">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-2xl font-black tracking-tighter text-[#1b4d3e]">
+                <i className="fa-solid fa-truck-fast"></i>
+                <span>HASAKI LOGISTICS</span>
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Official Shipment Manifest</p>
+            </div>
+            <div className="text-right space-y-1">
+              <h1 className="text-3xl font-black uppercase tracking-tight">Manifest</h1>
+              <p className="text-sm font-mono font-bold text-gray-600">#{selectedDropOffShipment.code}</p>
+              <p className="text-[10px] text-gray-400 font-medium">{new Date().toLocaleString()}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-12 mb-10">
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b pb-1">Sender Information</h3>
+              <div className="space-y-1">
+                <p className="text-sm font-bold">{selectedDropOffShipment.store}</p>
+                <p className="text-xs text-gray-600">568 Lũy Bán Bích, P. Tân Thành, Q. Tân Phú, TP. HCM</p>
+                <p className="text-xs text-gray-600">Phone: 0987 267 289</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b pb-1">Carrier Information</h3>
+              <div className="space-y-1">
+                <p className="text-sm font-bold">{selectedDropOffShipment.carrier}</p>
+                <p className="text-xs text-gray-600">Drop-off Point: {selectedDropOffShipment.dropOffPoint}</p>
+                <p className="text-xs text-gray-600">Cutoff Time: {selectedDropOffShipment.cutoffTime}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 grid grid-cols-3 gap-8 mb-10">
+            <div className="text-center space-y-1">
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Items</p>
+              <p className="text-2xl font-black">{selectedDropOffShipment.shipmentCount}</p>
+            </div>
+            <div className="text-center space-y-1 border-x border-gray-200">
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Weight</p>
+              <p className="text-2xl font-black">{selectedDropOffShipment.totalWeight} <span className="text-sm font-bold">kg</span></p>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Status</p>
+              <p className="text-2xl font-black uppercase tracking-tighter">{selectedDropOffShipment.status}</p>
+            </div>
+          </div>
+
+          <table className="w-full mb-12 border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black">
+                <th className="py-3 text-left text-[10px] font-black uppercase tracking-widest">No.</th>
+                <th className="py-3 text-left text-[10px] font-black uppercase tracking-widest">Shipment Code</th>
+                <th className="py-3 text-left text-[10px] font-black uppercase tracking-widest">Order Code</th>
+                <th className="py-3 text-left text-[10px] font-black uppercase tracking-widest">Receiver</th>
+                <th className="py-3 text-right text-[10px] font-black uppercase tracking-widest">Weight (kg)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => (
+                <tr key={i}>
+                  <td className="py-3 text-xs font-medium text-gray-400">{i + 1}</td>
+                  <td className="py-3 text-xs font-bold font-mono">S260415-{(1000 + i).toString()}</td>
+                  <td className="py-3 text-xs font-bold font-mono">ORD-{(5000 + i).toString()}</td>
+                  <td className="py-3 text-xs font-medium">Customer {i + 1}</td>
+                  <td className="py-3 text-xs font-bold text-right">{(Math.random() * 5).toFixed(1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="grid grid-cols-2 gap-20 mt-20">
+            <div className="text-center space-y-16">
+              <p className="text-[10px] font-black uppercase tracking-widest">Sender Signature</p>
+              <div className="border-b border-dashed border-gray-400 w-48 mx-auto"></div>
+              <p className="text-xs font-bold text-gray-400">(Sign and Name)</p>
+            </div>
+            <div className="text-center space-y-16">
+              <p className="text-[10px] font-black uppercase tracking-widest">Carrier Confirmation</p>
+              <div className="border-b border-dashed border-gray-400 w-48 mx-auto"></div>
+              <p className="text-xs font-bold text-gray-400">(Sign and Name)</p>
+            </div>
+          </div>
+
+          <div className="fixed bottom-8 left-8 right-8 flex justify-between items-center text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">
+            <p>Hasaki Logistics Management System</p>
+            <p>Page 1 of 1</p>
           </div>
         </div>
       )}
