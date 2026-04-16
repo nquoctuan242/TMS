@@ -89,7 +89,7 @@ interface DropOffShipment {
   store: string;
   dropOffPoint: string;
   cutoffTime: string;
-  status: 'Open' | 'Sealed' | 'Waiting for pickup' | 'Picked Up Waiting Confirmation' | 'Picked Up' | 'InTransit' | 'Delivery to local carrier' | 'Completed';
+  status: 'New' | 'Sealed' | 'Waiting for pickup' | 'Picked Up Waiting Confirmation' | 'Picked Up' | 'InTransit' | 'Delivery to local carrier' | 'Completed';
   shipmentCount: number;
   totalWeight: number;
   createdAt: string;
@@ -220,7 +220,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
     store: 'Van Store',
     dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
     cutoffTime: '17:00',
-    status: 'Open',
+    status: 'New',
     shipmentCount: 12,
     totalWeight: 24.5,
     createdAt: '15/04/2026 08:30:00'
@@ -791,7 +791,7 @@ const App: React.FC = () => {
       store: 'Van Store',
       dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
       cutoffTime: '17:00',
-      status: 'Open',
+      status: 'New',
       shipmentCount: 5,
       totalWeight: 10.5,
       createdAt: new Date().toLocaleString()
@@ -829,10 +829,10 @@ const App: React.FC = () => {
       return;
     }
 
-    // Check statuses (Open or Sealed)
-    const validStatuses = selectedShipments.every(s => s.status === 'Open' || s.status === 'Sealed');
+    // Check statuses (New or Sealed)
+    const validStatuses = selectedShipments.every(s => s.status === 'New' || s.status === 'Sealed');
     if (!validStatuses) {
-      alert("Only shipments with status 'Open' or 'Sealed' can be combined.");
+      alert("Only shipments with status 'New' or 'Sealed' can be combined.");
       return;
     }
 
@@ -933,9 +933,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-[13px]">
+    <div className="flex min-h-screen bg-gray-50 text-[13px] print:block print:bg-white">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#1b4d3e] text-white hidden md:flex flex-col sticky top-0 h-screen shrink-0 z-[60]">
+      <aside className="w-64 bg-[#1b4d3e] text-white hidden md:flex flex-col sticky top-0 h-screen shrink-0 z-[60] print:hidden">
         <div className="p-4 flex flex-col gap-4 border-b border-white/10">
           <div className="flex items-center gap-2 h-10">
             <div className="bg-white p-1 rounded">
@@ -4473,7 +4473,7 @@ const App: React.FC = () => {
                        className="w-full bg-white border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none"
                      >
                        <option value="">All Status</option>
-                       <option value="Open">Open</option>
+                       <option value="New">New</option>
                        <option value="Sealed">Sealed</option>
                        <option value="Waiting for pickup">Waiting for pickup</option>
                        <option value="Picked Up Waiting Confirmation">Picked Up Waiting Confirmation</option>
@@ -4585,7 +4585,7 @@ const App: React.FC = () => {
                           <td className="px-4 py-3 border-r text-center">{item.totalWeight}</td>
                           <td className="px-4 py-3 border-r text-center">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              item.status === 'Open' ? 'bg-blue-50 text-blue-600' :
+                              item.status === 'New' ? 'bg-blue-50 text-blue-600' :
                               item.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
                               item.status === 'Waiting for pickup' ? 'bg-yellow-50 text-yellow-600' :
                               item.status === 'Picked Up Waiting Confirmation' ? 'bg-indigo-50 text-indigo-600' :
@@ -4620,7 +4620,7 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <h2 className="text-lg font-bold text-[#1b4d3e]">{selectedDropOffShipment.code}</h2>
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        selectedDropOffShipment.status === 'Open' ? 'bg-blue-50 text-blue-600' :
+                        selectedDropOffShipment.status === 'New' ? 'bg-blue-50 text-blue-600' :
                         selectedDropOffShipment.status === 'Sealed' ? 'bg-orange-50 text-orange-600' :
                         selectedDropOffShipment.status === 'Waiting for pickup' ? 'bg-yellow-50 text-yellow-600' :
                         selectedDropOffShipment.status === 'Picked Up Waiting Confirmation' ? 'bg-indigo-50 text-indigo-600' :
@@ -4633,7 +4633,7 @@ const App: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {selectedDropOffShipment.status === 'Open' && (
+                      {selectedDropOffShipment.status === 'New' && (
                         <button 
                           onClick={() => handleSealDropOff(selectedDropOffShipment.id)}
                           className="px-6 py-2 bg-orange-500 text-white rounded font-bold text-xs hover:bg-orange-600 transition-all shadow-sm flex items-center gap-2"
@@ -4993,7 +4993,7 @@ const App: React.FC = () => {
       
       {/* Printable Manifest Section */}
       {selectedDropOffShipment && (
-        <div className="hidden print:block p-8 bg-white text-black font-sans min-h-screen w-[210mm]">
+        <div className="hidden print:block p-8 bg-white text-black font-sans w-full absolute top-0 left-0 bg-white z-[9999]">
           <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-8">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-2xl font-black tracking-tighter text-[#1b4d3e]">
