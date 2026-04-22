@@ -82,6 +82,14 @@ interface Store {
   dropOffPoints?: DropOffPoint[];
 }
 
+interface DropOffItem {
+  id: string;
+  shipmentCode: string;
+  orderCode: string;
+  receiver: string;
+  weight: number;
+}
+
 interface DropOffShipment {
   id: string;
   code: string;
@@ -94,6 +102,7 @@ interface DropOffShipment {
   totalWeight: number;
   createdAt: string;
   sealedAt?: string;
+  items?: DropOffItem[];
 }
 
 interface Role {
@@ -221,9 +230,14 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
     dropOffPoint: '123 Phan Xích Long, Phú Nhuận, HCM',
     cutoffTime: '17:00',
     status: 'New',
-    shipmentCount: 12,
-    totalWeight: 24.5,
-    createdAt: '15/04/2026 08:30:00'
+    shipmentCount: 3,
+    totalWeight: 6.5,
+    createdAt: '15/04/2026 08:30:00',
+    items: [
+      { id: '101', shipmentCode: 'S260415-1001', orderCode: 'ORD-5001', receiver: 'Customer A', weight: 2.1 },
+      { id: '102', shipmentCode: 'S260415-1002', orderCode: 'ORD-5002', receiver: 'Customer B', weight: 1.8 },
+      { id: '103', shipmentCode: 'S260415-1003', orderCode: 'ORD-5003', receiver: 'Customer C', weight: 2.6 },
+    ]
   },
   {
     id: '2',
@@ -810,6 +824,74 @@ const App: React.FC = () => {
 
   const handlePrintManifest = () => {
     window.print();
+  };
+
+  const handleRemoveOrderItem = (shipmentId: string, itemId: string) => {
+    if (!window.confirm("Are you sure you want to remove this order from the shipment?")) return;
+
+    const shipment = dropOffShipments.find(s => s.id === shipmentId);
+    if (!shipment) return;
+
+    // Use items if available, or simulate if not (for legacy mock data)
+    let items = shipment.items;
+    if (!items) {
+      // Fallback for mock data without items
+      items = Array(shipment.shipmentCount).fill(0).map((_, i) => ({
+        id: `m-${shipment.id}-${i}`,
+        shipmentCode: `S260415-${(1000 + i).toString()}`,
+        orderCode: `ORD-{(5000 + i).toString()}`,
+        receiver: `Customer ${i + 1}`,
+        weight: parseFloat((Math.random() * 5).toFixed(1))
+      }));
+    }
+
+    const itemToRemove = items.find(i => i.id === itemId);
+    if (!itemToRemove) return;
+
+    // Create new shipment for the removed order
+    const nextId = (Math.max(0, ...dropOffShipments.map(s => parseInt(s.id) || 0)) + 1).toString();
+    const newShipment: DropOffShipment = {
+      id: nextId,
+      code: `DO-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${nextId.padStart(3, '0')}`,
+      carrier: shipment.carrier,
+      store: shipment.store,
+      dropOffPoint: shipment.dropOffPoint,
+      cutoffTime: shipment.cutoffTime,
+      status: 'New',
+      shipmentCount: 1,
+      totalWeight: itemToRemove.weight,
+      createdAt: new Date().toLocaleString(),
+      items: [itemToRemove]
+    };
+
+    // Update original shipment
+    const updatedShipments = dropOffShipments.map(s => {
+      if (s.id === shipmentId) {
+        const updatedItems = items!.filter(i => i.id !== itemId);
+        return {
+          ...s,
+          items: updatedItems,
+          shipmentCount: updatedItems.length,
+          totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
+        };
+      }
+      return s;
+    });
+
+    setDropOffShipments([newShipment, ...updatedShipments]);
+    
+    // Update selected shipment view if necessary
+    if (selectedDropOffShipment && selectedDropOffShipment.id === shipmentId) {
+      const updatedItems = items!.filter(i => i.id !== itemId);
+      setSelectedDropOffShipment({
+        ...selectedDropOffShipment,
+        items: updatedItems,
+        shipmentCount: updatedItems.length,
+        totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
+      });
+    }
+
+    alert(`Order ${itemToRemove.orderCode} removed and added to new shipment ${newShipment.code}`);
   };
 
   const handleCombineSelectedDropOffs = () => {
@@ -4701,18 +4783,34 @@ const App: React.FC = () => {
                           <th className="px-4 py-2 border-r">Order Code</th>
                           <th className="px-4 py-2 border-r">Receiver</th>
                           <th className="px-4 py-2 border-r text-center">Weight</th>
-                          <th className="px-4 py-2 text-center">Status</th>
+                          <th className="px-4 py-2 border-r text-center">Status</th>
+                          <th className="px-4 py-2 text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y text-gray-600 font-medium">
-                        {Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => (
-                          <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-4 py-2 border-r font-mono text-blue-600">S260415-{(1000 + i).toString()}</td>
-                            <td className="px-4 py-2 border-r font-mono">ORD-{(5000 + i).toString()}</td>
-                            <td className="px-4 py-2 border-r">Customer {i + 1}</td>
-                            <td className="px-4 py-2 border-r text-center">{(Math.random() * 5).toFixed(1)} kg</td>
-                            <td className="px-4 py-2 text-center">
+                        {(selectedDropOffShipment.items || Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => ({
+                          id: `m-${selectedDropOffShipment.id}-${i}`,
+                          shipmentCode: `S260415-${(1000 + i).toString()}`,
+                          orderCode: `ORD-${(5000 + i).toString()}`,
+                          receiver: `Customer ${i + 1}`,
+                          weight: parseFloat((Math.random() * 5).toFixed(1))
+                        }))).map((item: any) => (
+                          <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-2 border-r font-mono text-blue-600">{item.shipmentCode}</td>
+                            <td className="px-4 py-2 border-r font-mono">{item.orderCode}</td>
+                            <td className="px-4 py-2 border-r">{item.receiver}</td>
+                            <td className="px-4 py-2 border-r text-center">{item.weight} kg</td>
+                            <td className="px-4 py-2 border-r text-center">
                               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">Combined</span>
+                            </td>
+                            <td className="px-4 py-2 text-center">
+                              <button 
+                                onClick={() => handleRemoveOrderItem(selectedDropOffShipment.id, item.id)}
+                                title="Remove Order"
+                                className="text-red-400 hover:text-red-600 transition-colors w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center mx-auto"
+                              >
+                                <i className="fa-solid fa-trash-can"></i>
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -5054,13 +5152,19 @@ const App: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => (
-                <tr key={i}>
+              {(selectedDropOffShipment.items || Array(selectedDropOffShipment.shipmentCount).fill(0).map((_, i) => ({
+                id: `m-${selectedDropOffShipment.id}-${i}`,
+                shipmentCode: `S260415-${(1000 + i).toString()}`,
+                orderCode: `ORD-${(5000 + i).toString()}`,
+                receiver: `Customer ${i + 1}`,
+                weight: parseFloat((Math.random() * 5).toFixed(1))
+              }))).map((item: any, i: number) => (
+                <tr key={item.id}>
                   <td className="py-3 text-xs font-medium text-gray-400">{i + 1}</td>
-                  <td className="py-3 text-xs font-bold font-mono">S260415-{(1000 + i).toString()}</td>
-                  <td className="py-3 text-xs font-bold font-mono">ORD-{(5000 + i).toString()}</td>
-                  <td className="py-3 text-xs font-medium">Customer {i + 1}</td>
-                  <td className="py-3 text-xs font-bold text-right">{(Math.random() * 5).toFixed(1)}</td>
+                  <td className="py-3 text-xs font-bold font-mono">{item.shipmentCode}</td>
+                  <td className="py-3 text-xs font-bold font-mono">{item.orderCode}</td>
+                  <td className="py-3 text-xs font-medium">{item.receiver}</td>
+                  <td className="py-3 text-xs font-bold text-right">{item.weight}</td>
                 </tr>
               ))}
             </tbody>
