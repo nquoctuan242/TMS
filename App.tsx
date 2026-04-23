@@ -97,7 +97,7 @@ interface DropOffShipment {
   store: string;
   dropOffPoint: string;
   cutoffTime: string;
-  status: 'New' | 'Sealed' | 'Waiting for pickup' | 'Picked Up Waiting Confirmation' | 'Picked Up' | 'InTransit' | 'Delivery to local carrier' | 'Completed';
+  status: 'New' | 'Sealed' | 'Waiting for pickup' | 'Picked Up Waiting Confirmation' | 'Picked Up' | 'InTransit' | 'Delivery to local carrier' | 'Returning local hub' | 'Returned local hub' | 'Returned' | 'Completed';
   shipmentCount: number;
   totalWeight: number;
   createdAt: string;
@@ -217,8 +217,10 @@ const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
   { id: '1', code: 'S260119G19E', order: '2601192TO9', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Cancelled', priority: 'normal', createdAt: '19/01/2026 13:29:15' },
   { id: '2', code: 'S260119DMX6', order: '260119MOHQ', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 11:14:04' },
   { id: '3', code: 'S260119QLN1', order: '2601199TVU', customer: 'OMS - NOW_20250606121235', carrier: 'Yun Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 10:01:09' },
-  { id: '4', code: 'S260119P4W0', order: '260119XVHR', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'AnhHung Xa Lo', status: 'Returned Local Hub', priority: 'normal', createdAt: '19/01/2026 09:55:03', targetStore: STORES[0] },
+  { id: '4', code: 'S260119P4W0', order: '260119XVHR', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'AnhHung Xa Lo', status: 'Returned local hub', priority: 'normal', createdAt: '19/01/2026 09:55:03', targetStore: STORES[0] },
   { id: '5', code: 'S260119LNC4', order: '260119KEBK', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Waiting for Pickup', priority: 'normal', createdAt: '19/01/2026 09:23:06' },
+  { id: '6', code: 'S260423RT01', order: '260423R001', customer: 'OMS - RT_TEST1', carrier: 'Hasaki Express', shipper: 'Shipper 1', status: 'Returning local hub', priority: 'high', createdAt: '23/04/2026 08:15:00', targetStore: STORES[1] },
+  { id: '7', code: 'S260423RT02', order: '260423R002', customer: 'OMS - RT_TEST2', carrier: 'Hasaki Express', shipper: 'Shipper 2', status: 'Returning local hub', priority: 'normal', createdAt: '23/04/2026 08:30:00', targetStore: STORES[2] },
 ];
 
 const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
@@ -299,6 +301,30 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
     shipmentCount: 10,
     totalWeight: 20.0,
     createdAt: '14/04/2026 13:00:00'
+  },
+  {
+    id: '7',
+    code: 'DO-260414-RT1',
+    carrier: 'GHTK',
+    store: 'Van Store',
+    dropOffPoint: '123 Phan Xích Long',
+    cutoffTime: '17:00',
+    status: 'Returning local hub',
+    shipmentCount: 2,
+    totalWeight: 4.0,
+    createdAt: '14/04/2026 14:00:00'
+  },
+  {
+    id: '8',
+    code: 'DO-260414-RT2',
+    carrier: 'Ninja Van',
+    store: 'Van Store',
+    dropOffPoint: '789 NĐC',
+    cutoffTime: '18:00',
+    status: 'Returned local hub',
+    shipmentCount: 1,
+    totalWeight: 1.5,
+    createdAt: '14/04/2026 15:00:00'
   }
 ];
 
@@ -393,24 +419,60 @@ const App: React.FC = () => {
       setIsReDeliveryModalOpen(true);
     } else if (action === 'Return to warehouse') {
       setIsReturnModalOpen(true);
+    } else if (action === 'Returned local hub') {
+      const updatedHistory = [{
+        status: 'Returned local hub',
+        time: getCurrentTimestamp(),
+        performedBy: 'Nguyen Quoc Tuan',
+        note: 'Status marked as Returned local hub by action',
+        carrierStatus: '',
+      }, ...history];
+      setHistory(updatedHistory);
+      
+      // Update in list
+      const targetItem = listShipments.find(s => s.code === shipment.shipmentCode);
+      if (targetItem) {
+        setListShipments(prev => prev.map(s => s.id === targetItem.id ? { ...s, status: 'Returned local hub' } : s));
+      }
+      alert(`Status updated to: Returned local hub`);
+    } else if (action === 'Returned') {
+      const updatedHistory = [{
+        status: 'Returned',
+        time: getCurrentTimestamp(),
+        performedBy: 'Nguyen Quoc Tuan',
+        note: 'Status marked as Returned by action',
+        carrierStatus: '',
+      }, ...history];
+      setHistory(updatedHistory);
+
+      // Update in list
+      const targetItem = listShipments.find(s => s.code === shipment.shipmentCode);
+      if (targetItem) {
+        setListShipments(prev => prev.map(s => s.id === targetItem.id ? { ...s, status: 'Returned' } : s));
+      }
+      alert(`Status updated to: Returned`);
     } else {
       alert(`Action triggered: ${action}`);
     }
   };
 
   const handleStatusChange = (id: string, newStatus: string) => {
-    if (newStatus === 'Returning Local Hub' || newStatus === 'Returning warehouse' || newStatus === 'Returned Local Hub') {
+    if (newStatus === 'Returning local hub' || newStatus === 'Returning warehouse' || newStatus === 'Returned local hub' || newStatus === 'Returned') {
       const targetShipment = listShipments.find(s => s.id === id);
       setSelectedShipmentId(id);
       setPendingStatus(newStatus);
       
-      if (newStatus === 'Returned Local Hub' && targetShipment?.targetStore) {
+      if (newStatus === 'Returned local hub' && targetShipment?.targetStore) {
         setSelectedReturnStore(targetShipment.targetStore);
-      } else if (newStatus !== 'Returned Local Hub') {
+      } else if (newStatus !== 'Returned local hub' && newStatus !== 'Returned') {
         setSelectedReturnStore(targetShipment?.targetStore || STORES[0]);
       }
       
-      setIsReturningLocalHubModalOpen(true);
+      if (newStatus === 'Returned') {
+        setListShipments(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+      } else {
+        setIsReturningLocalHubModalOpen(true);
+      }
     } else {
       setListShipments(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
     }
@@ -419,8 +481,7 @@ const App: React.FC = () => {
   const confirmReturnAction = () => {
     if (selectedShipmentId && pendingStatus) {
       let finalStatus = pendingStatus;
-      if (pendingStatus === 'Returning Local Hub') finalStatus = 'Returned Local Hub';
-      if (pendingStatus === 'Returning warehouse') finalStatus = 'Returned Warehouse';
+      if (pendingStatus === 'Returning warehouse') finalStatus = 'Returned warehouse';
       
       setListShipments(prev => prev.map(s => 
         s.id === selectedShipmentId 
@@ -433,7 +494,7 @@ const App: React.FC = () => {
       const targetShipmentItem = listShipments.find(s => s.id === selectedShipmentId);
       if (shipment.shipmentCode === targetShipmentItem?.code) {
           const newPoint: TransitPoint = {
-              name: pendingStatus.includes('Local Hub') ? 'Local Hub' : 'Target Warehouse',
+              name: pendingStatus.includes('local hub') ? 'Local Hub' : 'Target Warehouse',
               location: selectedReturnStore,
               type: 'warehouse',
               statusLabel: 'Returning'
@@ -820,6 +881,27 @@ const App: React.FC = () => {
       setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Sealed', sealedAt: new Date().toLocaleString() });
     }
     alert("Shipment sealed successfully!");
+  };
+
+  const handleDropOffReturnedLocalHub = (id: string) => {
+    setDropOffShipments(prev => prev.map(s => s.id === id ? { ...s, status: 'Returned local hub' } : s));
+    if (selectedDropOffShipment && selectedDropOffShipment.id === id) {
+      setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Returned local hub' });
+    }
+  };
+
+  const handleDropOffReturned = (id: string) => {
+    setDropOffShipments(prev => prev.map(s => s.id === id ? { ...s, status: 'Returned' } : s));
+    if (selectedDropOffShipment && selectedDropOffShipment.id === id) {
+      setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Returned' });
+    }
+  };
+
+  const handleRedeliverToLocalCarrier = (id: string) => {
+    setDropOffShipments(prev => prev.map(s => s.id === id ? { ...s, status: 'Waiting for pickup' } : s));
+    if (selectedDropOffShipment && selectedDropOffShipment.id === id) {
+      setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Waiting for pickup' });
+    }
   };
 
   const handlePrintManifest = () => {
@@ -4323,8 +4405,9 @@ const App: React.FC = () => {
                                  <option value="Cancelled">Cancelled</option>
                                  <option value="Delivered">Delivered</option>
                                  <option value="Waiting for Pickup">Waiting for Pickup</option>
-                                 <option value="Returning Local Hub">Returning Local Hub</option>
-                                 <option value="Returned Local Hub">Returned Local Hub</option>
+                                 <option value="Returning local hub">Returning local hub</option>
+                                 <option value="Returned local hub">Returned local hub</option>
+                                 <option value="Returned">Returned</option>
                                  <option value="Returning warehouse">Returning warehouse</option>
                                  <option value="Dispatched">Dispatched</option>
                                </select>
@@ -4571,6 +4654,9 @@ const App: React.FC = () => {
                        <option value="InTransit">InTransit</option>
                        <option value="Delivery to local carrier">Delivery to local carrier</option>
                        <option value="Completed">Completed</option>
+                       <option value="Returning local hub">Returning local hub</option>
+                       <option value="Returned local hub">Returned local hub</option>
+                       <option value="Returned">Returned</option>
                      </select>
                    </div>
                    <div className="space-y-1">
@@ -4682,6 +4768,9 @@ const App: React.FC = () => {
                               item.status === 'Picked Up' ? 'bg-teal-50 text-teal-600' :
                               item.status === 'InTransit' ? 'bg-purple-50 text-purple-600' :
                               item.status === 'Delivery to local carrier' ? 'bg-pink-50 text-pink-600' :
+                              item.status === 'Returning local hub' ? 'bg-amber-50 text-amber-600' :
+                              item.status === 'Returned local hub' ? 'bg-orange-50 text-orange-600' :
+                              item.status === 'Returned' ? 'bg-stone-50 text-stone-600' :
                               'bg-green-50 text-green-600'
                             }`}>
                               {item.status}
@@ -4717,6 +4806,9 @@ const App: React.FC = () => {
                         selectedDropOffShipment.status === 'Picked Up' ? 'bg-teal-50 text-teal-600' :
                         selectedDropOffShipment.status === 'InTransit' ? 'bg-purple-50 text-purple-600' :
                         selectedDropOffShipment.status === 'Delivery to local carrier' ? 'bg-pink-50 text-pink-600' :
+                        selectedDropOffShipment.status === 'Returning local hub' ? 'bg-amber-50 text-amber-600' :
+                        selectedDropOffShipment.status === 'Returned local hub' ? 'bg-orange-50 text-orange-600' :
+                        selectedDropOffShipment.status === 'Returned' ? 'bg-stone-50 text-stone-600' :
                         'bg-green-50 text-green-600'
                       }`}>
                         {selectedDropOffShipment.status}
@@ -4730,6 +4822,30 @@ const App: React.FC = () => {
                         >
                           <i className="fa-solid fa-lock"></i> Seal Shipment
                         </button>
+                      )}
+                      {selectedDropOffShipment.status === 'Returning local hub' && (
+                        <button 
+                          onClick={() => handleDropOffReturnedLocalHub(selectedDropOffShipment.id)}
+                          className="px-6 py-2 bg-orange-500 text-white rounded font-bold text-xs hover:bg-orange-600 transition-all shadow-sm flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-check"></i> Mark as Returned local hub
+                        </button>
+                      )}
+                      {selectedDropOffShipment.status === 'Returned local hub' && (
+                        <>
+                          <button 
+                            onClick={() => handleRedeliverToLocalCarrier(selectedDropOffShipment.id)}
+                            className="px-6 py-2 bg-blue-500 text-white rounded font-bold text-xs hover:bg-blue-600 transition-all shadow-sm flex items-center gap-2"
+                          >
+                            <i className="fa-solid fa-truck-fast"></i> Re-deliver to local carrier
+                          </button>
+                          <button 
+                            onClick={() => handleDropOffReturned(selectedDropOffShipment.id)}
+                            className="px-6 py-2 bg-[#1b4d3e] text-white rounded font-bold text-xs hover:bg-[#153a2f] transition-all shadow-sm flex items-center gap-2"
+                          >
+                            <i className="fa-solid fa-check-double"></i> Mark as Returned
+                          </button>
+                        </>
                       )}
                       <button 
                         onClick={handlePrintManifest}
@@ -4840,9 +4956,15 @@ const App: React.FC = () => {
               </nav>
 
               <div className="bg-white border rounded p-6 space-y-8 shadow-sm">
-                <div className="flex gap-4 items-center mb-6 border-b pb-4">
+                <div className="flex gap-4 items-center mb-6 border-b pb-4 flex-wrap">
                   <button onClick={() => handleAction('Re-delivered')} className="px-6 py-2 bg-[#4d9e5f] text-white font-bold rounded shadow-sm hover:bg-[#3d7d4c] transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-rotate-right"></i> Re-delivered</button>
                   <button onClick={() => handleAction('Return to warehouse')} className="px-6 py-2 bg-[#f97316] text-white font-bold rounded shadow-sm hover:bg-orange-600 transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-warehouse"></i> Return to warehouse</button>
+                  {history[0]?.status === 'Returning local hub' && (
+                    <button onClick={() => handleAction('Returned local hub')} className="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow-sm hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-check"></i> Mark as Returned local hub</button>
+                  )}
+                  {history[0]?.status === 'Returned local hub' && (
+                    <button onClick={() => handleAction('Returned')} className="px-6 py-2 bg-purple-600 text-white font-bold rounded shadow-sm hover:bg-purple-700 transition-all flex items-center gap-2 text-sm"><i className="fa-solid fa-check-double"></i> Mark as Returned</button>
+                  )}
                 </div>
 
                 <section>
@@ -4903,17 +5025,17 @@ const App: React.FC = () => {
                 <div className="bg-orange-400 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"><span className="font-bold text-lg">!</span></div>
                 <p className="text-[14px] text-[#8c5216] leading-snug">
                   You are changing the status to <b className="text-[#a65d1b]">"{pendingStatus}"</b>. 
-                  {pendingStatus === 'Returned Local Hub' ? " Please confirm the arrival at the previously assigned hub." : " Please select the destination warehouse."}
+                  {pendingStatus === 'Returned local hub' ? " Please confirm the arrival at the previously assigned hub." : " Please select the destination warehouse."}
                 </p>
               </div>
 
               <label className="block text-[11px] font-bold text-[#7a869a] uppercase mb-2">SELECT WAREHOUSE/STORE</label>
               <div className="relative">
-                <select value={selectedReturnStore} disabled={pendingStatus === 'Returned Local Hub'} onChange={(e) => setSelectedReturnStore(e.target.value)} className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${pendingStatus === 'Returned Local Hub' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'}`}>
+                <select value={selectedReturnStore} disabled={pendingStatus === 'Returned local hub'} onChange={(e) => setSelectedReturnStore(e.target.value)} className={`w-full px-4 py-3 border border-[#d1d5db] rounded-lg outline-none bg-white transition text-[14px] shadow-sm appearance-none ${pendingStatus === 'Returned local hub' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-[#4d9e5f] cursor-pointer'}`}>
                   {STORES.map((store) => (<option key={store} value={store}>{store}</option>))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                  <i className={`fa-solid ${pendingStatus === 'Returned Local Hub' ? 'fa-lock' : 'fa-chevron-down'} text-xs opacity-40`}></i>
+                  <i className={`fa-solid ${pendingStatus === 'Returned local hub' ? 'fa-lock' : 'fa-chevron-down'} text-xs opacity-40`}></i>
                 </div>
               </div>
             </div>

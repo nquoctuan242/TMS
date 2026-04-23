@@ -106,8 +106,8 @@ export const MOCK_SHIPMENT: ShipmentData = {
   carrierName: 'Hasaki Express',
   shipperName: '-',
   trackingNumber: 'S260107WAIU',
-  statusDescription: '-',
-  note: '-',
+  statusDescription: 'Returning local hub',
+  note: 'Testing return status',
   zone: 'Z3',
   senderAddress: 'Kho Hasaki - 71 Hoàng Hoa Thám, P.13, Q. Tân Bình, TP. HCM',
   receiverAddress: '123 Nguyễn Văn Cừ, P.2, Quận 5, TP. HCM',
@@ -128,6 +128,13 @@ export const MOCK_SHIPMENT: ShipmentData = {
 };
 
 export const MOCK_HISTORY: HistoryEntry[] = [
+  {
+    status: 'Returning local hub',
+    time: '23/04/2026 15:00:00',
+    performedBy: 'Tuấn',
+    note: 'Marked as returning local hub',
+    carrierStatus: '',
+  },
   {
     status: 'Waiting for Pickup',
     time: '07/01/2026 14:37:34',
