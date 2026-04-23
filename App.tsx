@@ -827,71 +827,79 @@ const App: React.FC = () => {
   };
 
   const handleRemoveOrderItem = (shipmentId: string, itemId: string) => {
-    if (!window.confirm("Are you sure you want to remove this order from the shipment?")) return;
+    setConfirmModal({
+      show: true,
+      title: 'Remove Order',
+      message: 'Are you sure you want to remove this order from the shipment? A new Drop-off shipment will be created for it.',
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        
+        const shipment = dropOffShipments.find(s => s.id === shipmentId);
+        if (!shipment) return;
 
-    const shipment = dropOffShipments.find(s => s.id === shipmentId);
-    if (!shipment) return;
+        // Use items if available, or simulate if not (for legacy mock data)
+        let items = shipment.items;
+        if (!items) {
+          // Fallback for mock data without items
+          items = Array(shipment.shipmentCount).fill(0).map((_, i) => ({
+            id: `m-${shipment.id}-${i}`,
+            shipmentCode: `S260415-${(1000 + i).toString()}`,
+            orderCode: `ORD-${(5000 + i).toString()}`,
+            receiver: `Customer ${i + 1}`,
+            weight: parseFloat((Math.random() * 5).toFixed(1))
+          }));
+        }
 
-    // Use items if available, or simulate if not (for legacy mock data)
-    let items = shipment.items;
-    if (!items) {
-      // Fallback for mock data without items
-      items = Array(shipment.shipmentCount).fill(0).map((_, i) => ({
-        id: `m-${shipment.id}-${i}`,
-        shipmentCode: `S260415-${(1000 + i).toString()}`,
-        orderCode: `ORD-{(5000 + i).toString()}`,
-        receiver: `Customer ${i + 1}`,
-        weight: parseFloat((Math.random() * 5).toFixed(1))
-      }));
-    }
+        const itemToRemove = items.find(i => i.id === itemId);
+        if (!itemToRemove) return;
 
-    const itemToRemove = items.find(i => i.id === itemId);
-    if (!itemToRemove) return;
-
-    // Create new shipment for the removed order
-    const nextId = (Math.max(0, ...dropOffShipments.map(s => parseInt(s.id) || 0)) + 1).toString();
-    const newShipment: DropOffShipment = {
-      id: nextId,
-      code: `DO-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${nextId.padStart(3, '0')}`,
-      carrier: shipment.carrier,
-      store: shipment.store,
-      dropOffPoint: shipment.dropOffPoint,
-      cutoffTime: shipment.cutoffTime,
-      status: 'New',
-      shipmentCount: 1,
-      totalWeight: itemToRemove.weight,
-      createdAt: new Date().toLocaleString(),
-      items: [itemToRemove]
-    };
-
-    // Update original shipment
-    const updatedShipments = dropOffShipments.map(s => {
-      if (s.id === shipmentId) {
-        const updatedItems = items!.filter(i => i.id !== itemId);
-        return {
-          ...s,
-          items: updatedItems,
-          shipmentCount: updatedItems.length,
-          totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
+        // Create new shipment for the removed order
+        const nextId = (Math.max(0, ...dropOffShipments.map(s => parseInt(s.id) || 0)) + 1).toString();
+        const newShipment: DropOffShipment = {
+          id: nextId,
+          code: `DO-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${nextId.padStart(3, '0')}`,
+          carrier: shipment.carrier,
+          store: shipment.store,
+          dropOffPoint: shipment.dropOffPoint,
+          cutoffTime: shipment.cutoffTime,
+          status: 'New',
+          shipmentCount: 1,
+          totalWeight: itemToRemove.weight,
+          createdAt: new Date().toLocaleString(),
+          items: [itemToRemove]
         };
+
+        // Update original shipment
+        const updatedItems = items!.filter(i => i.id !== itemId);
+        
+        const updatedList = dropOffShipments.map(s => {
+          if (s.id === shipmentId) {
+            return {
+              ...s,
+              items: updatedItems,
+              shipmentCount: updatedItems.length,
+              totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
+            };
+          }
+          return s;
+        });
+
+        // Insert new shipment at the beginning
+        setDropOffShipments([newShipment, ...updatedList]);
+        
+        // Update selected shipment view if it's currently open
+        if (selectedDropOffShipment && selectedDropOffShipment.id === shipmentId) {
+          setSelectedDropOffShipment({
+            ...selectedDropOffShipment,
+            items: updatedItems,
+            shipmentCount: updatedItems.length,
+            totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
+          });
+        }
+
+        alert(`Order ${itemToRemove.orderCode} removed and added to new shipment ${newShipment.code}`);
       }
-      return s;
     });
-
-    setDropOffShipments([newShipment, ...updatedShipments]);
-    
-    // Update selected shipment view if necessary
-    if (selectedDropOffShipment && selectedDropOffShipment.id === shipmentId) {
-      const updatedItems = items!.filter(i => i.id !== itemId);
-      setSelectedDropOffShipment({
-        ...selectedDropOffShipment,
-        items: updatedItems,
-        shipmentCount: updatedItems.length,
-        totalWeight: parseFloat(updatedItems.reduce((acc, curr) => acc + curr.weight, 0).toFixed(2))
-      });
-    }
-
-    alert(`Order ${itemToRemove.orderCode} removed and added to new shipment ${newShipment.code}`);
   };
 
   const handleCombineSelectedDropOffs = () => {
