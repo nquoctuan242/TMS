@@ -6,12 +6,16 @@ import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Sh
 const STORES_LIST_MOCK = [
   { 
     id: '1', 
-    customer: 'Tu Van', 
+    customer: 'Tu Van',
+    companyId: '1',
     name: 'Van Store', 
     phone: '0987267289', 
     email: 'vanlnt@hasaki.vn', 
-    street: '568 Lũy Bán Bích', 
+    country: 'Vietnam',
+    region: 'South',
     stateProvince: 'Thành phố Hồ Chí Minh', 
+    ward: 'Ward 14',
+    street: '568 Lũy Bán Bích', 
     distanceFetched: true, 
     lastDistance: '12.5 km',
     dropOffPoints: [
@@ -19,7 +23,62 @@ const STORES_LIST_MOCK = [
       { id: 'dp2', carrier: 'J&T', address: '456 Lê Văn Sỹ, Tân Bình, HCM' }
     ]
   },
-  { id: '2', customer: 'Hasaki', name: 'Hasaki Warehouse', phone: '0281234567', email: 'warehouse@hasaki.vn', street: '71 Hoàng Hoa Thám', stateProvince: 'Thành phố Hồ Chí Minh', distanceFetched: false },
+  { 
+    id: '2', 
+    customer: 'Hasaki', 
+    companyId: '1',
+    name: 'Hasaki Warehouse', 
+    phone: '0281234567', 
+    email: 'warehouse@hasaki.vn', 
+    country: 'Vietnam',
+    region: 'South',
+    stateProvince: 'Thành phố Hồ Chí Minh', 
+    ward: 'Ward 13',
+    street: '71 Hoàng Hoa Thám', 
+    distanceFetched: false 
+  },
+  { 
+    id: '3', 
+    customer: 'OMS', 
+    companyId: '2',
+    name: 'OMS Logistics District 3', 
+    phone: '02899998888', 
+    email: 'd3@oms.vn', 
+    country: 'Vietnam',
+    region: 'South',
+    stateProvince: 'Thành phố Hồ Chí Minh', 
+    ward: 'Ward 12',
+    street: '456 Le Van Sy', 
+    distanceFetched: false 
+  },
+  { 
+    id: '4', 
+    customer: 'Hasaki Hanoi', 
+    companyId: '3',
+    name: 'Hasaki Hanoi Warehouse', 
+    phone: '02411112222', 
+    email: 'hanoi@hasaki.vn', 
+    country: 'Vietnam',
+    region: 'North',
+    stateProvince: 'Hà Nội', 
+    ward: 'Minh Phu',
+    street: 'KCN Noi Bai', 
+    distanceFetched: false 
+  },
+  { 
+    id: '5', 
+    customer: 'Hasaki Thai', 
+    companyId: '1',
+    name: 'Bangkok Central Hub', 
+    phone: '+6621234567', 
+    email: 'bkk@hasaki.co.th', 
+    country: 'Thailand',
+    region: 'Central',
+    stateProvince: 'Bangkok', 
+    ward: 'Pathum Wan',
+    street: 'Rama I Rd', 
+    distanceFetched: false 
+  },
 ];
 
 const STORES = [
@@ -62,6 +121,7 @@ interface DropOffPoint {
 
 interface Store {
   id: string;
+  companyId?: string;
   customer: string;
   name: string;
   phone: string;
@@ -157,6 +217,7 @@ interface User {
   email: string;
   roleId: string;
   companyIds?: string[];
+  storeIds?: string[];
   status: 'Active' | 'Inactive';
 }
 
@@ -364,6 +425,10 @@ const App: React.FC = () => {
   const [shipperSearch, setShipperSearch] = useState('');
   const [editingCompany, setEditingCompany] = useState<Partial<Company>>({});
   const [editingUser, setEditingUser] = useState<UserFormState>({});
+  const [expandedStoreCountries, setExpandedStoreCountries] = useState<string[]>([]);
+  const [addedStoreCountries, setAddedStoreCountries] = useState<string[]>([]);
+  const [showAddCountryDropdown, setShowAddCountryDropdown] = useState(false);
+  const [assignedStoreSearch, setAssignedStoreSearch] = useState<Record<string, string>>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
   const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
@@ -831,11 +896,17 @@ const App: React.FC = () => {
 
   const startEditUser = (user: User) => {
     setEditingUser({ ...user, companyIds: user.companyIds || [], resetPassword: false });
+    setExpandedStoreCountries([]);
+    setAddedStoreCountries([]);
+    setShowAddCountryDropdown(false);
     setCurrentView('user-detail');
   };
 
   const startCreateUser = () => {
     setEditingUser({ roleId: roles[0]?.id, status: 'Active', companyIds: [] });
+    setExpandedStoreCountries([]);
+    setAddedStoreCountries([]);
+    setShowAddCountryDropdown(false);
     setCurrentView('user-detail');
   };
 
@@ -902,6 +973,36 @@ const App: React.FC = () => {
     if (selectedDropOffShipment && selectedDropOffShipment.id === id) {
       setSelectedDropOffShipment({ ...selectedDropOffShipment, status: 'Waiting for pickup' });
     }
+  };
+
+  const handleToggleStoresMulti = (filters: Partial<typeof stores[0]>, isAdding: boolean) => {
+    // Only target stores within assigned companies!
+    const availableStores = stores.filter(s => (editingUser.companyIds || []).includes(s.companyId));
+    
+    const matchingStoreIds = availableStores.filter(s => {
+      let isMatch = true;
+      if (filters.country) isMatch = isMatch && s.country === filters.country;
+      if (filters.region) isMatch = isMatch && s.region === filters.region;
+      if (filters.stateProvince) isMatch = isMatch && s.stateProvince === filters.stateProvince;
+      if (filters.ward) isMatch = isMatch && s.ward === filters.ward;
+      return isMatch;
+    }).map(s => s.id);
+
+    if (isAdding) {
+      setEditingUser({ ...editingUser, storeIds: [...new Set([...(editingUser.storeIds || []), ...matchingStoreIds])] });
+    } else {
+      setEditingUser({ ...editingUser, storeIds: (editingUser.storeIds || []).filter(id => !matchingStoreIds.includes(id)) });
+    }
+  };
+
+  const handleRemoveStoreFromUser = (storeId: string) => {
+    setEditingUser({ ...editingUser, storeIds: (editingUser.storeIds || []).filter(id => id !== storeId) });
+  };
+
+  const toggleExpandCountry = (country: string) => {
+    setExpandedStoreCountries(prev => 
+      prev.includes(country) ? prev.filter(c => c !== country) : [...prev, country]
+    );
   };
 
   const handlePrintManifest = () => {
@@ -1088,10 +1189,21 @@ const App: React.FC = () => {
 
   const toggleCompanyAssignment = (companyId: string) => {
     const currentIds = editingUser.companyIds || [];
+    const currentStores = editingUser.storeIds || [];
     if (currentIds.includes(companyId)) {
-      setEditingUser({ ...editingUser, companyIds: currentIds.filter(id => id !== companyId) });
+      const companyStoreIds = stores.filter(s => s.companyId === companyId).map(s => s.id);
+      setEditingUser({ 
+        ...editingUser, 
+        companyIds: currentIds.filter(id => id !== companyId),
+        storeIds: currentStores.filter(id => !companyStoreIds.includes(id))
+      });
     } else {
-      setEditingUser({ ...editingUser, companyIds: [...currentIds, companyId] });
+      const companyStoreIds = stores.filter(s => s.companyId === companyId).map(s => s.id);
+      setEditingUser({ 
+        ...editingUser, 
+        companyIds: [...currentIds, companyId],
+        storeIds: [...new Set([...currentStores, ...companyStoreIds])]
+      });
     }
   };
 
@@ -2879,6 +2991,251 @@ const App: React.FC = () => {
                         ))}
                       </div>
                       <p className="text-[10px] text-gray-400 mt-1 italic">Assign multiple companies to give this user access to multiple shipping accounts.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="text-[#4d9e5f] font-bold text-xs uppercase flex items-center gap-2 border-b pb-2">
+                      <i className="fa-solid fa-store"></i> Store Access
+                    </h3>
+                    <div className="space-y-4">
+                      
+                      {/* Quick Assign by Levels */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Grant Access by Location</div>
+                          {(() => {
+                            if (!editingUser.companyIds || editingUser.companyIds.length === 0) return null;
+                            const assignedCountries = [...new Set((editingUser.storeIds || []).map(id => stores.find(s => s.id === id)?.country).filter(Boolean) as string[])];
+                            const availableCountries = [...new Set(stores.filter(s => (editingUser.companyIds || []).includes(s.companyId)).map(s => s.country).filter(Boolean) as string[])];
+                            const displayedCountries = [...new Set([...assignedCountries, ...addedStoreCountries])].filter(c => availableCountries.includes(c));
+                            const remainingCountries = availableCountries.filter(c => !displayedCountries.includes(c));
+
+                            return (
+                              remainingCountries.length > 0 && (
+                                <div className="relative">
+                                  <button 
+                                    onClick={() => setShowAddCountryDropdown(!showAddCountryDropdown)}
+                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors"
+                                  >
+                                    <i className="fa-solid fa-plus mr-1"></i> Add Country
+                                  </button>
+                                  {showAddCountryDropdown && (
+                                    <div className="absolute right-0 mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 z-10 py-1">
+                                      {remainingCountries.map(country => (
+                                        <button
+                                          key={country}
+                                          onClick={() => {
+                                            setAddedStoreCountries([...addedStoreCountries, country]);
+                                            setShowAddCountryDropdown(false);
+                                            if (!expandedStoreCountries.includes(country)) {
+                                              setExpandedStoreCountries([...expandedStoreCountries, country]);
+                                            }
+                                          }}
+                                          className="w-full text-left px-4 py-2 hover:bg-gray-50 text-xs text-gray-700 font-medium"
+                                        >
+                                          {country}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            );
+                          })()}
+                        </div>
+                        {(!editingUser.companyIds || editingUser.companyIds.length === 0) ? (
+                          <div className="p-4 border rounded bg-gray-50 text-center text-xs text-gray-500 italic">
+                            Please assign at least one company above to configure store access.
+                          </div>
+                        ) : (() => {
+                          const availableCountries = [...new Set(stores.filter(s => (editingUser.companyIds || []).includes(s.companyId)).map(s => s.country).filter(Boolean) as string[])];
+                          const assignedCountries = [...new Set((editingUser.storeIds || []).map(id => stores.find(s => s.id === id)?.country).filter(Boolean) as string[])];
+                          const displayedCountries = [...new Set([...assignedCountries, ...addedStoreCountries])].filter(c => availableCountries.includes(c));
+                          
+                          if (displayedCountries.length === 0) {
+                            return (
+                              <div className="p-4 border rounded bg-gray-50 text-center text-xs text-gray-500 italic flex justify-center items-center flex-col gap-2">
+                                <i className="fa-solid fa-earth-asia text-gray-300 text-xl"></i>
+                                No countries configured. Click "Add Country" to begin granting access.
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="grid grid-cols-1 gap-4">
+                              {displayedCountries.map(country => {
+                              const countryStores = stores.filter(s => (editingUser.companyIds || []).includes(s.companyId) && s.country === country);
+                              const countryStoreIds = countryStores.map(s => s.id);
+                              const isAllCountryIncluded = countryStoreIds.length > 0 && countryStoreIds.every(id => (editingUser.storeIds || []).includes(id));
+                              const isSomeCountryIncluded = countryStoreIds.some(id => (editingUser.storeIds || []).includes(id));
+
+                              const isExpanded = expandedStoreCountries.includes(country as string);
+
+                              return (
+                                <div key={country as string} className="border bg-gray-50/50 rounded-lg p-4 space-y-4 shadow-sm border-gray-200">
+                                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                                    <div 
+                                      className="font-bold text-sm text-gray-800 flex items-center gap-2 cursor-pointer select-none"
+                                      onClick={() => toggleExpandCountry(country as string)}
+                                    >
+                                      <i className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} w-4 text-gray-400`}></i>
+                                      <i className="fa-solid fa-earth-asia text-[#4d9e5f]"></i> {country}
+                                    </div>
+                                    <button 
+                                      onClick={() => handleToggleStoresMulti({ country: country as string }, !isAllCountryIncluded)}
+                                      className={`px-3 py-1.5 text-xs rounded-full font-bold transition-colors shadow-sm ${
+                                        isAllCountryIncluded ? 'bg-[#4d9e5f] text-white hover:bg-green-700' : 
+                                        isSomeCountryIncluded ? 'bg-green-100 text-[#4d9e5f] hover:bg-green-200' :
+                                        'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'
+                                      }`}
+                                    >
+                                      {isAllCountryIncluded ? 'Revoke All in Country' : isSomeCountryIncluded ? 'Grant Remaining' : 'Grant All in Country'}
+                                    </button>
+                                  </div>
+
+                                  {isExpanded && (
+                                    <div className="mt-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      {/* States */}
+                                      <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">States / Provinces</label>
+                                        <div className="flex flex-col gap-1.5">
+                                          {[...new Set(countryStores.map(s => s.stateProvince).filter(Boolean))].map(state => {
+                                            const matchingStoreIds = countryStores.filter(s => s.stateProvince === state).map(s => s.id);
+                                            const isAllIncluded = matchingStoreIds.length > 0 && matchingStoreIds.every(id => (editingUser.storeIds || []).includes(id));
+                                            const isSomeIncluded = matchingStoreIds.some(id => (editingUser.storeIds || []).includes(id));
+                                            return (
+                                              <div 
+                                                key={state as string}
+                                                onClick={() => handleToggleStoresMulti({ country: country as string, stateProvince: state as string }, !isAllIncluded)}
+                                                className={`px-3 py-2 flex items-center justify-between gap-2 rounded-md text-xs cursor-pointer border transition-colors select-none ${
+                                                  isAllIncluded ? 'bg-green-50 border-[#4d9e5f] text-[#1b4d3e] font-semibold' : 
+                                                  isSomeIncluded ? 'bg-gray-50 border-gray-300 text-gray-700 border-dashed' : 
+                                                  'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                                                }`}
+                                              >
+                                                <span className="truncate">{state}</span>
+                                                {isAllIncluded ? <i className="fa-solid fa-check text-[#4d9e5f]"></i> : 
+                                                 isSomeIncluded ? <i className="fa-solid fa-minus text-gray-400"></i> :
+                                                 <i className="fa-solid fa-plus text-gray-300"></i>}
+                                              </div>
+                                            )
+                                          })}
+                                        </div>
+                                      </div>
+
+                                      {/* Wards */}
+                                      <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Wards / Communes</label>
+                                        <div className="flex flex-col gap-1.5 max-h-[150px] overflow-y-auto pr-1">
+                                          {[...new Set(countryStores.map(s => s.ward).filter(Boolean))].map(ward => {
+                                            const matchingStoreIds = countryStores.filter(s => s.ward === ward).map(s => s.id);
+                                            const isAllIncluded = matchingStoreIds.length > 0 && matchingStoreIds.every(id => (editingUser.storeIds || []).includes(id));
+                                            const isSomeIncluded = matchingStoreIds.some(id => (editingUser.storeIds || []).includes(id));
+                                            return (
+                                              <div 
+                                                key={ward as string}
+                                                onClick={() => handleToggleStoresMulti({ country: country as string, ward: ward as string }, !isAllIncluded)}
+                                                className={`px-3 py-2 flex items-center justify-between gap-2 rounded-md text-xs cursor-pointer border transition-colors select-none shrink-0 ${
+                                                  isAllIncluded ? 'bg-green-50 border-[#4d9e5f] text-[#1b4d3e] font-semibold' : 
+                                                  isSomeIncluded ? 'bg-gray-50 border-gray-300 text-gray-700 border-dashed' : 
+                                                  'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                                                }`}
+                                              >
+                                                <span className="truncate">{ward}</span>
+                                                {isAllIncluded ? <i className="fa-solid fa-check text-[#4d9e5f]"></i> : 
+                                                 isSomeIncluded ? <i className="fa-solid fa-minus text-gray-400"></i> :
+                                                 <i className="fa-solid fa-plus text-gray-300"></i>}
+                                              </div>
+                                            )
+                                          })}
+                                        </div>
+                                      </div>
+                                      </div>
+                                      
+                                      {/* Assigned Stores in Country */}
+                                      <div className="mt-6 pt-4 border-t border-gray-200">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2">
+                                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Assigned Stores in {country}</label>
+                                          <div className="relative">
+                                            <i className="fa-solid fa-magnifying-glass absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                                            <input 
+                                              type="text" 
+                                              placeholder="Search by state or store..." 
+                                              value={assignedStoreSearch[country as string] || ''}
+                                              onChange={(e) => setAssignedStoreSearch({...assignedStoreSearch, [country as string]: e.target.value})}
+                                              className="pl-7 pr-2 py-1.5 border rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] w-full md:w-56"
+                                            />
+                                          </div>
+                                        </div>
+                                        <div className="border rounded bg-white max-h-[250px] overflow-y-auto">
+                                          {(editingUser.storeIds || []).filter(id => countryStoreIds.includes(id)).length === 0 ? (
+                                            <div className="p-4 text-center text-xs text-gray-400 italic">No stores assigned in {country}.</div>
+                                          ) : (() => {
+                                            const filteredStores = (editingUser.storeIds || [])
+                                              .filter(id => countryStoreIds.includes(id))
+                                              .map(storeId => stores.find(s => s.id === storeId))
+                                              .filter(store => {
+                                                if (!store) return false;
+                                                const searchTerm = (assignedStoreSearch[country as string] || '').toLowerCase();
+                                                if (!searchTerm) return true;
+                                                return store.name.toLowerCase().includes(searchTerm) || 
+                                                       (store.stateProvince || '').toLowerCase().includes(searchTerm);
+                                              });
+
+                                            if (filteredStores.length === 0) {
+                                              return <div className="p-4 text-center text-xs text-gray-400 italic">No stores match your search.</div>;
+                                            }
+
+                                            return (
+                                              <table className="w-full text-left text-xs bg-white">
+                                                <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold sticky top-0 border-b">
+                                                  <tr>
+                                                    <th className="px-3 py-2 border-r">Company</th>
+                                                    <th className="px-3 py-2 border-r">Store Name</th>
+                                                    <th className="px-3 py-2 border-r">State / Province</th>
+                                                    <th className="px-3 py-2 border-r">Ward</th>
+                                                    <th className="px-3 py-2 text-center w-20">Action</th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody className="divide-y text-gray-600 font-medium">
+                                                  {filteredStores.map(store => {
+                                                    if (!store) return null;
+                                                    const storeId = store.id;
+                                                    return (
+                                                      <tr key={storeId} className="hover:bg-gray-50/50">
+                                                        <td className="px-3 py-2 border-r">{companies.find(c => c.id === store.companyId)?.name || '-'}</td>
+                                                        <td className="px-3 py-2 border-r">{store.name}</td>
+                                                        <td className="px-3 py-2 border-r">{store.stateProvince || '-'}</td>
+                                                        <td className="px-3 py-2 border-r">{store.ward || '-'}</td>
+                                                        <td className="px-3 py-2 text-center">
+                                                          <button 
+                                                            onClick={() => handleRemoveStoreFromUser(storeId)}
+                                                            className="text-gray-400 hover:text-red-500"
+                                                            title="Remove from assigned list"
+                                                          >
+                                                            <i className="fa-solid fa-xmark"></i>
+                                                          </button>
+                                                        </td>
+                                                      </tr>
+                                                    );
+                                                  })}
+                                                </tbody>
+                                              </table>
+                                            );
+                                          })()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                            );
+                          })()}
+                      </div>
                     </div>
                   </div>
                 </div>
