@@ -88,6 +88,13 @@ export interface CarrierDetail {
   shipperName: string;
 }
 
+export interface ServiceDeliveryConfig {
+  id: string;
+  orderType: string;
+  serviceType: string;
+  lateDeliveryAlertTime: number; // in minutes
+}
+
 export interface ITRoute {
   id: string;
   name: string;

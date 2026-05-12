@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment } from './types';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig } from './types';
 
 const STORES_LIST_MOCK = [
   { 
@@ -391,7 +391,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -428,8 +428,16 @@ const App: React.FC = () => {
   const [expandedStoreCountries, setExpandedStoreCountries] = useState<string[]>([]);
   const [addedStoreCountries, setAddedStoreCountries] = useState<string[]>([]);
   const [showAddCountryDropdown, setShowAddCountryDropdown] = useState(false);
+  const [showAddSpecificStorePopup, setShowAddSpecificStorePopup] = useState<string | null>(null);
+  const [specificStoreSearch, setSpecificStoreSearch] = useState('');
   const [assignedStoreSearch, setAssignedStoreSearch] = useState<Record<string, string>>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
+  const [serviceDeliveryConfigs, setServiceDeliveryConfigs] = useState<ServiceDeliveryConfig[]>([
+    { id: '1', orderType: 'Online', serviceType: 'Express', lateDeliveryAlertTime: 30 },
+    { id: '2', orderType: 'IT', serviceType: 'Standard', lateDeliveryAlertTime: 60 },
+  ]);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [editingConfig, setEditingConfig] = useState<Partial<ServiceDeliveryConfig>>({});
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
   const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
   const [selectedDropOffIds, setSelectedDropOffIds] = useState<string[]>([]);
@@ -1364,7 +1372,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-gear" 
             label="Settings" 
-            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail'} 
+            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1380,6 +1388,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('it-route-list')}
                 >
                   IT Route
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'service-delivery-config' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('service-delivery-config')}
+                >
+                  Service Delivery
                 </div>
              </div>
           </SidebarItem>
@@ -1431,6 +1445,7 @@ const App: React.FC = () => {
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
                  currentView === 'contract-list' ? 'Contract Management' : 
+                 currentView === 'service-delivery-config' ? 'Service Delivery Configuration' : 
                  currentView === 'shipment-online' ? 'Online Shipment' :
                   currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
                   currentView === 'shipment-drop-off-detail' ? 'Drop-off Detail' :
@@ -2790,6 +2805,139 @@ const App: React.FC = () => {
                   </div>
                 </div>
              </div>
+          ) : currentView === 'service-delivery-config' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300 relative">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Service Delivery Configuration</h2>
+                  <button 
+                    onClick={() => {
+                        setEditingConfig({ orderType: 'Online', serviceType: 'Standard', lateDeliveryAlertTime: 60 });
+                        setShowConfigModal(true);
+                    }}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Add Configuration
+                  </button>
+                </div>
+                <div className="p-4 flex-1">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 w-1/4">Order type</th>
+                          <th className="px-4 py-3 w-1/4">Service Type</th>
+                          <th className="px-4 py-3 w-1/4">Late Alert Time (Minute)</th>
+                          <th className="px-4 py-3 text-center w-24">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium bg-white">
+                        {serviceDeliveryConfigs.map((config) => (
+                          <tr key={config.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-4 py-3">{config.orderType}</td>
+                            <td className="px-4 py-3">{config.serviceType}</td>
+                            <td className="px-4 py-3">{config.lateDeliveryAlertTime}</td>
+                            <td className="px-4 py-3 text-center">
+                              <button 
+                                onClick={() => {
+                                    setEditingConfig(config);
+                                    setShowConfigModal(true);
+                                }}
+                                className="text-gray-400 hover:text-[#4d9e5f] transition-colors mx-1"
+                                title="Edit"
+                              >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <button 
+                                onClick={() => {
+                                    if (window.confirm('Delete this configuration?')) {
+                                        setServiceDeliveryConfigs(prev => prev.filter(c => c.id !== config.id));
+                                    }
+                                }}
+                                className="text-gray-400 hover:text-red-500 transition-colors mx-1"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {showConfigModal && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[100] px-4 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white border rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <h3 className="font-bold text-[#1b4d3e]">{editingConfig.id ? 'Edit Configuration' : 'Add Configuration'}</h3>
+                        <button onClick={() => setShowConfigModal(false)} className="text-gray-400 hover:text-gray-600">
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Order type</label>
+                          <select 
+                            value={editingConfig.orderType || ''}
+                            onChange={(e) => setEditingConfig({...editingConfig, orderType: e.target.value})}
+                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          >
+                            <option value="Online">Online</option>
+                            <option value="IT">IT</option>
+                            <option value="FWD">FWD</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Service Type</label>
+                          <select 
+                            value={editingConfig.serviceType || ''}
+                            onChange={(e) => setEditingConfig({...editingConfig, serviceType: e.target.value})}
+                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          >
+                            <option value="Express">Express</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Same Day">Same Day</option>
+                            <option value="Next Day">Next Day</option>
+                            <option value="Economy">Economy</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Late Delivery Alert Time (Minute)</label>
+                          <input 
+                            type="number"
+                            value={editingConfig.lateDeliveryAlertTime || ''}
+                            onChange={(e) => setEditingConfig({...editingConfig, lateDeliveryAlertTime: parseInt(e.target.value) || 0})}
+                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                            placeholder="e.g. 60"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+                        <button 
+                          onClick={() => setShowConfigModal(false)}
+                          className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => {
+                              if (editingConfig.id) {
+                                  setServiceDeliveryConfigs(prev => prev.map(c => c.id === editingConfig.id ? (editingConfig as ServiceDeliveryConfig) : c));
+                              } else {
+                                  setServiceDeliveryConfigs(prev => [...prev, { ...editingConfig, id: Math.random().toString(36).substr(2, 9) } as ServiceDeliveryConfig]);
+                              }
+                              setShowConfigModal(false);
+                          }}
+                          className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+             </div>
           ) : currentView === 'user-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b px-4 py-3">
@@ -3158,15 +3306,23 @@ const App: React.FC = () => {
                                       <div className="mt-6 pt-4 border-t border-gray-200">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 gap-2">
                                           <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Assigned Stores in {country}</label>
-                                          <div className="relative">
-                                            <i className="fa-solid fa-magnifying-glass absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
-                                            <input 
-                                              type="text" 
-                                              placeholder="Search by state or store..." 
-                                              value={assignedStoreSearch[country as string] || ''}
-                                              onChange={(e) => setAssignedStoreSearch({...assignedStoreSearch, [country as string]: e.target.value})}
-                                              className="pl-7 pr-2 py-1.5 border rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] w-full md:w-56"
-                                            />
+                                          <div className="flex items-center gap-2">
+                                            <button 
+                                              onClick={() => setShowAddSpecificStorePopup(country as string)}
+                                              className="bg-[#e9f2ee] text-[#1b4d3e] border border-[#dcfce7] px-3 py-1.5 rounded text-xs font-bold hover:bg-[#dcfce7] transition-colors whitespace-nowrap"
+                                            >
+                                              <i className="fa-solid fa-plus mr-1"></i> Add Store
+                                            </button>
+                                            <div className="relative">
+                                              <i className="fa-solid fa-magnifying-glass absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                                              <input 
+                                                type="text" 
+                                                placeholder="Search by state or store..." 
+                                                value={assignedStoreSearch[country as string] || ''}
+                                                onChange={(e) => setAssignedStoreSearch({...assignedStoreSearch, [country as string]: e.target.value})}
+                                                className="pl-7 pr-2 py-1.5 border rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] w-full md:w-56"
+                                              />
+                                            </div>
                                           </div>
                                         </div>
                                         <div className="border rounded bg-white max-h-[250px] overflow-y-auto">
@@ -3239,6 +3395,100 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {showAddSpecificStorePopup && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[100] px-4 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white border rounded-lg shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <h3 className="font-bold text-[#1b4d3e]">Add Specific Store in {showAddSpecificStorePopup}</h3>
+                        <button onClick={() => {setShowAddSpecificStorePopup(null); setSpecificStoreSearch('');}} className="text-gray-400 hover:text-gray-600">
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                      <div className="p-6 flex-1 overflow-hidden flex flex-col">
+                        <div className="relative mb-4">
+                          <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                          <input 
+                            type="text" 
+                            placeholder={`Search stores in ${showAddSpecificStorePopup}...`}
+                            value={specificStoreSearch}
+                            onChange={(e) => setSpecificStoreSearch(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-[#4d9e5f]"
+                          />
+                        </div>
+                        <div className="border rounded-md overflow-hidden bg-white max-h-[400px] overflow-y-auto">
+                           <table className="w-full text-left text-xs bg-white">
+                             <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold sticky top-0 border-b">
+                               <tr>
+                                 <th className="px-4 py-2 border-r">Store Name</th>
+                                 <th className="px-4 py-2 border-r">State / Province</th>
+                                 <th className="px-4 py-2 border-r">Ward</th>
+                                 <th className="px-4 py-2 text-center w-24">Action</th>
+                               </tr>
+                             </thead>
+                             <tbody className="divide-y text-gray-600 font-medium">
+                                {stores.filter(s => {
+                                  const term = specificStoreSearch.toLowerCase();
+                                  let isMatch = s.country === showAddSpecificStorePopup && 
+                                                ((editingUser.companyIds || []).length === 0 || (editingUser.companyIds || []).includes(s.companyId));
+                                  if (!isMatch) return false;
+                                  if (!term) return true;
+                                  return s.name.toLowerCase().includes(term) || (s.stateProvince || '').toLowerCase().includes(term) || (s.ward || '').toLowerCase().includes(term);
+                                }).length === 0 ? (
+                                  <tr>
+                                    <td colSpan={4} className="px-4 py-8 text-center text-gray-400 italic">No stores found.</td>
+                                  </tr>
+                                ) : (
+                                  stores.filter(s => {
+                                    const term = specificStoreSearch.toLowerCase();
+                                    let isMatch = s.country === showAddSpecificStorePopup && 
+                                                ((editingUser.companyIds || []).length === 0 || (editingUser.companyIds || []).includes(s.companyId));
+                                    if (!isMatch) return false;
+                                    if (!term) return true;
+                                    return s.name.toLowerCase().includes(term) || (s.stateProvince || '').toLowerCase().includes(term) || (s.ward || '').toLowerCase().includes(term);
+                                  }).map(store => {
+                                    const isAssigned = (editingUser.storeIds || []).includes(store.id);
+                                    return (
+                                      <tr key={store.id} className="hover:bg-gray-50/50">
+                                        <td className="px-4 py-2 border-r">{store.name}</td>
+                                        <td className="px-4 py-2 border-r">{store.stateProvince || '-'}</td>
+                                        <td className="px-4 py-2 border-r">{store.ward || '-'}</td>
+                                        <td className="px-4 py-2 text-center">
+                                          {isAssigned ? (
+                                            <span className="text-xs font-bold text-gray-400 cursor-not-allowed">Added</span>
+                                          ) : (
+                                            <button 
+                                              onClick={() => {
+                                                setEditingUser(prev => ({
+                                                  ...prev,
+                                                  storeIds: [...(prev.storeIds || []), store.id]
+                                                }));
+                                              }}
+                                              className="bg-[#4d9e5f] text-white px-3 py-1 rounded text-[10px] font-bold hover:bg-[#3d7d4c]"
+                                            >
+                                              Add
+                                            </button>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
+                                )}
+                             </tbody>
+                           </table>
+                        </div>
+                      </div>
+                      <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+                        <button 
+                          onClick={() => {setShowAddSpecificStorePopup(null); setSpecificStoreSearch('');}}
+                          className="px-6 py-1.5 border border-[#4d9e5f] text-[#4d9e5f] font-bold rounded text-xs hover:bg-[#f0fdf4] transition-colors"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
              </div>
           ) : currentView === 'store-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
