@@ -93,6 +93,15 @@ export interface ServiceDeliveryConfig {
   orderType: string;
   serviceType: string;
   lateDeliveryAlertTime: number; // in minutes
+  isActive?: boolean;
+}
+
+export interface ShipperSearchRadiusConfig {
+  id: string;
+  orderType: string;
+  serviceType: string;
+  radiusKm: number;
+  isActive?: boolean;
 }
 
 export interface ITRoute {

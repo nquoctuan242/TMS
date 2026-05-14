@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig } from './types';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig } from './types';
 
 const STORES_LIST_MOCK = [
   { 
@@ -140,6 +140,7 @@ interface Store {
   distanceFetched?: boolean;
   lastDistance?: string;
   dropOffPoints?: DropOffPoint[];
+  shipperSearchConfigs?: ShipperSearchRadiusConfig[];
 }
 
 interface DropOffItem {
@@ -433,11 +434,13 @@ const App: React.FC = () => {
   const [assignedStoreSearch, setAssignedStoreSearch] = useState<Record<string, string>>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
   const [serviceDeliveryConfigs, setServiceDeliveryConfigs] = useState<ServiceDeliveryConfig[]>([
-    { id: '1', orderType: 'Online', serviceType: 'Express', lateDeliveryAlertTime: 30 },
-    { id: '2', orderType: 'IT', serviceType: 'Standard', lateDeliveryAlertTime: 60 },
+    { id: '1', orderType: 'Online', serviceType: 'Express', lateDeliveryAlertTime: 30, isActive: true },
+    { id: '2', orderType: 'IT', serviceType: 'Standard', lateDeliveryAlertTime: 60, isActive: true },
   ]);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [editingConfig, setEditingConfig] = useState<Partial<ServiceDeliveryConfig>>({});
+  const [showAddRadiusConfigPopup, setShowAddRadiusConfigPopup] = useState(false);
+  const [editingRadiusConfig, setEditingRadiusConfig] = useState<Partial<ShipperSearchRadiusConfig>>({});
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
   const [selectedDropOffShipment, setSelectedDropOffShipment] = useState<DropOffShipment | null>(null);
   const [selectedDropOffIds, setSelectedDropOffIds] = useState<string[]>([]);
@@ -2811,7 +2814,7 @@ const App: React.FC = () => {
                   <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Service Delivery Configuration</h2>
                   <button 
                     onClick={() => {
-                        setEditingConfig({ orderType: 'Online', serviceType: 'Standard', lateDeliveryAlertTime: 60 });
+                        setEditingConfig({ orderType: 'Online', serviceType: 'Standard', lateDeliveryAlertTime: 60, isActive: true });
                         setShowConfigModal(true);
                     }}
                     className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
@@ -2824,9 +2827,10 @@ const App: React.FC = () => {
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                         <tr>
-                          <th className="px-4 py-3 w-1/4">Order type</th>
-                          <th className="px-4 py-3 w-1/4">Service Type</th>
-                          <th className="px-4 py-3 w-1/4">Late Alert Time (Minute)</th>
+                          <th className="px-4 py-3 w-1/5">Order type</th>
+                          <th className="px-4 py-3 w-1/5">Service Type</th>
+                          <th className="px-4 py-3 w-1/5">Late Alert Time (Minute)</th>
+                          <th className="px-4 py-3 w-1/5 text-center">Status</th>
                           <th className="px-4 py-3 text-center w-24">Actions</th>
                         </tr>
                       </thead>
@@ -2836,6 +2840,16 @@ const App: React.FC = () => {
                             <td className="px-4 py-3">{config.orderType}</td>
                             <td className="px-4 py-3">{config.serviceType}</td>
                             <td className="px-4 py-3">{config.lateDeliveryAlertTime}</td>
+                            <td className="px-4 py-3 text-center">
+                              <button 
+                                onClick={() => {
+                                  setServiceDeliveryConfigs(prev => prev.map(c => c.id === config.id ? { ...c, isActive: !c.isActive } : c));
+                                }}
+                                className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${config.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                              >
+                                <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${config.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+                              </button>
+                            </td>
                             <td className="px-4 py-3 text-center">
                               <button 
                                 onClick={() => {
@@ -2911,6 +2925,15 @@ const App: React.FC = () => {
                             className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
                             placeholder="e.g. 60"
                           />
+                        </div>
+                        <div className="flex items-center justify-between pt-2">
+                          <label className="text-[11px] font-bold text-gray-700 tracking-tight">Status (Active)</label>
+                          <button 
+                            onClick={() => setEditingConfig({...editingConfig, isActive: editingConfig.isActive === false ? true : false})}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingConfig.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                          >
+                            <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingConfig.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </button>
                         </div>
                       </div>
                       <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
@@ -3770,6 +3793,172 @@ const App: React.FC = () => {
                   )}
                 </div>
               </div>
+              
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-radar text-[#4d9e5f]"></i>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Shipper Search Radius Configuration</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                       setEditingRadiusConfig({ orderType: 'Online', serviceType: 'Standard', radiusKm: 5, isActive: true });
+                       setShowAddRadiusConfigPopup(true);
+                    }}
+                    className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <i className="fa-solid fa-plus-circle"></i> Add Configuration
+                  </button>
+                </div>
+                <div className="p-4">
+                  {(!editingStore.shipperSearchConfigs || editingStore.shipperSearchConfigs.length === 0) ? (
+                    <div className="text-center py-8 text-gray-400 italic text-xs">
+                      No shipper search radius configurations found.
+                    </div>
+                  ) : (
+                    <div className="border border-gray-100 rounded overflow-hidden">
+                      <table className="w-full text-left text-xs bg-white">
+                        <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                          <tr>
+                            <th className="px-4 py-3 border-r w-1/5">Order Type</th>
+                            <th className="px-4 py-3 border-r w-1/5">Service Type</th>
+                            <th className="px-4 py-3 border-r w-1/5">Search Radius (Km)</th>
+                            <th className="px-4 py-3 border-r w-1/5 text-center">Status</th>
+                            <th className="px-4 py-3 text-center w-24">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y text-gray-600 font-medium">
+                          {editingStore.shipperSearchConfigs.map((config) => (
+                            <tr key={config.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-4 py-3 border-r">{config.orderType}</td>
+                              <td className="px-4 py-3 border-r">{config.serviceType}</td>
+                              <td className="px-4 py-3 border-r">{config.radiusKm}</td>
+                              <td className="px-4 py-3 border-r text-center">
+                                <button 
+                                  onClick={() => {
+                                    const nextList = editingStore.shipperSearchConfigs!.map(c => c.id === config.id ? { ...c, isActive: !c.isActive } : c);
+                                    setEditingStore({...editingStore, shipperSearchConfigs: nextList});
+                                  }}
+                                  className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${config.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                                >
+                                  <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${config.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+                                </button>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button 
+                                  onClick={() => {
+                                      setEditingRadiusConfig(config);
+                                      setShowAddRadiusConfigPopup(true);
+                                  }}
+                                  className="text-gray-400 hover:text-[#4d9e5f] transition-colors mx-1"
+                                  title="Edit"
+                                >
+                                  <i className="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                      if (window.confirm('Delete this configuration?')) {
+                                          const next = (editingStore.shipperSearchConfigs || []).filter(c => c.id !== config.id);
+                                          setEditingStore({...editingStore, shipperSearchConfigs: next});
+                                      }
+                                  }}
+                                  className="text-gray-400 hover:text-red-500 transition-colors mx-1"
+                                  title="Delete"
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {showAddRadiusConfigPopup && (
+                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[100] px-4 backdrop-blur-sm animate-in fade-in duration-200">
+                  <div className="bg-white border rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                      <h3 className="font-bold text-[#1b4d3e]">{editingRadiusConfig.id ? 'Edit Configuration' : 'Add Configuration'}</h3>
+                      <button onClick={() => setShowAddRadiusConfigPopup(false)} className="text-gray-400 hover:text-gray-600">
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Order Type</label>
+                        <select 
+                          value={editingRadiusConfig.orderType || ''}
+                          onChange={(e) => setEditingRadiusConfig({...editingRadiusConfig, orderType: e.target.value})}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        >
+                          <option value="Online">Online</option>
+                          <option value="IT">IT</option>
+                          <option value="FWD">FWD</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Service Type</label>
+                        <select 
+                          value={editingRadiusConfig.serviceType || ''}
+                          onChange={(e) => setEditingRadiusConfig({...editingRadiusConfig, serviceType: e.target.value})}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        >
+                          <option value="Express">Express</option>
+                          <option value="Standard">Standard</option>
+                          <option value="Same Day">Same Day</option>
+                          <option value="Next Day">Next Day</option>
+                          <option value="Economy">Economy</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Search Radius (Km)</label>
+                        <input 
+                          type="number"
+                          value={editingRadiusConfig.radiusKm || ''}
+                          onChange={(e) => setEditingRadiusConfig({...editingRadiusConfig, radiusKm: parseFloat(e.target.value) || 0})}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          placeholder="e.g. 5"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between pt-2">
+                        <label className="text-[11px] font-bold text-gray-700 tracking-tight">Status (Active)</label>
+                        <button 
+                          onClick={() => setEditingRadiusConfig({...editingRadiusConfig, isActive: editingRadiusConfig.isActive === false ? true : false})}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingRadiusConfig.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                        >
+                          <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingRadiusConfig.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+                      <button 
+                        onClick={() => setShowAddRadiusConfigPopup(false)}
+                        className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={() => {
+                            let nextList = [...(editingStore.shipperSearchConfigs || [])];
+                            if (editingRadiusConfig.id) {
+                                nextList = nextList.map(c => c.id === editingRadiusConfig.id ? (editingRadiusConfig as ShipperSearchRadiusConfig) : c);
+                            } else {
+                                nextList.push({ ...editingRadiusConfig, id: Math.random().toString(36).substr(2, 9) } as ShipperSearchRadiusConfig);
+                            }
+                            setEditingStore({...editingStore, shipperSearchConfigs: nextList});
+                            setShowAddRadiusConfigPopup(false);
+                        }}
+                        className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center gap-2">
