@@ -195,6 +195,7 @@ export interface Ticket {
   shipperName?: string;
   incidentReportDate?: string;
   reason?: string;
+  rejectNote?: string;
   ticketRecord?: string;
   approvalDate?: string;
   approvedBy?: string;

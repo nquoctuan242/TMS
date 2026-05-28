@@ -3,6 +3,16 @@ import React, { useState } from 'react';
 import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
 import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig } from './types';
 
+const REJECT_REASONS = [
+  "Delivery drivers have no valid reason for missing orders.",
+  "Delivery drivers are responsible for managing their personal arrangements so as not to affect accepted orders.",
+  "The delivery address is fully available in the system. Failing to check carefully before departure is the driver's subjective error, not a system fault.",
+  "Delivery drivers do not have the authority to self-assess order priority.",
+  "Delivery drivers are responsible for inspecting their vehicles before their shift.",
+  "The system requires real-time delivery confirmation.",
+  "Other"
+];
+
 const STORES_LIST_MOCK = [
   { 
     id: '1', 
@@ -420,6 +430,9 @@ const App: React.FC = () => {
   const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
   const [editingShipper, setEditingShipper] = useState<Partial<Shipper>>({});
   const [editingTicket, setEditingTicket] = useState<Partial<Ticket>>({});
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReasonType, setRejectReasonType] = useState<string>('');
+  const [rejectNote, setRejectNote] = useState<string>('');
   const [editingTicketType, setEditingTicketType] = useState<Partial<TicketType>>({});
   const [stores, setStores] = useState<Store[]>(STORES_LIST_MOCK as any);
   const [storeSearch, setStoreSearch] = useState('');
@@ -747,14 +760,22 @@ const App: React.FC = () => {
     });
   };
 
-  const handleRejectTicket = () => {
+  const handleConfirmReject = () => {
+    let finalNote = rejectReasonType;
+    if (rejectReasonType === 'Other') {
+      finalNote = rejectNote;
+    }
     const now = new Date().toLocaleString();
     setEditingTicket({
       ...editingTicket,
       status: 'Rejected',
+      rejectNote: finalNote,
       approvalDate: now,
       approvedBy: 'nquoctuan242@gmail.com'
     });
+    setShowRejectModal(false);
+    setRejectReasonType('');
+    setRejectNote('');
   };
 
   const confirmAction = (title: string, message: string, onConfirm: () => void) => {
@@ -2165,7 +2186,7 @@ const App: React.FC = () => {
                                 <i className="fa-solid fa-check"></i> Approve
                               </button>
                               <button 
-                                onClick={() => confirmAction('Reject Ticket', 'Are you sure you want to reject this ticket?', handleRejectTicket)}
+                                onClick={() => setShowRejectModal(true)}
                                 className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
                                   editingTicket.status === 'Rejected' 
                                   ? 'bg-white text-red-600 shadow-sm' 
@@ -2609,14 +2630,20 @@ const App: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-start">
                               <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approved By</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approved/Rejected By</p>
                                 <p className="text-xs font-bold text-gray-700">{editingTicket.approvedBy || '-'}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approval Date</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Action Date</p>
                                 <p className="text-xs font-medium text-gray-600 italic">{editingTicket.approvalDate || '-'}</p>
                               </div>
                             </div>
+                            {editingTicket.status === 'Rejected' && editingTicket.rejectNote && (
+                              <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+                                <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">Reject Note</p>
+                                <p className="text-xs font-medium text-red-700">{editingTicket.rejectNote}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -5863,6 +5890,67 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Reject Ticket Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h3 className="font-bold text-red-600 flex items-center gap-2"><i className="fa-solid fa-triangle-exclamation"></i> Reject Ticket</h3>
+              <button onClick={() => {setShowRejectModal(false); setRejectReasonType(''); setRejectNote('');}} className="text-gray-400 hover:text-gray-600">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Reject Reason</label>
+                <div className="space-y-2">
+                  {REJECT_REASONS.map((reason, idx) => (
+                    <label key={idx} className="flex items-start gap-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                      <input 
+                        type="radio" 
+                        name="rejectReason" 
+                        value={reason}
+                        checked={rejectReasonType === reason}
+                        onChange={(e) => setRejectReasonType(e.target.value)}
+                        className="mt-0.5 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 leading-snug">{reason}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {rejectReasonType === 'Other' && (
+                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Custom Reject Note</label>
+                  <textarea
+                    value={rejectNote}
+                    onChange={(e) => setRejectNote(e.target.value)}
+                    placeholder="Enter custom rejection reason..."
+                    className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-red-500 bg-white min-h-[80px] resize-none"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+              <button 
+                onClick={() => {setShowRejectModal(false); setRejectReasonType(''); setRejectNote('');}}
+                className="px-4 py-2 border border-gray-300 text-gray-700 font-bold rounded-lg text-xs hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirmReject}
+                disabled={!rejectReasonType || (rejectReasonType === 'Other' && !rejectNote.trim())}
+                className="px-6 py-2 bg-red-600 text-white font-bold rounded-lg text-xs hover:bg-red-700 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className="fa-solid fa-xmark"></i> Reject Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Global Confirmation Modal */}
       {confirmModal.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
