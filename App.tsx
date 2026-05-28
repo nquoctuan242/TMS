@@ -2642,7 +2642,7 @@ const App: React.FC = () => {
                       <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                         <tr>
                           <th className="px-4 py-3 border-r">Name</th>
-                          <th className="px-4 py-3 border-r">Country</th>
+                          <th className="px-4 py-3 border-r">Region</th>
                           <th className="px-4 py-3 border-r">Code</th>
                           <th className="px-4 py-3 border-r">Description</th>
                           <th className="px-4 py-3 border-r text-center">Deadline (Days)</th>
@@ -2658,8 +2658,8 @@ const App: React.FC = () => {
                           <tr key={tt.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{tt.name}</td>
                             <td className="px-4 py-3 border-r">
-                              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
-                                {tt.country || 'Global'}
+                              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold whitespace-nowrap">
+                                {tt.country || 'Global'} {tt.stateProvince ? `- ${tt.stateProvince}` : ''}
                               </span>
                             </td>
                             <td className="px-4 py-3 border-r">{tt.code}</td>
@@ -2782,6 +2782,16 @@ const App: React.FC = () => {
                         </select>
                       </div>
                     </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Show Penalty Amount on App</label>
+                      <button 
+                        onClick={() => setEditingTicketType({...editingTicketType, showPenaltyAmountOnApp: editingTicketType.showPenaltyAmountOnApp === false ? true : false})}
+                        disabled={!editingTicketType.violationPenaltyAmount || editingTicketType.violationPenaltyAmount === 0}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingTicketType.showPenaltyAmountOnApp !== false && editingTicketType.violationPenaltyAmount && editingTicketType.violationPenaltyAmount > 0 ? 'bg-[#4d9e5f]' : 'bg-gray-300'} ${(!editingTicketType.violationPenaltyAmount || editingTicketType.violationPenaltyAmount === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingTicketType.showPenaltyAmountOnApp !== false && editingTicketType.violationPenaltyAmount && editingTicketType.violationPenaltyAmount > 0 ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Country</label>
                       <select 
@@ -2793,6 +2803,16 @@ const App: React.FC = () => {
                           <option key={country} value={country}>{country}</option>
                         ))}
                       </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">State / Province</label>
+                      <input 
+                        type="text"
+                        value={editingTicketType.stateProvince || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, stateProvince: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. Ho Chi Minh"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Status</label>

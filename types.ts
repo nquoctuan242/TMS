@@ -235,9 +235,11 @@ export interface TicketType {
   description: string;
   status: 'Active' | 'Inactive';
   country?: string;
+  stateProvince?: string;
   explanationDeadlineDays?: number;
   maxExplanationCount?: number;
   violationPenaltyAmount?: number;
+  showPenaltyAmountOnApp?: boolean;
   currency?: string;
   createdAt: string;
 }
