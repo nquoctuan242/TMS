@@ -3562,14 +3562,35 @@ const App: React.FC = () => {
              </div>
           ) : currentView === 'store-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
-               <div className="flex items-center justify-between border-b px-4 py-3">
+               <div className="flex items-center justify-between border-b px-4 py-3 relative z-20">
                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Store List</h2>
-                 <button 
-                   onClick={() => { setEditingStore({}); setCurrentView('store-detail'); }}
-                   className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
-                 >
-                   <i className="fa-solid fa-plus"></i> Add Store
-                 </button>
+                 <div className="flex items-center gap-2">
+                   <div className="relative group">
+                      <button className="bg-white border-2 border-[#1b4d3e] text-[#1b4d3e] px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-[#1b4d3e] hover:text-white transition-all shadow-sm flex items-center gap-2 group-hover:shadow-md">
+                        <i className="fa-solid fa-file-excel text-[#4d9e5f] group-hover:text-white transition-colors"></i> Download Templates <i className="fa-solid fa-chevron-down text-[10px] opacity-70 ml-1"></i>
+                      </button>
+                      <div className="absolute top-full right-0 mt-2 w-[300px] bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] p-1.5 translate-y-2 group-hover:translate-y-0">
+                        <button className="w-full text-left px-3 py-2.5 text-[12px] font-semibold text-gray-700 hover:bg-[#f0fdf4] hover:text-[#1b4d3e] rounded-lg transition-all flex items-center group/item mb-1">
+                          <div className="w-8 h-8 rounded-md bg-[#e9f2ee] text-[#4d9e5f] flex items-center justify-center mr-3 group-hover/item:bg-[#4d9e5f] group-hover/item:text-white transition-all shadow-sm group-hover/item:shadow">
+                            <i className="fa-solid fa-download text-[13px]"></i>
+                          </div>
+                          <span className="leading-tight">Template for updating stock information</span>
+                        </button>
+                        <button className="w-full text-left px-3 py-2.5 text-[12px] font-semibold text-gray-700 hover:bg-[#f0fdf4] hover:text-[#1b4d3e] rounded-lg transition-all flex items-center group/item">
+                          <div className="w-8 h-8 rounded-md bg-[#e9f2ee] text-[#4d9e5f] flex items-center justify-center mr-3 group-hover/item:bg-[#4d9e5f] group-hover/item:text-white transition-all shadow-sm group-hover/item:shadow">
+                            <i className="fa-solid fa-download text-[13px]"></i>
+                          </div>
+                          <span className="leading-tight">Template for updating shipper search radius</span>
+                        </button>
+                      </div>
+                   </div>
+                   <button 
+                     onClick={() => { setEditingStore({}); setCurrentView('store-detail'); }}
+                     className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                   >
+                     <i className="fa-solid fa-plus"></i> Add Store
+                   </button>
+                 </div>
                </div>
                <div className="p-4">
                  <div className="border border-gray-100 rounded overflow-hidden">
