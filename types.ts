@@ -229,6 +229,42 @@ export interface Ticket {
   updatedAt: string;
 }
 
+export interface DailyCommission {
+  id: string;
+  date: string;
+  payrollPeriod: string;
+  store: string;
+  shipper: string;
+  deliveredOnlineOrders: number;
+  deliveredITOrders: number;
+  commission: number;
+  lateOrders: number;
+  invalidPODOrders: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface PayrollPeriod {
+  id: string;
+  versionName: string;
+  cycle: string;
+  effectiveTime: string;
+  appliedLocation: string;
+}
+
+export interface ScanTimeConfig {
+  id: string;
+  storeId?: string;
+  storeName?: string;
+  wardCity?: string;
+  stateProvince?: string;
+  country: string;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+  updatedAt: string;
+}
+
 export interface TicketType {
   id: string;
   name: string;

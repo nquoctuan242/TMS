@@ -1,5 +1,56 @@
 
-import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, ScanTimeConfig, DailyCommission, PayrollPeriod } from './types';
+
+export const MOCK_PAYROLL_PERIODS: PayrollPeriod[] = [
+  {
+    id: '1',
+    versionName: 'Payroll Policy 2026',
+    cycle: 'Weekly (Anchor: 2026-01-05)',
+    effectiveTime: '01/01/2026, GMT+7 - 31/12/2026, GMT+7',
+    appliedLocation: 'United States\nCalifornia'
+  }
+];
+
+export const MOCK_DAILY_COMMISSIONS: DailyCommission[] = [
+  { id: '1', date: '04/06/2026 (UTC-7)', payrollPeriod: '03/06/2026 - 16/06/2026 (UTC-7)', store: 'Circle K - Arizona', shipper: 'Maria Olala', deliveredOnlineOrders: 3, deliveredITOrders: 0, commission: 0.15, lateOrders: 3, invalidPODOrders: 0, startTime: '08:00', endTime: '17:00' },
+  { id: '2', date: '04/06/2026 (UTC-7)', payrollPeriod: '29/05/2026 - 11/06/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Hieu Minh', deliveredOnlineOrders: 4, deliveredITOrders: 0, commission: 2, lateOrders: 3, invalidPODOrders: 0, startTime: '08:30', endTime: '18:00' },
+  { id: '3', date: '03/06/2026 (UTC-7)', payrollPeriod: '03/06/2026 - 16/06/2026 (UTC-7)', store: 'Circle K - Arizona', shipper: 'Maria Olala', deliveredOnlineOrders: 4, deliveredITOrders: 0, commission: 1.35, lateOrders: 1, invalidPODOrders: 0, startTime: '09:00', endTime: '17:30' },
+  { id: '4', date: '02/06/2026 (UTC-7)', payrollPeriod: '29/05/2026 - 11/06/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Hieu Minh', deliveredOnlineOrders: 5, deliveredITOrders: 0, commission: 2.5, lateOrders: 0, invalidPODOrders: 0, startTime: '08:00', endTime: '16:00' },
+  { id: '5', date: '02/06/2026 (UTC-7)', payrollPeriod: '29/05/2026 - 11/06/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tony Stark', deliveredOnlineOrders: 3, deliveredITOrders: 0, commission: 1.5, lateOrders: 0, invalidPODOrders: 0, startTime: '07:30', endTime: '15:30' },
+  { id: '6', date: '01/06/2026 (UTC-7)', payrollPeriod: '29/05/2026 - 11/06/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Hoa Duong - Shipper', deliveredOnlineOrders: 6, deliveredITOrders: 0, commission: 3, lateOrders: 0, invalidPODOrders: 0, startTime: '08:15', endTime: '18:30' },
+  { id: '7', date: '27/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tony Stark', deliveredOnlineOrders: 0, deliveredITOrders: 1, commission: 0.1, lateOrders: 0, invalidPODOrders: 0, startTime: '09:30', endTime: '17:00' },
+  { id: '8', date: '25/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tony Stark', deliveredOnlineOrders: 9, deliveredITOrders: 0, commission: 4.5, lateOrders: 1, invalidPODOrders: 0, startTime: '08:00', endTime: '19:00' },
+  { id: '9', date: '24/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Trump', deliveredOnlineOrders: 0, deliveredITOrders: 1, commission: 0.1, lateOrders: 0, invalidPODOrders: 0, startTime: '08:45', endTime: '17:15' },
+  { id: '10', date: '24/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tom', deliveredOnlineOrders: 5, deliveredITOrders: 0, commission: 2.5, lateOrders: 0, invalidPODOrders: 0, startTime: '07:00', endTime: '16:30' },
+  { id: '11', date: '22/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tom', deliveredOnlineOrders: 2, deliveredITOrders: 0, commission: 1, lateOrders: 1, invalidPODOrders: 0, startTime: '09:00', endTime: '14:00' },
+  { id: '12', date: '21/05/2026 (UTC-7)', payrollPeriod: '15/05/2026 - 28/05/2026 (UTC-7)', store: 'SHOP-7903 S ATLANTIC AVE', shipper: 'Tom', deliveredOnlineOrders: 1, deliveredITOrders: 0, commission: 0.5, lateOrders: 0, invalidPODOrders: 1, startTime: '10:00', endTime: '18:00' },
+];
+
+export const MOCK_SCAN_TIME_CONFIGS: ScanTimeConfig[] = [
+  {
+    id: '1',
+    storeName: 'Store 123',
+    storeId: '1',
+    wardCity: 'Tan Binh',
+    stateProvince: 'HCM',
+    country: 'Vietnam',
+    startTime: '08:00',
+    endTime: '20:00',
+    timezone: 'Asia/Ho_Chi_Minh',
+    updatedAt: '03/06/2026 12:00:00'
+  },
+  {
+    id: '2',
+    storeName: '',
+    wardCity: '',
+    stateProvince: 'HCM',
+    country: 'Vietnam',
+    startTime: '07:30',
+    endTime: '22:00',
+    timezone: 'Asia/Ho_Chi_Minh',
+    updatedAt: '03/06/2026 10:00:00'
+  }
+];
 
 export const MOCK_TICKET_TYPES: TicketType[] = [
   {

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig } from './types';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod } from './types';
 
 const REJECT_REASONS = [
   "Delivery drivers have no valid reason for missing orders.",
@@ -402,12 +402,13 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
+  const [dailyCommissions, setDailyCommissions] = useState<DailyCommission[]>(MOCK_DAILY_COMMISSIONS);
   const [internalTransfers, setInternalTransfers] = useState<InternalTransfer[]>(MOCK_INTERNAL_TRANSFERS);
   const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
@@ -416,6 +417,11 @@ const App: React.FC = () => {
   const [activeTransferTab, setActiveTransferTab] = useState('General information');
   const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
   const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
+  const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>(MOCK_PAYROLL_PERIODS);
+  const [selectedIncentiveModel, setSelectedIncentiveModel] = useState<'deduction' | 'performance_bonus'>('deduction');
+  const [kpiRules, setKpiRules] = useState([{ id: 1, name: 'KPI 1' }]);
+  const [scanTimeConfigs, setScanTimeConfigs] = useState<ScanTimeConfig[]>(MOCK_SCAN_TIME_CONFIGS);
+  const [editingScanTimeConfig, setEditingScanTimeConfig] = useState<Partial<ScanTimeConfig>>({});
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
   const [ticketFilters, setTicketFilters] = useState({
     ticketType: '',
@@ -1335,7 +1341,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-car-side" 
             label="Fleet" 
-            active={currentView === 'shipper-list' || currentView === 'shipper-detail'} 
+            active={currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail'} 
             hasSubItems
             onClick={() => {}}
           >
@@ -1345,6 +1351,18 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('shipper-list')}
                 >
                   Shipper
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'scan-time-list' || currentView === 'scan-time-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('scan-time-list')}
+                >
+                  Scan Time
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('payroll-period-list')}
+                >
+                  Payroll Period
                 </div>
              </div>
           </SidebarItem>
@@ -1370,7 +1388,22 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
-          <SidebarItem icon="fa-chart-pie" label="Report" onClick={() => {}} />
+          <SidebarItem 
+            icon="fa-chart-pie" 
+            label="Report" 
+            active={currentView === 'daily-commission'}
+            hasSubItems
+            onClick={() => {}} 
+          >
+             <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'daily-commission' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('daily-commission')}
+                >
+                  Daily Commission
+                </div>
+             </div>
+          </SidebarItem>
           <SidebarItem 
             icon="fa-handshake" 
             label="Partner" 
@@ -1465,6 +1498,11 @@ const App: React.FC = () => {
                  currentView === 'order-online' ? 'Online Order' :
                  currentView === 'shipper-list' ? 'Shipper List' :
                  currentView === 'shipper-detail' ? 'Shipper Detail' :
+                 currentView === 'scan-time-list' ? 'Scan Time Configs' :
+                 currentView === 'scan-time-detail' ? 'Scan Time Detail' :
+                 currentView === 'daily-commission' ? 'Daily Commission' :
+                 currentView === 'payroll-period-list' ? 'Payroll Period' :
+                 currentView === 'payroll-period-detail' ? 'Payroll Period Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
@@ -1917,7 +1955,457 @@ const App: React.FC = () => {
                   </div>
                 </div>
              </div>
-          ) : currentView === 'ticket-list' ? (
+          ) : currentView === 'scan-time-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-4 py-3">
+                 <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Scan Time Configs</h2>
+                 <button 
+                   onClick={() => { setEditingScanTimeConfig({ country: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh' }); setCurrentView('scan-time-detail'); }}
+                   className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                 >
+                   <i className="fa-solid fa-plus"></i> Add Config
+                 </button>
+               </div>
+               <div className="p-4">
+                 <div className="border border-gray-100 rounded overflow-hidden">
+                   <table className="w-full text-left text-xs bg-white">
+                     <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                       <tr>
+                         <th className="px-4 py-3 border-r w-[20%]">Store Name</th>
+                         <th className="px-4 py-3 border-r w-[15%]">Ward/City</th>
+                         <th className="px-4 py-3 border-r w-[15%]">State/Province</th>
+                         <th className="px-4 py-3 border-r w-[15%]">Country</th>
+                         <th className="px-4 py-3 border-r w-[15%] text-center">Time</th>
+                         <th className="px-4 py-3 border-r w-[10%] text-center">Timezone</th>
+                         <th className="px-4 py-3 text-center w-[10%]">Actions</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
+                       {scanTimeConfigs.map((config, index) => (
+                         <tr key={config.id || index} className="hover:bg-gray-50 transition-colors">
+                           <td className="px-4 py-3 border-r">{config.storeName || '-'}</td>
+                           <td className="px-4 py-3 border-r">{config.wardCity || '-'}</td>
+                           <td className="px-4 py-3 border-r">{config.stateProvince || '-'}</td>
+                           <td className="px-4 py-3 border-r">
+                             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                               {config.country}
+                             </span>
+                           </td>
+                           <td className="px-4 py-3 border-r text-center">
+                             <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{config.startTime}</span>
+                             <span className="mx-1 text-gray-400">-</span>
+                             <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{config.endTime}</span>
+                           </td>
+                           <td className="px-4 py-3 border-r text-center">{config.timezone}</td>
+                           <td className="px-4 py-3 text-center space-x-3">
+                             <button 
+                               onClick={() => { setEditingScanTimeConfig(config); setCurrentView('scan-time-detail'); }}
+                               className="text-blue-500 hover:text-blue-700 transition-colors"
+                             >
+                               <i className="fa-solid fa-pen-to-square"></i>
+                             </button>
+                             <button
+                               onClick={() => confirmAction('Delete Config', 'Are you sure you want to delete this config?', () => setScanTimeConfigs(prev => prev.filter(c => c.id !== config.id)))}
+                               className="text-red-500 hover:text-red-700 transition-colors"
+                             >
+                               <i className="fa-solid fa-trash-can"></i>
+                             </button>
+                           </td>
+                         </tr>
+                       ))}
+                       {scanTimeConfigs.length === 0 && (
+                         <tr>
+                           <td colSpan={7} className="px-4 py-8 text-center text-gray-400">No configs found</td>
+                         </tr>
+                       )}
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
+             </div>
+          ) : currentView === 'scan-time-detail' ? (
+             <div className="bg-[#f8fafc] min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-6 py-4 bg-white sticky top-0 z-10 shadow-sm">
+                 <div className="flex items-center gap-4">
+                   <button onClick={() => setCurrentView('scan-time-list')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+                     <i className="fa-solid fa-arrow-left"></i>
+                   </button>
+                   <div>
+                     <h2 className="text-[#1b4d3e] font-bold text-lg">{editingScanTimeConfig.id ? 'Edit Scan Time Config' : 'Create Scan Time Config'}</h2>
+                     <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1 mt-0.5"><i className="fa-solid fa-clock-rotate-left"></i> Last updated: {editingScanTimeConfig.updatedAt || new Date().toLocaleString()}</p>
+                   </div>
+                 </div>
+                 <div className="flex gap-3">
+                   <button 
+                     onClick={() => setCurrentView('scan-time-list')}
+                     className="px-6 py-2 border border-gray-300 text-gray-700 font-bold rounded-lg text-xs hover:bg-gray-50 transition-colors bg-white shadow-sm"
+                   >
+                     Cancel
+                   </button>
+                   <button 
+                     onClick={() => {
+                       if (editingScanTimeConfig.id) {
+                         setScanTimeConfigs(prev => prev.map(c => c.id === editingScanTimeConfig.id ? { ...c, ...editingScanTimeConfig, updatedAt: new Date().toLocaleString() } as ScanTimeConfig : c));
+                       } else {
+                         setScanTimeConfigs([{ ...editingScanTimeConfig, id: Date.now().toString(), updatedAt: new Date().toLocaleString() } as ScanTimeConfig, ...scanTimeConfigs]);
+                       }
+                       setCurrentView('scan-time-list');
+                     }}
+                     className="bg-[#1b4d3e] text-white px-8 py-2 rounded-lg text-xs font-bold hover:bg-[#153a2f] transition-all shadow-md flex items-center gap-2"
+                   >
+                     <i className="fa-solid fa-floppy-disk"></i> Save Config
+                   </button>
+                 </div>
+               </div>
+               
+               <div className="p-6 max-w-4xl mx-auto w-full">
+                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                   <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                     <h3 className="font-bold text-[#1b4d3e] flex items-center gap-2">
+                       <i className="fa-solid fa-map-location-dot"></i> Region & Time Settings
+                     </h3>
+                     <p className="text-xs text-gray-500 mt-1">Configure scan time restrictions for specific regions. Hierarchy: Store &gt; Ward &gt; State &gt; Country.</p>
+                   </div>
+                   
+                   <div className="p-6 grid grid-cols-2 gap-x-8 gap-y-6">
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Store Name</label>
+                       <select 
+                         value={editingScanTimeConfig.storeId || ''}
+                         onChange={e => {
+                            const store = stores.find(s => s.id === e.target.value);
+                            setEditingScanTimeConfig({...editingScanTimeConfig, storeId: e.target.value, storeName: store?.name || ''});
+                         }}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] bg-white transition-all shadow-sm"
+                       >
+                         <option value="">-- Apply to all / Specific higher level --</option>
+                         {stores.map(store => (
+                           <option key={store.id} value={store.id}>{store.name}</option>
+                         ))}
+                       </select>
+                       <p className="text-[10px] text-gray-500 mt-1"><i className="fa-solid fa-circle-info mr-1"></i>Leave blank to apply to entire Ward/City or State.</p>
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Ward / City</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.wardCity || ''}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, wardCity: e.target.value})}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                         placeholder="e.g. Ward 5"
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">State / Province</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.stateProvince || ''}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, stateProvince: e.target.value})}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                         placeholder="e.g. Ho Chi Minh"
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Country</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.country || 'Vietnam'}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, country: e.target.value})}
+                         className="w-full border border-gray-200 rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none bg-gray-50 shadow-sm"
+                         readOnly
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 border-t border-gray-100 pt-6 mt-2 grid grid-cols-3 gap-6">
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Start Time</label>
+                         <div className="relative">
+                           <input 
+                             type="time"
+                             value={editingScanTimeConfig.startTime || ''}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, startTime: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-3 py-2 text-[13px] font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                           />
+                           <i className="fa-regular fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                         </div>
+                       </div>
+                       
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">End Time</label>
+                         <div className="relative">
+                           <input 
+                             type="time"
+                             value={editingScanTimeConfig.endTime || ''}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, endTime: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-3 py-2 text-[13px] font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                           />
+                           <i className="fa-solid fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                         </div>
+                       </div>
+                       
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Timezone</label>
+                         <div className="relative">
+                           <select 
+                             value={editingScanTimeConfig.timezone || 'Asia/Ho_Chi_Minh'}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, timezone: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-8 py-2 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] bg-white transition-all shadow-sm appearance-none"
+                           >
+                             <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (UTC+7)</option>
+                             <option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option>
+                             <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                             <option value="UTC">UTC</option>
+                           </select>
+                           <i className="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                           <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+          ) : currentView === 'payroll-period-list' ? (
+             <div className="bg-[#f2f6f4] min-h-full flex flex-col p-4 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-[#1b4d3e] font-bold text-lg">Payroll Period</h2>
+                    <p className="text-gray-500 text-xs mt-1">Manage commission payroll periods</p>
+                  </div>
+                  <button onClick={() => setCurrentView('payroll-period-detail')} className="bg-[#1b4d3e] text-white px-4 py-2 rounded-md text-xs font-bold hover:bg-[#153a2f] shadow-sm flex items-center gap-2 transition-colors">
+                    <i className="fa-solid fa-plus"></i> Create Period
+                  </button>
+                </div>
+                
+                <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="relative w-1/3 min-w-[250px]">
+                      <input type="text" placeholder="Search periods..." className="w-full border border-gray-200 rounded-md pl-9 pr-3 py-2 text-xs outline-none focus:border-[#4d9e5f] focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all" />
+                      <i className="fa-solid fa-magnifying-glass absolute left-3 top-[10px] text-gray-400"></i>
+                    </div>
+                  </div>
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#f8fafc] text-gray-700 font-bold border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-3 w-[25%] hover:bg-gray-100 transition-colors">Version Name</th>
+                        <th className="px-6 py-3 w-[20%] hover:bg-gray-100 transition-colors">Cycle</th>
+                        <th className="px-6 py-3 w-[25%] hover:bg-gray-100 transition-colors">Effective Time</th>
+                        <th className="px-6 py-3 w-[20%] hover:bg-gray-100 transition-colors">Applied Location</th>
+                        <th className="px-6 py-3 w-[10%] text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-600">
+                      {payrollPeriods.map((period) => (
+                        <tr key={period.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-gray-800">{period.versionName}</td>
+                          <td className="px-6 py-4 font-medium">{period.cycle}</td>
+                          <td className="px-6 py-4 font-medium">{period.effectiveTime}</td>
+                          <td className="px-6 py-4 whitespace-pre-wrap leading-relaxed">{period.appliedLocation}</td>
+                          <td className="px-6 py-4 text-right space-x-3 text-gray-400">
+                            <button onClick={() => setCurrentView('payroll-period-detail')} className="hover:text-blue-500 transition-colors"><i className="fa-regular fa-pen-to-square"></i></button>
+                            <button className="hover:text-red-500 transition-colors"><i className="fa-regular fa-trash-can"></i></button>
+                          </td>
+                        </tr>
+                      ))}
+                      {payrollPeriods.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-400">No payroll periods found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+             </div>
+           ) : currentView === 'payroll-period-detail' ? (
+             <div className="bg-[#f8fafc] min-h-full flex flex-col items-center py-6 px-4 pb-24 animate-in fade-in duration-300 relative">
+               <div className="w-full flex justify-start max-w-[900px] mb-4">
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-bold flex items-center gap-2">
+                   <i className="fa-solid fa-arrow-left"></i> Back to Periods
+                 </button>
+               </div>
+               <div className="w-full max-w-[900px] space-y-6">
+                 
+                 <div>
+                   <h3 className="text-gray-800 font-bold text-sm mb-3">Incentive Model</h3>
+                   <div className="flex flex-col sm:flex-row gap-4 text-left">
+                     <div 
+                        onClick={() => setSelectedIncentiveModel('deduction')}
+                        className={`flex-1 border-2 ${selectedIncentiveModel === 'deduction' ? 'border-red-400 bg-red-50/50' : 'border-transparent bg-white hover:border-gray-200'} rounded-xl p-4 cursor-pointer relative shadow-sm transition-all hover:shadow-md`}
+                     >
+                       <div className="flex items-start gap-3">
+                         <div className="mt-0.5"><i className={`${selectedIncentiveModel === 'deduction' ? 'fa-solid fa-circle-dot text-red-500' : 'fa-regular fa-circle text-gray-300'}`}></i></div>
+                         <div>
+                           <div className="font-bold text-gray-900 text-sm">Deduction (Penalty)</div>
+                           <div className="text-gray-500 text-[13px] mt-1 leading-relaxed">Deduct commission if shipper misses KPI target.</div>
+                         </div>
+                       </div>
+                     </div>
+                     <div 
+                        onClick={() => setSelectedIncentiveModel('performance_bonus')}
+                        className={`flex-1 border-2 ${selectedIncentiveModel === 'performance_bonus' ? 'border-blue-400 bg-blue-50/50' : 'border-transparent bg-white hover:border-gray-200'} rounded-xl p-4 cursor-pointer relative shadow-sm transition-all hover:shadow-md`}
+                     >
+                       <div className="flex items-start gap-3">
+                         <div className="mt-0.5"><i className={`${selectedIncentiveModel === 'performance_bonus' ? 'fa-solid fa-circle-dot text-blue-500' : 'fa-regular fa-circle text-gray-300'}`}></i></div>
+                         <div>
+                           <div className="font-bold text-gray-900 text-sm">Performance Bonus</div>
+                           <div className="text-gray-500 text-[13px] mt-1 leading-relaxed">Award bonus when shipper achieves or exceeds KPI target.</div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <button className="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center gap-2 transition-colors">
+                   <i className="fa-regular fa-eye"></i> Review KPI Summary
+                 </button>
+
+                 <div>
+                   <div className="flex items-center justify-end mb-4">
+                     <button onClick={() => setKpiRules([...kpiRules, { id: Date.now(), name: `KPI ${kpiRules.length + 1}` }])} className="border border-gray-300 bg-white text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center gap-2 transition-colors">
+                       <i className="fa-solid fa-plus"></i> Add KPI
+                     </button>
+                   </div>
+                   
+                   <div className="space-y-6">
+                   {kpiRules.map((rule, index) => (
+                   <div key={rule.id} className={`border ${selectedIncentiveModel === 'deduction' ? 'border-red-200' : 'border-blue-200'} bg-white rounded-xl shadow-sm overflow-hidden`}>
+                     <div className={`${selectedIncentiveModel === 'deduction' ? 'bg-red-50/70 border-red-100' : 'bg-blue-50/70 border-blue-100'} px-4 py-3 flex items-center justify-between border-b`}>
+                       <div className="flex items-center gap-3 flex-1 max-w-sm">
+                         <input 
+                           type="text" 
+                           value={rule.name}
+                           onChange={(e) => {
+                             const newRules = [...kpiRules];
+                             newRules[index].name = e.target.value;
+                             setKpiRules(newRules);
+                           }}
+                           className="font-bold text-gray-900 text-sm bg-white border border-gray-300 rounded px-2 py-1 w-full focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                           placeholder="Enter KPI name"
+                         />
+                         <span className={`${selectedIncentiveModel === 'deduction' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider whitespace-nowrap`}>
+                           {selectedIncentiveModel === 'deduction' ? 'Deduction (Penalty)' : 'Performance Bonus'}
+                         </span>
+                       </div>
+                       <button onClick={() => setKpiRules(kpiRules.filter(r => r.id !== rule.id))} className={`text-gray-400 hover:${selectedIncentiveModel === 'deduction' ? 'text-red-600' : 'text-blue-600'} transition-colors`}><i className="fa-regular fa-trash-can"></i></button>
+                     </div>
+                     <div className="p-5 space-y-6">
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                         <div>
+                           <label className="text-sm text-gray-800 font-bold mb-3 block tracking-wide">Applied Order Types (Select at least 1) <span className="text-red-500">*</span></label>
+                           <div className="flex items-center gap-6 text-sm text-gray-600">
+                             <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors select-none"><input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-blue-500 h-4 w-4" /> <span className="font-medium">Online Orders</span></label>
+                             <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors select-none"><input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-blue-500 h-4 w-4" /> <span className="font-medium">Internal Transfer Orders</span></label>
+                           </div>
+                         </div>
+                         <div>
+                           <label className="text-sm text-gray-800 font-bold mb-3 block tracking-wide">Type reference <span className="text-red-500">*</span></label>
+                           <div className="relative">
+                             <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all h-[38px]">
+                               <option>Shipment late</option>
+                               <option>Shipment invalid POD</option>
+                               <option>First Attempt Delivery</option>
+                             </select>
+                             <i className="fa-solid fa-chevron-down absolute right-3 top-[13px] text-xs text-gray-500 pointer-events-none"></i>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div>
+                         <label className="text-sm text-gray-800 font-bold mb-4 block tracking-wide">Service Level</label>
+                         <div className="space-y-5 pl-2">
+                           <div>
+                             <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2.5">ONLINE SERVICES</div>
+                             <div className="flex flex-wrap gap-2.5">
+                               {['2 Hours', 'Sameday', 'Nextday', 'Express', 'Standard'].map(svc => (
+                                 <label key={svc} className="flex items-center gap-2 border border-[#1b4d3e] text-[#1b4d3e] bg-green-50/30 px-3.5 py-1.5 rounded-md text-[13px] cursor-pointer font-bold hover:bg-green-50 transition-colors shadow-sm select-none">
+                                   <input type="checkbox" defaultChecked className="rounded text-[#1b4d3e] focus:ring-[#1b4d3e] border-[#1b4d3e] bg-white h-3.5 w-3.5" />
+                                   {svc}
+                                 </label>
+                               ))}
+                             </div>
+                           </div>
+                           <div>
+                             <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2.5">IT SERVICES</div>
+                             <div className="flex flex-wrap gap-2.5">
+                               {['Sameday', '48 Hours'].map(svc => (
+                                 <label key={svc} className="flex items-center gap-2 border border-[#1b4d3e] text-[#1b4d3e] bg-green-50/30 px-3.5 py-1.5 rounded-md text-[13px] cursor-pointer font-bold hover:bg-green-50 transition-colors shadow-sm select-none">
+                                   <input type="checkbox" defaultChecked className="rounded text-[#1b4d3e] focus:ring-[#1b4d3e] border-[#1b4d3e] bg-white h-3.5 w-3.5" />
+                                   {svc}
+                                 </label>
+                               ))}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-2 border-t border-gray-100">
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">Rule Incentive Model</label>
+                           <div className="relative">
+                             <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all">
+                               <option>Use main model (Deduction)</option>
+                               <option>Performance Bonus</option>
+                             </select>
+                             <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-xs text-gray-500 pointer-events-none"></i>
+                           </div>
+                           <p className="text-[11px] text-gray-500 leading-snug">Override the main period setting for this specific rule.</p>
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">Target Threshold</label>
+                           <div className="relative border border-gray-300 rounded-lg overflow-hidden flex shadow-sm bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                             <div className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-gray-500 flex items-center justify-center font-bold">&ge;</div>
+                             <input type="text" defaultValue="97" className="w-full px-3 py-2 text-sm outline-none font-bold text-gray-800" />
+                             <div className="px-3 py-2 text-gray-500 flex items-center justify-center text-sm bg-gray-50 border-l border-gray-200 font-bold">%</div>
+                           </div>
+                           <p className="text-[11px] text-gray-500 leading-snug">Minimum KPI the shipper must achieve.</p>
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">{selectedIncentiveModel === 'deduction' ? 'If target missed, apply penalty:' : 'If target achieved, apply bonus:'}</label>
+                           <div className="flex flex-col xl:flex-row gap-2 items-start">
+                             <div className="relative w-full xl:w-auto xl:flex-1">
+                               <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all">
+                                 {selectedIncentiveModel === 'deduction' ? <option>Per late/invalid ticket</option> : <option>Per successful order</option>}
+                               </select>
+                               <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-xs text-gray-500 pointer-events-none"></i>
+                             </div>
+                             <div className="bg-gray-50 border border-gray-200 rounded p-2 text-[10px] text-gray-600 leading-snug w-full xl:w-[150px] shadow-sm">
+                               {selectedIncentiveModel === 'deduction' ? 'Penalty amount is derived from finalized violation tickets (Set in OPS System).' : 'Bonus amount is derived from successful order completions.'}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                     </div>
+                   </div>
+                   ))}
+                   {kpiRules.length === 0 && (
+                     <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                       <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                         <i className="fa-solid fa-chart-line text-gray-400 text-xl"></i>
+                       </div>
+                       <h3 className="text-sm font-bold text-gray-900 mb-1">No KPIs defined</h3>
+                       <p className="text-xs text-gray-500 max-w-[250px] mx-auto mb-4">Create KPI rules to evaluate shipper performance and calculate incentives.</p>
+                       <button onClick={() => setKpiRules([{ id: Date.now(), name: 'KPI 1' }])} className="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm transition-colors mx-auto flex items-center gap-2">
+                         <i className="fa-solid fa-plus"></i> Add First KPI
+                       </button>
+                     </div>
+                   )}
+                   </div>
+                 </div>
+
+               </div>
+               
+               <div className="fixed bottom-0 left-[240px] right-0 bg-white border-t border-gray-200 p-4 px-6 flex justify-between items-center z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="px-6 py-2 border border-gray-300 font-bold rounded-lg text-[13px] text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">Cancel</button>
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="bg-[#1b4d3e] text-white px-8 py-2 rounded-lg text-[13px] font-bold hover:bg-[#153a2f] shadow-md transition-all flex items-center gap-2">
+                   <i className="fa-solid fa-floppy-disk"></i> Save Period
+                 </button>
+               </div>
+             </div>
+           ) : currentView === 'ticket-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b px-4 py-3">
                   <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Management</h2>
@@ -2648,6 +3136,132 @@ const App: React.FC = () => {
                         </div>
                       </div>
 
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : currentView === 'daily-commission' ? (
+              <div className="bg-[#f2f6f4] min-h-full flex flex-col p-4 animate-in fade-in duration-300">
+                {/* Header Breadcrumb */}
+                <div className="bg-white rounded mb-4 shadow-sm p-4 overflow-hidden border border-gray-100">
+                  <div className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    <i className="fa-solid fa-house mr-2 text-gray-400"></i> / Report / <span className="text-[#1b4d3e] ml-1">Daily Commission</span>
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white rounded shadow-sm mb-4 p-5 border border-gray-100">
+                  <div className="flex flex-wrap md:flex-nowrap gap-5">
+                    {/* Shipper */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Shipper</label>
+                      <div className="relative">
+                        <input type="text" placeholder="Input to Select shipper" className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-xs outline-none focus:border-[#4d9e5f] transition-all bg-gray-50 focus:bg-white" />
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-[10px]"></i>
+                      </div>
+                    </div>
+                    {/* Store */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Store</label>
+                      <div className="relative">
+                        <input type="text" placeholder="Input to search store" className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-xs outline-none focus:border-[#4d9e5f] transition-all bg-gray-50 focus:bg-white" />
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-[10px]"></i>
+                      </div>
+                    </div>
+                    {/* Date */}
+                    <div className="flex-1 min-w-[250px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Date</label>
+                      <div className="flex items-center border border-gray-200 rounded-md px-3 py-2.5 text-xs bg-gray-50 focus-within:bg-white focus-within:border-[#4d9e5f] transition-all">
+                        <input type="text" placeholder="Start Date" className="outline-none w-full bg-transparent placeholder-gray-400" />
+                        <span className="text-gray-400 mx-2 text-[10px]"><i className="fa-solid fa-arrow-right"></i></span>
+                        <input type="text" placeholder="End Date" className="outline-none w-full bg-transparent placeholder-gray-400" />
+                        <i className="fa-regular fa-calendar ml-2 text-gray-400"></i>
+                      </div>
+                    </div>
+                    {/* Time */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Time</label>
+                      <div className="flex items-center border border-gray-200 rounded-md px-3 py-2.5 text-xs bg-gray-50 focus-within:bg-white focus-within:border-[#4d9e5f] transition-all">
+                        <input type="time" placeholder="Start" className="outline-none w-full bg-transparent text-gray-600" />
+                        <span className="text-gray-400 mx-2 text-[10px]"><i className="fa-solid fa-arrow-right"></i></span>
+                        <input type="time" placeholder="End" className="outline-none w-full bg-transparent text-gray-600" />
+                      </div>
+                    </div>
+                    {/* Buttons */}
+                    <div className="flex items-end gap-3 shrink-0 mt-3 md:mt-0">
+                      <button className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-md font-bold text-xs hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                        <i className="fa-solid fa-rotate-right"></i> Reset
+                      </button>
+                      <button className="px-8 py-2.5 bg-[#1b4d3e] text-white rounded-md font-bold text-xs hover:bg-[#153a2f] shadow-sm hover:shadow flex items-center gap-2 transition-all">
+                        <i className="fa-solid fa-magnifying-glass"></i> Search
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table Area */}
+                <div className="bg-white rounded shadow-sm flex flex-col flex-1 border border-gray-100">
+                  <div className="flex justify-end p-4 border-b border-gray-100 bg-gray-50/50">
+                    <button className="bg-[#4d9e5f] text-white px-5 py-2.5 rounded-md text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2 shadow-sm">
+                      <i className="fa-solid fa-download"></i> Export Data
+                    </button>
+                  </div>
+                  <div className="p-4 overflow-x-auto">
+                    <table className="w-full text-left text-[12px] bg-white border border-gray-200 whitespace-nowrap">
+                      <thead className="bg-[#d5ded9] text-[#1b4d3e] font-bold border-b-2 border-gray-300">
+                        <tr>
+                          <th className="px-4 py-3 border-r border-gray-300">Date</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Payroll Period</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Store</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Shipper</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Delivered Online Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Delivered IT Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Commission</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Late Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Invalid POD Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Start Time</th>
+                          <th className="px-4 py-3 border-r border-gray-300">End Time</th>
+                          <th className="px-4 py-3 text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-gray-600">
+                        {dailyCommissions.map(comm => (
+                           <tr key={comm.id} className="border-b border-gray-100 hover:bg-[#f8fafc] transition-colors">
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.date}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium text-gray-500">{comm.payrollPeriod}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.store}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.shipper}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold ${comm.deliveredOnlineOrders > 0 ? 'text-[#4d9e5f]' : 'text-blue-500'}`}>{comm.deliveredOnlineOrders}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-blue-500`}>{comm.deliveredITOrders}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-bold text-gray-700">${comm.commission}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-red-500`}>{comm.lateOrders}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-red-500`}>{comm.invalidPODOrders}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-mono text-[11px] text-gray-500">{comm.startTime}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-mono text-[11px] text-gray-500">{comm.endTime}</td>
+                             <td className="px-4 py-2.5 text-blue-500 cursor-pointer hover:text-blue-700 text-center transition-colors">
+                               <i className="fa-regular fa-eye bg-blue-50 p-1.5 rounded-full hover:bg-blue-100 transition-colors"></i>
+                             </td>
+                           </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {/* Pagination */}
+                    <div className="mt-5 flex items-center justify-end text-xs text-gray-600 gap-4">
+                      <span className="font-bold text-gray-700 tracking-wide uppercase">Total: {dailyCommissions.length}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors bg-white"><i className="fa-solid fa-angle-left"></i></button>
+                        <button className="w-7 h-7 border border-[#4d9e5f] text-[#1b4d3e] font-bold rounded flex items-center justify-center bg-[#f0fdf4]">1</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">2</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">3</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">4</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">5</button>
+                        <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors bg-white"><i className="fa-solid fa-angle-right"></i></button>
+                      </div>
+                      <select className="border border-gray-200 rounded-md px-3 py-1.5 outline-none font-medium bg-white hover:border-gray-300 transition-colors cursor-pointer text-gray-600 shadow-sm">
+                         <option>20 / page</option>
+                         <option>50 / page</option>
+                      </select>
                     </div>
                   </div>
                 </div>
