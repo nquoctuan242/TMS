@@ -3383,6 +3383,63 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Type Reference</label>
+                      <div className="relative">
+                        <select
+                          value={editingTicketType.typeReference || ''}
+                          onChange={e => {
+                            const newTypeRef = e.target.value;
+                            const isPodScan = newTypeRef === 'POD scan compliance';
+                            setEditingTicketType({
+                              ...editingTicketType, 
+                              typeReference: newTypeRef,
+                              ...(isPodScan ? {
+                                podScanCompletionRate: true,
+                                podValidPod: true,
+                                podGpsAccuracy: true
+                              } : {})
+                            });
+                          }}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none bg-white font-medium transition-all h-[34px]"
+                        >
+                          <option value="">Select type reference...</option>
+                          <option value="First-attempt delivery">First-attempt delivery</option>
+                          <option value="Misdelivery rate">Misdelivery rate</option>
+                          <option value="Damage rate">Damage rate</option>
+                          <option value="Customer complaint rate">Customer complaint rate</option>
+                          <option value="Safety compliance">Safety compliance</option>
+                          <option value="Vehicle inspection completion">Vehicle inspection completion</option>
+                          <option value="POD scan compliance">POD scan compliance</option>
+                          <option value="Delivery kate">Delivery kate</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-[10px] text-gray-500 pointer-events-none"></i>
+                      </div>
+                    </div>
+                    {editingTicketType.typeReference === 'POD scan compliance' && (
+                      <div className="md:col-span-2 bg-[#f8fafc] border border-gray-100 rounded-lg p-5 mt-2 animate-in fade-in duration-300">
+                        <h4 className="text-[12px] font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <i className="fa-solid fa-clipboard-check text-[#4d9e5f]"></i> Compliance Metrics Configuration
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {[
+                            { id: 'podScanCompletionRate', label: 'Scan Completion Rate' },
+                            { id: 'podValidPod', label: 'Valid POD' },
+                            { id: 'podGpsAccuracy', label: 'GPS Accuracy' }
+                          ].map(metric => (
+                            <div key={metric.id} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-md shadow-sm">
+                              <span className="text-[11px] font-bold text-gray-700">{metric.label}</span>
+                              <button 
+                                onClick={() => setEditingTicketType({...editingTicketType, [metric.id]: !editingTicketType[metric.id as keyof typeof editingTicketType]})}
+                                className={`w-9 h-5 rounded-full relative transition-colors ${editingTicketType[metric.id as keyof typeof editingTicketType] ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                              >
+                                <span className={`absolute top-0.5 bottom-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${editingTicketType[metric.id as keyof typeof editingTicketType] ? 'left-[18px]' : 'left-0.5'}`}></span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Deadline (Days)</label>
                       <input 
                         type="number"
