@@ -3394,9 +3394,7 @@ const App: React.FC = () => {
                               ...editingTicketType, 
                               typeReference: newTypeRef,
                               ...(isPodScan ? {
-                                podScanCompletionRate: true,
-                                podValidPod: true,
-                                podGpsAccuracy: true
+                                podGpsAccuracyDistance: 200
                               } : {})
                             });
                           }}
@@ -3418,24 +3416,20 @@ const App: React.FC = () => {
                     {editingTicketType.typeReference === 'POD scan compliance' && (
                       <div className="md:col-span-2 bg-[#f8fafc] border border-gray-100 rounded-lg p-5 mt-2 animate-in fade-in duration-300">
                         <h4 className="text-[12px] font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <i className="fa-solid fa-clipboard-check text-[#4d9e5f]"></i> Compliance Metrics Configuration
+                          <i className="fa-solid fa-clipboard-check text-[#4d9e5f]"></i> POD Scan compliance Configuration
                         </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          {[
-                            { id: 'podScanCompletionRate', label: 'Scan Completion Rate' },
-                            { id: 'podValidPod', label: 'Valid POD' },
-                            { id: 'podGpsAccuracy', label: 'GPS Accuracy' }
-                          ].map(metric => (
-                            <div key={metric.id} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-md shadow-sm">
-                              <span className="text-[11px] font-bold text-gray-700">{metric.label}</span>
-                              <button 
-                                onClick={() => setEditingTicketType({...editingTicketType, [metric.id]: !editingTicketType[metric.id as keyof typeof editingTicketType]})}
-                                className={`w-9 h-5 rounded-full relative transition-colors ${editingTicketType[metric.id as keyof typeof editingTicketType] ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
-                              >
-                                <span className={`absolute top-0.5 bottom-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${editingTicketType[metric.id as keyof typeof editingTicketType] ? 'left-[18px]' : 'left-0.5'}`}></span>
-                              </button>
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 p-4 rounded-md shadow-sm w-fit">
+                          <span className="text-[12px] font-bold text-gray-700">GPS Accuracy &lt;=</span>
+                          <div className="relative w-28">
+                            <input
+                              type="number"
+                              value={editingTicketType.podGpsAccuracyDistance || ''}
+                              onChange={e => setEditingTicketType({ ...editingTicketType, podGpsAccuracyDistance: parseInt(e.target.value) || 0 })}
+                              className="w-full border border-[#e5e7eb] rounded-[4px] pl-3 pr-8 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] transition-all h-[34px]"
+                              placeholder="e.g. 200"
+                            />
+                            <span className="absolute right-3 top-[9px] text-[12px] text-gray-500 font-medium">m</span>
+                          </div>
                         </div>
                       </div>
                     )}

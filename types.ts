@@ -271,9 +271,7 @@ export interface TicketType {
   code: string;
   description: string;
   typeReference?: string;
-  podScanCompletionRate?: boolean;
-  podValidPod?: boolean;
-  podGpsAccuracy?: boolean;
+  podGpsAccuracyDistance?: number;
   status: 'Active' | 'Inactive';
   country?: string;
   stateProvince?: string;
