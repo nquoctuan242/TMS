@@ -1,0 +1,36 @@
+                                         }}
+                                         className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                     >
+                                         <option value="">Add Vendor...</option>
+                                         {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.filter(v => !(config.vendors || []).find(cv => cv.vendorName === v.vendorName)).map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
+                                     </select>
+                                  )};
+                                         }}
+                                         className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                     >
+                                         <option value="">Select Vendor...</option>
+                                         {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
+                                     </select>
+                                  )}
+                              </div>
+                              <button onClick={() => {
+                                const newConfigs = (editingStore.carrierConfigs || []).filter(c => c.id !== config.id);
+                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                              }} className="text-gray-300 hover:text-red-500 w-6 flex justify-center ml-2 transition-colors">
+                                  <i className="fa-regular fa-trash-can text-sm"></i>
+                              </button>
+                           </div>
+                           
+                           {expandedStoreCarriers[index] && (
+                           <div className="mt-2">
+                               {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' ? (
+                                   <div className="space-y-4">
+                                       {(config.vendors || []).map((vendor, vIndex) => (
+                                           <div key={vIndex} className="border border-gray-200 rounded p-3 bg-white">
+                                               <div className="flex justify-between items-center mb-2">
+                                                   <div className="font-bold text-sm text-[#1b4d3e]">{vendor.vendorName}</div>
+                                                   <button onClick={() => {
+                                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                       newConfigs[index] = { ...newConfigs[index], vendors: (newConfigs[index].vendors || []).filter((_, i) => i !== vIndex) };
+                                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                   }} className="text-gray-400 hover:text-red-500 transition-colors">

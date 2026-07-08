@@ -1,3 +1,5 @@
+export interface ShippingVendorService {  code: string;  name: string; isActive?: boolean; }
+export interface ShippingVendorConfig {  vendorName: string;  services: ShippingVendorService[];  pickupFree?: boolean;  pickupOnDemand?: boolean;  dropoff?: boolean;}
 
 export interface TransitPoint {
   name: string;
@@ -66,6 +68,7 @@ export interface Item {
   height: number;
   weight: number;
   volume: number;
+  cartons?: number;
   retailPrice: number;
   wholesalePrice: number;
 }
@@ -113,6 +116,34 @@ export interface ITRoute {
   assignedStores: string[]; // Store IDs
   assignedShippers: string[]; // User IDs (shippers)
   createdAt: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poCode: string;
+  customerOrderCode?: string;
+  customer: string;
+  supplier: string;
+  status: string;
+  createdAt: string;
+  etd?: string;
+  eta?: string;
+  incoterms?: string;
+  serviceType?: string;
+  commodity?: string;
+  packages?: string;
+  grossWeight?: string;
+  volume?: string;
+  placeOfReceipt?: string;
+  placeOfDelivery?: string;
+  notes?: string;
+  supplierDetails?: PartnerInfo;
+  consigneeDetails?: PartnerInfo;
+  paymentTerm?: string;
+  orderType?: string;
+  transportType?: string;
+  cargoReady?: string;
+  items?: Item[];
 }
 
 export interface InternalTransfer {
@@ -281,4 +312,69 @@ export interface TicketType {
   showPenaltyAmountOnApp?: boolean;
   currency?: string;
   createdAt: string;
+}
+export interface Carrier {
+  id: string;
+  carrierCode: string;
+  carrierName: string;
+  phoneNumber: string;
+  address: string;
+  carrierApiReference: string;
+  carrierType: string;
+  integrationType: string;
+  status: string;
+  taxCode: string;
+  email: string;
+  country: string;
+  isMasterBill: boolean;
+  supportsCustomsDeclaration: boolean;
+  enablePickupService: boolean;
+  shippingVendors: ShippingVendorConfig[];
+  note: string;
+}
+
+export interface OnlineOrder {
+  id: string;
+  orderCode: string;
+  customerOrderCode: string;
+  customer: string;
+  carrier: string;
+  trackingNumber: string;
+  status: string;
+  createdAt: string;
+  estimatedDeliveryTime: string;
+  orderType: string;
+  pickActions: string;
+}
+
+
+export interface DropOffPoint {
+  id: string;
+  carrier: string;
+  address: string;
+  cutoffTime?: string;
+  country?: string;
+}
+
+
+export interface StoreCarrierVendorConfig {
+  vendorName: string;
+  services: ShippingVendorService[];
+  pickupFree?: boolean;
+  pickupOnDemand?: boolean;
+  dropoff?: boolean;
+  dropOffPoints?: DropOffPoint[];
+}
+export interface StoreCarrierConfig {
+  id: string;
+  carrierId?: string;
+  carrierCode: string;
+  carrierName: string;
+  vendorName?: string;
+  services?: ShippingVendorService[];
+  vendors?: StoreCarrierVendorConfig[];
+  pickupFree?: boolean;
+  pickupOnDemand?: boolean;
+  dropoff?: boolean;
+  dropOffPoints?: DropOffPoint[];
 }

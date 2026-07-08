@@ -1,7 +1,19 @@
+import { TicketContentListView } from './src/TicketContentListView';
+import { TicketContentDetailView } from './src/TicketContentDetailView';
 
 import React, { useState } from 'react';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod } from './types';
+import { ShipmentPlanningModal } from './ShipmentPlanningModal';
+import { ConfigStrategyView } from './src/ConfigStrategyView';
+import { CarrierListView } from './src/CarrierListView';
+import { CarrierDetailView } from './src/CarrierDetailView';
+import { OrderOnlineView } from './src/OrderOnlineView';
+import { OrderOnlineDetailView } from './src/OrderOnlineDetailView';
+import { OnlineOrder } from './types';
+import { MOCK_ONLINE_ORDERS } from './constants';
+import { Carrier } from './types';
+import { MOCK_CARRIERS } from './constants';
+import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
 
 const REJECT_REASONS = [
   "Delivery drivers have no valid reason for missing orders.",
@@ -115,19 +127,7 @@ interface Company {
   signatureImage?: string;
 }
 
-interface DropOffPoint {
-  id: string;
-  carrier: string;
-  address: string;
-  cutoffTime?: string;
-  country?: string;
-  stateProvince?: string;
-  wardCity?: string;
-  street?: string;
-  latitude?: string;
-  longitude?: string;
-  postalCode?: string;
-}
+
 
 interface Store {
   id: string;
@@ -150,6 +150,7 @@ interface Store {
   distanceFetched?: boolean;
   lastDistance?: string;
   dropOffPoints?: DropOffPoint[];
+  carrierConfigs?: StoreCarrierConfig[];
   shipperSearchConfigs?: ShipperSearchRadiusConfig[];
 }
 
@@ -402,7 +403,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -410,6 +411,12 @@ const App: React.FC = () => {
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
   const [dailyCommissions, setDailyCommissions] = useState<DailyCommission[]>(MOCK_DAILY_COMMISSIONS);
   const [internalTransfers, setInternalTransfers] = useState<InternalTransfer[]>(MOCK_INTERNAL_TRANSFERS);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(MOCK_PURCHASE_ORDERS);
+  const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
+  const [activePOTab, setActivePOTab] = useState('General information');
+  const [showShipmentPlanningModal, setShowShipmentPlanningModal] = useState(false);
+  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
+  const [selectedOnlineOrder, setSelectedOnlineOrder] = useState<OnlineOrder | null>(null);
   const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [roles, setRoles] = useState<Role[]>(MOCK_ROLES);
@@ -418,7 +425,6 @@ const App: React.FC = () => {
   const [itRoutes, setItRoutes] = useState<ITRoute[]>(MOCK_IT_ROUTES);
   const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>(MOCK_PAYROLL_PERIODS);
-  const [selectedIncentiveModel, setSelectedIncentiveModel] = useState<'deduction' | 'performance_bonus'>('deduction');
   const [kpiRules, setKpiRules] = useState([{ id: 1, name: 'KPI 1' }]);
   const [scanTimeConfigs, setScanTimeConfigs] = useState<ScanTimeConfig[]>(MOCK_SCAN_TIME_CONFIGS);
   const [editingScanTimeConfig, setEditingScanTimeConfig] = useState<Partial<ScanTimeConfig>>({});
@@ -436,6 +442,7 @@ const App: React.FC = () => {
   const [editingRoute, setEditingRoute] = useState<Partial<ITRoute>>({});
   const [editingShipper, setEditingShipper] = useState<Partial<Shipper>>({});
   const [editingTicket, setEditingTicket] = useState<Partial<Ticket>>({});
+  const [selectedTicketContentId, setSelectedTicketContentId] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReasonType, setRejectReasonType] = useState<string>('');
   const [rejectNote, setRejectNote] = useState<string>('');
@@ -478,6 +485,7 @@ const App: React.FC = () => {
     message: string;
     onConfirm: () => void;
   }>({ show: false, title: '', message: '', onConfirm: () => {} });
+  const [expandedStoreCarriers, setExpandedStoreCarriers] = useState<Record<number, boolean>>({});
   const [editingStore, setEditingStore] = useState<Partial<Store>>({
     customer: 'Tu Van',
     name: 'Van Store',
@@ -1291,13 +1299,13 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-box" 
             label="Orders" 
-            active={currentView === 'internal-transfer'} 
+            active={currentView === 'order-online' || currentView === 'order-online-detail' || currentView === 'internal-transfer' || currentView === 'internal-transfer-detail' || currentView === 'order-po' || currentView === 'order-po-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
              <div className="ml-8 mt-2 space-y-2">
                 <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'order-online' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'order-online' || currentView === 'order-online-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
                   onClick={() => setCurrentView('order-online')}
                 >
                   Online
@@ -1307,6 +1315,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('internal-transfer')}
                 >
                   Internal Transfer
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'order-po' || currentView === 'order-po-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('order-po')}
+                >
+                  PO
                 </div>
              </div>
           </SidebarItem>
@@ -1369,7 +1383,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-ticket" 
             label="Ticket Management" 
-            active={currentView === 'ticket-list' || currentView === 'ticket-detail' || currentView === 'ticket-type-list' || currentView === 'ticket-type-detail'} 
+            active={currentView === 'ticket-list' || currentView === 'ticket-detail' || currentView === 'ticket-content-list' || currentView === 'ticket-content-detail' || currentView === 'ticket-type-list' || currentView === 'ticket-type-detail'} 
             hasSubItems
             onClick={() => {}} 
           >
@@ -1385,6 +1399,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('ticket-type-list')}
                 >
                   Ticket Type
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'ticket-content-list' || currentView === 'ticket-content-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('ticket-content-list')}
+                >
+                  Ticket Content
                 </div>
              </div>
           </SidebarItem>
@@ -1407,7 +1427,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-handshake" 
             label="Partner" 
-            active={currentView === 'contract-list' || currentView === 'company-list' || currentView === 'company-detail'} 
+            active={currentView === 'contract-list' || currentView === 'company-list' || currentView === 'company-detail' || currentView === 'config-strategy' || currentView === 'carrier-list' || currentView === 'carrier-detail'} 
             hasSubItems
             onClick={() => {}}
           >
@@ -1423,6 +1443,18 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('contract-list')}
                 >
                   Contract
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'config-strategy' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('config-strategy')}
+                >
+                  Allocate Strategy
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'carrier-list' || currentView === 'carrier-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('carrier-list')}
+                >
+                  Carrier
                 </div>
              </div>
           </SidebarItem>
@@ -1486,7 +1518,7 @@ const App: React.FC = () => {
             <button className="md:hidden"><i className="fa-solid fa-bars"></i></button>
             <div className="flex items-center gap-2 font-semibold">
               <i className="fa-solid fa-list-ul"></i>
-              <span>
+              <span className="whitespace-nowrap">
                 {currentView === 'role-list' ? 'Role List' :
                  currentView === 'role-detail' ? 'Role Detail' :
                  currentView === 'user-list' ? 'User List' :
@@ -1495,6 +1527,9 @@ const App: React.FC = () => {
                  currentView === 'store-detail' ? 'Store Detail' :
                  currentView === 'company-list' ? 'Company List' : 
                  currentView === 'company-detail' ? 'Company Detail' : 
+                 currentView === 'config-strategy' ? 'Partner / Allocate Strategy / Config Strategy' : 
+                 currentView === 'carrier-list' ? 'Partner / Carrier / Carrier List' : 
+                 currentView === 'carrier-detail' ? 'Partner / Carrier / Edit Carrier' : 
                  currentView === 'order-online' ? 'Online Order' :
                  currentView === 'shipper-list' ? 'Shipper List' :
                  currentView === 'shipper-detail' ? 'Shipper Detail' :
@@ -1506,6 +1541,8 @@ const App: React.FC = () => {
                  currentView === 'it-route-list' ? 'IT Route List' :
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
+                 currentView === 'order-po' ? 'Purchase Order' :
+                 currentView === 'order-po-detail' ? 'PO Detail' :
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'service-delivery-config' ? 'Service Delivery Configuration' : 
                  currentView === 'shipment-online' ? 'Online Shipment' :
@@ -1515,6 +1552,18 @@ const App: React.FC = () => {
               </span>
             </div>
           </div>
+
+          <div className="hidden md:flex flex-1 max-w-2xl mx-6 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i className="fa-solid fa-magnifying-glass text-white/70"></i>
+            </div>
+            <input 
+                type="text" 
+                placeholder="Search Code - Code Type - Company (e.g. Order code, Customer Order code, Tracking number)" 
+                className="block w-full pl-9 pr-3 py-1.5 border-transparent rounded bg-black/10 text-white placeholder-white/70 focus:outline-none focus:bg-white focus:text-gray-900 focus:placeholder-gray-400 sm:text-xs transition-colors"
+            />
+          </div>
+
           <div className="flex items-center gap-3 text-sm shrink-0">
             <div className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-2 py-1 rounded transition">
               <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[#4d9e5f]">
@@ -2228,36 +2277,6 @@ const App: React.FC = () => {
                </div>
                <div className="w-full max-w-[900px] space-y-6">
                  
-                 <div>
-                   <h3 className="text-gray-800 font-bold text-sm mb-3">Incentive Model</h3>
-                   <div className="flex flex-col sm:flex-row gap-4 text-left">
-                     <div 
-                        onClick={() => setSelectedIncentiveModel('deduction')}
-                        className={`flex-1 border-2 ${selectedIncentiveModel === 'deduction' ? 'border-red-400 bg-red-50/50' : 'border-transparent bg-white hover:border-gray-200'} rounded-xl p-4 cursor-pointer relative shadow-sm transition-all hover:shadow-md`}
-                     >
-                       <div className="flex items-start gap-3">
-                         <div className="mt-0.5"><i className={`${selectedIncentiveModel === 'deduction' ? 'fa-solid fa-circle-dot text-red-500' : 'fa-regular fa-circle text-gray-300'}`}></i></div>
-                         <div>
-                           <div className="font-bold text-gray-900 text-sm">Deduction (Penalty)</div>
-                           <div className="text-gray-500 text-[13px] mt-1 leading-relaxed">Deduct commission if shipper misses KPI target.</div>
-                         </div>
-                       </div>
-                     </div>
-                     <div 
-                        onClick={() => setSelectedIncentiveModel('performance_bonus')}
-                        className={`flex-1 border-2 ${selectedIncentiveModel === 'performance_bonus' ? 'border-blue-400 bg-blue-50/50' : 'border-transparent bg-white hover:border-gray-200'} rounded-xl p-4 cursor-pointer relative shadow-sm transition-all hover:shadow-md`}
-                     >
-                       <div className="flex items-start gap-3">
-                         <div className="mt-0.5"><i className={`${selectedIncentiveModel === 'performance_bonus' ? 'fa-solid fa-circle-dot text-blue-500' : 'fa-regular fa-circle text-gray-300'}`}></i></div>
-                         <div>
-                           <div className="font-bold text-gray-900 text-sm">Performance Bonus</div>
-                           <div className="text-gray-500 text-[13px] mt-1 leading-relaxed">Award bonus when shipper achieves or exceeds KPI target.</div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-
                  <button className="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center gap-2 transition-colors">
                    <i className="fa-regular fa-eye"></i> Review KPI Summary
                  </button>
@@ -2271,8 +2290,8 @@ const App: React.FC = () => {
                    
                    <div className="space-y-6">
                    {kpiRules.map((rule, index) => (
-                   <div key={rule.id} className={`border ${selectedIncentiveModel === 'deduction' ? 'border-red-200' : 'border-blue-200'} bg-white rounded-xl shadow-sm overflow-hidden`}>
-                     <div className={`${selectedIncentiveModel === 'deduction' ? 'bg-red-50/70 border-red-100' : 'bg-blue-50/70 border-blue-100'} px-4 py-3 flex items-center justify-between border-b`}>
+                   <div key={rule.id} className={`border border-red-200 bg-white rounded-xl shadow-sm overflow-hidden`}>
+                     <div className={`bg-red-50/70 border-red-100 px-4 py-3 flex items-center justify-between border-b`}>
                        <div className="flex items-center gap-3 flex-1 max-w-sm">
                          <input 
                            type="text" 
@@ -2285,11 +2304,11 @@ const App: React.FC = () => {
                            className="font-bold text-gray-900 text-sm bg-white border border-gray-300 rounded px-2 py-1 w-full focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                            placeholder="Enter KPI name"
                          />
-                         <span className={`${selectedIncentiveModel === 'deduction' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider whitespace-nowrap`}>
-                           {selectedIncentiveModel === 'deduction' ? 'Deduction (Penalty)' : 'Performance Bonus'}
+                         <span className={`bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider whitespace-nowrap`}>
+                           Deduction (Penalty)
                          </span>
                        </div>
-                       <button onClick={() => setKpiRules(kpiRules.filter(r => r.id !== rule.id))} className={`text-gray-400 hover:${selectedIncentiveModel === 'deduction' ? 'text-red-600' : 'text-blue-600'} transition-colors`}><i className="fa-regular fa-trash-can"></i></button>
+                       <button onClick={() => setKpiRules(kpiRules.filter(r => r.id !== rule.id))} className={`text-gray-400 hover:text-red-600 transition-colors`}><i className="fa-regular fa-trash-can"></i></button>
                      </div>
                      <div className="p-5 space-y-6">
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
@@ -2363,16 +2382,16 @@ const App: React.FC = () => {
                            <p className="text-[11px] text-gray-500 leading-snug">Minimum KPI the shipper must achieve.</p>
                          </div>
                          <div className="space-y-2">
-                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">{selectedIncentiveModel === 'deduction' ? 'If target missed, apply penalty:' : 'If target achieved, apply bonus:'}</label>
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">If target missed, apply penalty:</label>
                            <div className="flex flex-col xl:flex-row gap-2 items-start">
                              <div className="relative w-full xl:w-auto xl:flex-1">
                                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all">
-                                 {selectedIncentiveModel === 'deduction' ? <option>Per late/invalid ticket</option> : <option>Per successful order</option>}
+                                 <option>Per late/invalid ticket</option>
                                </select>
                                <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-xs text-gray-500 pointer-events-none"></i>
                              </div>
                              <div className="bg-gray-50 border border-gray-200 rounded p-2 text-[10px] text-gray-600 leading-snug w-full xl:w-[150px] shadow-sm">
-                               {selectedIncentiveModel === 'deduction' ? 'Penalty amount is derived from finalized violation tickets (Set in OPS System).' : 'Bonus amount is derived from successful order completions.'}
+                               Penalty amount is derived from finalized violation tickets (Set in OPS System).
                              </div>
                            </div>
                          </div>
@@ -3266,7 +3285,23 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : currentView === 'ticket-type-list' ? (
+            ) : currentView === 'ticket-content-list' ? (
+            <TicketContentListView 
+               onRowClick={(id) => {
+                  setSelectedTicketContentId(id);
+                  setCurrentView('ticket-content-detail');
+               }}
+               onCreateClick={() => {
+                  setSelectedTicketContentId(null);
+                  setCurrentView('ticket-content-detail');
+               }}
+            />
+          ) : currentView === 'ticket-content-detail' ? (
+            <TicketContentDetailView 
+               ticketId={selectedTicketContentId} 
+               onBack={() => setCurrentView('ticket-content-list')}
+            />
+          ) : currentView === 'ticket-type-list' ? (
               <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b px-4 py-3">
                   <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Type</h2>
@@ -4183,7 +4218,8 @@ const App: React.FC = () => {
                                     return s.name.toLowerCase().includes(term) || (s.stateProvince || '').toLowerCase().includes(term) || (s.ward || '').toLowerCase().includes(term);
                                   }).map(store => {
                                     const isAssigned = (editingUser.storeIds || []).includes(store.id);
-                                    return (
+                                  
+  return (
                                       <tr key={store.id} className="hover:bg-gray-50/50">
                                         <td className="px-4 py-2 border-r">{store.name}</td>
                                         <td className="px-4 py-2 border-r">{store.stateProvince || '-'}</td>
@@ -4448,85 +4484,159 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* Carrier Config Section */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-truck-ramp-box text-[#4d9e5f]"></i>
-                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Carrier Drop-off Points</h3>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Carrier Config</h3>
                   </div>
                   <button 
                     onClick={() => {
-                      const newPoint: DropOffPoint = { id: Math.random().toString(36).substr(2, 9), carrier: '', address: '' };
-                      setEditingStore({ ...editingStore, dropOffPoints: [...(editingStore.dropOffPoints || []), newPoint] });
+                      const newConfig = { id: Math.random().toString(36).substr(2, 9), carrierCode: '', carrierName: '', services: [] };
+                      const newConfigs = [...(editingStore.carrierConfigs || []), newConfig];
+                      setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                      setExpandedStoreCarriers(prev => ({ ...prev, [newConfigs.length - 1]: true }));
                     }}
                     className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
                   >
-                    <i className="fa-solid fa-plus-circle"></i> Add Drop-off Point
+                    <i className="fa-solid fa-plus-circle"></i> Add Carrier Config
                   </button>
                 </div>
                 <div className="p-4">
-                  {(!editingStore.dropOffPoints || editingStore.dropOffPoints.length === 0) ? (
+                  {(!editingStore.carrierConfigs || editingStore.carrierConfigs.length === 0) ? (
                     <div className="text-center py-8 text-gray-400 italic text-xs">
-                      No drop-off points configured for this store.
+                      No carrier configurations for this store.
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {editingStore.dropOffPoints.map((point, index) => (
-                        <div key={point.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50/50 p-4 rounded-lg border border-gray-100 group transition-all hover:border-green-100">
-                          <div className="md:col-span-3 space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Carrier</label>
-                            <input 
-                              type="text"
-                              value={point.carrier}
-                              onChange={e => {
-                                const newPoints = [...(editingStore.dropOffPoints || [])];
-                                newPoints[index] = { ...point, carrier: e.target.value };
-                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
-                              }}
-                              placeholder="e.g. GHTK, J&T"
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
-                            />
-                          </div>
-                          <div className="md:col-span-8 space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Drop-off Address</label>
-                            <input 
-                              type="text"
-                              value={point.address}
-                              onChange={e => {
-                                const newPoints = [...(editingStore.dropOffPoints || [])];
-                                newPoints[index] = { ...point, address: e.target.value };
-                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
-                              }}
-                              placeholder="Enter full address for drop-off"
-                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
-                            />
-                          </div>
-                          <div className="md:col-span-1 flex justify-center gap-1">
-                            <button 
-                              onClick={() => setConfiguringDropOffPoint({ index, point })}
-                              className="text-gray-300 hover:text-[#4d9e5f] transition-colors p-2"
-                              title="Configure Detailed Address"
-                            >
-                              <i className="fa-solid fa-gear"></i>
-                            </button>
-                            <button 
-                              onClick={() => {
-                                const newPoints = (editingStore.dropOffPoints || []).filter(p => p.id !== point.id);
-                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
-                              }}
-                              className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                              title="Remove"
-                            >
-                              <i className="fa-solid fa-trash-can"></i>
-                            </button>
-                          </div>
+                      {editingStore.carrierConfigs.map((config, index) => (
+                        <div key={config.id} className="border border-gray-200 rounded p-4 bg-gray-50/50 group transition-all hover:border-green-100">
+                           <div className="flex items-center gap-2 mb-3">
+                              <button 
+                                  onClick={() => setExpandedStoreCarriers(prev => ({...prev, [index]: !prev[index]}))}
+                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                  <i className={`fa-solid fa-chevron-${expandedStoreCarriers[index] ? 'down' : 'right'} text-[10px]`}></i>
+                              </button>
+                              <div className="relative flex-1 flex gap-2">
+                                  <select 
+                                      value={config.carrierId || ''} 
+                                      onChange={(e) => {
+                                        const carrier = MOCK_CARRIERS.find(c => c.id === e.target.value);
+                                        const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                        if (carrier) {
+                                           const isAggregator = carrier.integrationType === 'Shipping Aggregator';
+                                           const defaultVendor = !isAggregator && carrier.shippingVendors?.[0] ? carrier.shippingVendors[0] : null;
+                                           newConfigs[index] = { 
+                                               ...newConfigs[index], 
+                                               carrierId: carrier.id, 
+                                               carrierCode: carrier.carrierCode, 
+                                               carrierName: carrier.carrierName,
+                                               vendorName: '',
+                                               services: defaultVendor ? defaultVendor.services || [] : [],
+                                               pickupFree: defaultVendor ? defaultVendor.pickupFree : false,
+                                               pickupOnDemand: defaultVendor ? defaultVendor.pickupOnDemand : false,
+                                               dropoff: defaultVendor ? defaultVendor.dropoff : false,
+                                               dropOffPoints: []
+                                           };
+                                        } else {
+                                           newConfigs[index] = { ...newConfigs[index], carrierId: '', carrierCode: '', carrierName: '', vendorName: '', services: [], dropOffPoints: [] };
+                                        }
+                                        setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                      }}
+                                      className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                  >
+                                      <option value="">Select Carrier...</option>
+                                      {MOCK_CARRIERS.map(c => <option key={c.id} value={c.id}>{c.carrierName} ({c.carrierCode})</option>)}
+                                  </select>
+                                  
+                                  {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' && (
+                                     <select
+                                         value=""
+                                         onChange={(e) => {
+                                            if (!e.target.value) return;
+                                            const carrier = MOCK_CARRIERS.find(c => c.id === config.carrierId);
+                                            const vendor = carrier?.shippingVendors?.find(v => v.vendorName === e.target.value);
+                                            const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                            if (vendor) {
+                                                const currentVendors = newConfigs[index].vendors || [];
+                                                if (!currentVendors.find(v => v.vendorName === vendor.vendorName)) {
+                                                    newConfigs[index] = { 
+                                                        ...newConfigs[index], 
+                                                        vendors: [...currentVendors, {
+                                                            vendorName: vendor.vendorName,
+                                                            services: vendor.services || [],
+                                                            pickupFree: vendor.pickupFree,
+                                                            pickupOnDemand: vendor.pickupOnDemand,
+                                                            dropoff: vendor.dropoff,
+                                                            dropOffPoints: []
+                                                        }]
+                                                    };
+                                                    setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                }
+                                            }
+                                         }}
+                                         className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                     >
+                                         <option value="">Add Vendor...</option>
+                                         {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.filter(v => !(config.vendors || []).find(cv => cv.vendorName === v.vendorName)).map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
+                                     </select>
+                                  )}
+                              </div>
+                              <button onClick={() => {
+                                const newConfigs = (editingStore.carrierConfigs || []).filter(c => c.id !== config.id);
+                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                              }} className="text-gray-300 hover:text-red-500 w-6 flex justify-center ml-2 transition-colors">
+                                  <i className="fa-regular fa-trash-can text-sm"></i>
+                              </button>
+                           </div>
+                           
+                           {expandedStoreCarriers[index] && (
+                           <div className="mt-2">
+                               {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' ? (
+                                   <div className="space-y-4">
+                                       {(config.vendors || []).map((vendor, vIndex) => (
+                                           <div key={vIndex} className="border border-gray-200 rounded p-3 bg-white">
+                                               <div className="flex justify-between items-center mb-2">
+                                                   <div className="font-bold text-sm text-[#1b4d3e]">{vendor.vendorName}</div>
+                                                   <button onClick={() => {
+                                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                       newConfigs[index] = { ...newConfigs[index], vendors: (newConfigs[index].vendors || []).filter((_, i) => i !== vIndex) };
+                                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                   }} className="text-gray-400 hover:text-red-500 transition-colors">
+                                                       <i className="fa-solid fa-trash-can text-xs"></i>
+                                                   </button>
+                                               </div>
+                                               {renderConfigDetails(vendor, (newVendorData) => {
+                                                   const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                   const newVendors = [...(newConfigs[index].vendors || [])];
+                                                   newVendors[vIndex] = newVendorData;
+                                                   newConfigs[index] = { ...newConfigs[index], vendors: newVendors };
+                                                   setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                               })}
+                                           </div>
+                                       ))}
+                                       {(!config.vendors || config.vendors.length === 0) && (
+                                           <div className="text-xs text-gray-400 italic py-2 px-3">No vendors added yet. Please add a vendor from the dropdown above.</div>
+                                       )}
+                                   </div>
+                               ) : (
+                                   renderConfigDetails(config, (newConfigData) => {
+                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                       newConfigs[index] = newConfigData;
+                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                   })
+                               )}
+                           </div>
+                           )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -5025,6 +5135,18 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+          ) : currentView === 'config-strategy' ? (
+            <ConfigStrategyView />
+          ) : currentView === 'carrier-list' ? (
+            <CarrierListView onRowClick={(id) => {
+               const carrier = MOCK_CARRIERS.find(c => c.id === id);
+               if(carrier) {
+                   setSelectedCarrier(carrier);
+                   setCurrentView('carrier-detail');
+               }
+            }} />
+          ) : currentView === 'carrier-detail' ? (
+            <CarrierDetailView carrier={selectedCarrier} />
           ) : currentView === 'company-detail' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b px-4 py-3">
@@ -5203,21 +5325,22 @@ const App: React.FC = () => {
                </div>
             </div>
           ) : currentView === 'order-online' ? (
-             <div className="bg-white rounded shadow-sm min-h-full flex flex-col items-center justify-center p-20 animate-in fade-in duration-300">
-                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-6">
-                  <i className="fa-solid fa-globe text-4xl"></i>
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">Online Orders</h2>
-                <p className="text-gray-500 text-center max-w-md">
-                  This module is currently under development. You will be able to manage online orders from various platforms here.
-                </p>
-                <button 
-                  onClick={() => setCurrentView('shipment-online')}
-                  className="mt-8 px-6 py-2 bg-[#1b4d3e] text-white rounded-lg font-bold hover:bg-[#143a2f] transition-colors"
-                >
-                  Back to Dashboard
-                </button>
-             </div>
+            <OrderOnlineView 
+               onRowClick={(id) => {
+                  const order = MOCK_ONLINE_ORDERS.find(o => o.id === id) || null;
+                  setSelectedOnlineOrder(order);
+                  setCurrentView('order-online-detail');
+               }}
+               onCreateClick={() => {
+                  setSelectedOnlineOrder(null);
+                  setCurrentView('order-online-detail');
+               }}
+            />
+          ) : currentView === 'order-online-detail' ? (
+            <OrderOnlineDetailView 
+               order={selectedOnlineOrder} 
+               onBack={() => setCurrentView('order-online')}
+            />
           ) : currentView === 'internal-transfer-detail' && selectedTransfer ? (
             <div className="space-y-4 animate-in fade-in duration-300">
                <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
@@ -5235,11 +5358,7 @@ const App: React.FC = () => {
                   <div className="flex items-center justify-between px-4 border-b">
                     <div className="flex overflow-x-auto no-scrollbar">
                       {[
-                        { id: 'General information', icon: 'fa-circle-info', color: 'text-blue-500' },
-                        { id: 'Partner information', icon: 'fa-user-group', color: 'text-orange-500' },
-                        { id: 'Items information', icon: 'fa-cart-shopping', color: 'text-blue-400' },
-                        { id: 'Service', icon: 'fa-headset', color: 'text-green-500' },
-                        { id: 'Carrier information', icon: 'fa-truck-fast', color: 'text-red-400' }
+                        { id: 'General information', icon: 'fa-circle-info', color: 'text-blue-500' }
                       ].map(tab => (
                         <button
                           key={tab.id}
@@ -5710,6 +5829,444 @@ const App: React.FC = () => {
                         <p className="text-sm">This section is under development</p>
                       </div>
                     )}
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'order-po' ? (
+            <div className="space-y-4 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <i className="fa-solid fa-house"></i>
+                 <span>/</span>
+                 <span>Orders</span>
+                 <span>/</span>
+                 <span className="text-gray-800 font-medium">PO</span>
+               </nav>
+
+               <div className="bg-white border rounded p-4 shadow-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">PO Code</label>
+                    <input type="text" placeholder="Enter PO code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Customer Order Code</label>
+                    <input type="text" placeholder="Enter customer order code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Customer</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs appearance-none bg-white">
+                        <option>Input to Search customer</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Service Type</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs appearance-none bg-white">
+                        <option>Select Service type</option>
+                        <option>FCL / Ocean</option>
+                        <option>LCL / Ocean</option>
+                        <option>Air</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Place of Receipt (POR)</label>
+                    <input type="text" placeholder="Input to Search Port/Location" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Place of Delivery (Destination)</label>
+                    <input type="text" placeholder="Input to Search Port/Location" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Status</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs appearance-none bg-white">
+                        <option>Select PO status</option>
+                        <option>Draft</option>
+                        <option>Processing</option>
+                        <option>In Transit</option>
+                        <option>Completed</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-orange-500 uppercase">Order Date Range</label>
+                    <div className="flex items-center gap-2 border rounded px-3 py-1.5">
+                      <input type="text" value="2026-06-01" className="w-20 outline-none text-xs" readOnly />
+                      <span className="text-gray-400">→</span>
+                      <input type="text" value="2026-06-21" className="w-20 outline-none text-xs" readOnly />
+                      <i className="fa-regular fa-calendar text-gray-400 ml-auto"></i>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 lg:col-start-4">
+                    <button className="flex-1 px-4 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors">
+                      <i className="fa-solid fa-rotate"></i> Reset
+                    </button>
+                    <button className="flex-1 px-4 py-1.5 bg-[#4d9e5f] text-white rounded text-xs font-medium hover:bg-[#3d7d4c] flex items-center justify-center gap-2 transition-colors">
+                      <i className="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                  </div>
+               </div>
+
+               <div className="bg-white border rounded shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse min-w-[1300px]">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b">
+                        <tr className="divide-x divide-gray-200">
+                          <th className="px-4 py-3">PO Code</th>
+                          <th className="px-4 py-3">Customer Order Code</th>
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Service Type</th>
+                          <th className="px-4 py-3">Incoterms</th>
+                          <th className="px-4 py-3">Place of Receipt</th>
+                          <th className="px-4 py-3">Place of Delivery</th>
+                          <th className="px-4 py-3">ETD</th>
+                          <th className="px-4 py-3">ETA</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600">
+                        {purchaseOrders.map(item => (
+                          <tr key={item.id} className="hover:bg-gray-50 transition-colors divide-x divide-gray-100">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <span 
+                                  onClick={() => {
+                                    setSelectedPO(item);
+                                    setCurrentView('order-po-detail');
+                                    setActivePOTab('General information');
+                                  }}
+                                  className="text-blue-500 hover:text-blue-700 hover:underline cursor-pointer font-medium"
+                                >
+                                  {item.poCode}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">{item.customerOrderCode}</td>
+                            <td className="px-4 py-3 font-medium text-gray-800">{item.customer}</td>
+                            <td className="px-4 py-3">{item.serviceType}</td>
+                            <td className="px-4 py-3">{item.incoterms}</td>
+                            <td className="px-4 py-3">{item.placeOfReceipt}</td>
+                            <td className="px-4 py-3">{item.placeOfDelivery}</td>
+                            <td className="px-4 py-3">{item.etd || '-'}</td>
+                            <td className="px-4 py-3">{item.eta || '-'}</td>
+                            <td className="px-4 py-3">
+                              <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 font-medium whitespace-nowrap">{item.status}</span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <button className="p-1 hover:bg-gray-100 rounded text-blue-500 transition-colors" title="Edit">
+                                <i className="fa-solid fa-pen"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Pagination */}
+                  <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-end gap-4 text-xs">
+                    <div className="text-gray-500">Total: <span className="font-bold text-gray-800">{purchaseOrders.length}</span></div>
+                    <div className="flex items-center gap-1">
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-white text-gray-400 hover:bg-gray-100"><i className="fa-solid fa-chevron-left text-[10px]"></i></button>
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-[#1b4d3e] text-white">1</button>
+                      <button className="w-6 h-6 flex items-center justify-center rounded border bg-white text-gray-400 hover:bg-gray-100"><i className="fa-solid fa-chevron-right text-[10px]"></i></button>
+                    </div>
+                    <select className="border rounded px-2 py-1 outline-none bg-white">
+                      <option>20 / page</option>
+                    </select>
+                  </div>
+               </div>
+            </div>
+          ) : currentView === 'order-po-detail' && selectedPO ? (
+            <div className="space-y-4 animate-in fade-in duration-300">
+               <nav className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                 <i className="fa-solid fa-house"></i>
+                 <span>/</span>
+                 <span className="cursor-pointer hover:text-gray-800" onClick={() => setCurrentView('order-po')}>Orders</span>
+                 <span>/</span>
+                 <span className="cursor-pointer hover:text-gray-800" onClick={() => setCurrentView('order-po')}>PO</span>
+                 <span>/</span>
+                 <span className="text-gray-800 font-medium">Detail</span>
+               </nav>
+
+               <div className="bg-white border rounded shadow-sm">
+                  {/* Tabs */}
+                  <div className="flex items-center justify-between px-4 border-b">
+                    <div className="flex overflow-x-auto no-scrollbar">
+                      {[
+                        { id: 'General information', icon: 'fa-circle-info', color: 'text-blue-500' }
+                      ].map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActivePOTab(tab.id)}
+                          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
+                            activePOTab === tab.id 
+                              ? 'border-[#1b4d3e] text-[#1b4d3e]' 
+                              : 'border-transparent text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          <i className={`fa-solid ${tab.icon} ${tab.color}`}></i>
+                          {tab.id}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 py-2">
+                       <button className="px-3 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                         <i className="fa-regular fa-eye"></i> Show
+                       </button>
+                       <button className="px-3 py-1.5 border rounded text-xs font-medium hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                         <i className="fa-regular fa-pen-to-square"></i> Edit
+                       </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-6">
+                    {activePOTab === 'General information' && (
+                      <div className="space-y-6 animate-in fade-in duration-200">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                           {/* Left Column (Main) */}
+                           <div className="flex-1 space-y-8 bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+                              {/* Header */}
+                              <div className="flex items-center justify-between pb-6 border-b border-gray-100">
+                                 <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl shadow-inner border border-blue-100/50">
+                                       <i className="fa-solid fa-cube"></i>
+                                    </div>
+                                    <div>
+                                       <h2 className="text-xl font-bold text-gray-900">{selectedPO.poCode}</h2>
+                                       <p className="text-sm text-gray-500">{selectedPO.customer} • Ref: {selectedPO.customerOrderCode || 'N/A'}</p>
+                                    </div>
+                                 </div>
+                                 <span className="px-4 py-1.5 bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">{selectedPO.status}</span>
+                              </div>
+
+                              {/* Details Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+                                 {/* Shipper & Consignee */}
+                                 <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Shipper Details</h4>
+                                    <div>
+                                       <p className="font-bold text-gray-800 mb-1">{selectedPO.supplierDetails?.name || selectedPO.supplier || 'N/A'}</p>
+                                       <p className="text-sm text-gray-500 mb-2">{selectedPO.supplierDetails?.address || 'N/A'}</p>
+                                       <p className="text-sm text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">{selectedPO.supplierDetails?.phone ? `Hans Muller (${selectedPO.supplierDetails.phone})` : 'N/A'}</p>
+                                    </div>
+                                 </div>
+                                 <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Consignee Details</h4>
+                                    <div>
+                                       <p className="font-bold text-gray-800 mb-1">{selectedPO.consigneeDetails?.name || selectedPO.customer || 'N/A'}</p>
+                                       <p className="text-sm text-gray-500 mb-2">{selectedPO.consigneeDetails?.address || 'N/A'}</p>
+                                       <p className="text-sm text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">{selectedPO.consigneeDetails?.phone ? `Hans Muller (${selectedPO.consigneeDetails.phone})` : 'N/A'}</p>
+                                    </div>
+                                 </div>
+
+                                 {/* Routing */}
+                                 <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Routing & Logistics (Origin)</h4>
+                                    <div className="pt-1">
+                                       <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Pickup</p>
+                                       <p className="text-sm font-medium text-gray-800">{selectedPO.placeOfReceipt || 'N/A'}</p>
+                                    </div>
+                                 </div>
+                                 <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Routing & Logistics (Destination)</h4>
+                                    <div className="pt-1">
+                                       <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Final Destination</p>
+                                       <p className="text-sm font-medium text-gray-800">{selectedPO.placeOfDelivery || 'N/A'}</p>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div className="border-t border-gray-100 pt-8 mt-2">
+                                 <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-4">Terms & Schedule</h4>
+                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Payment Term</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.paymentTerm || 'N/A'}</p>
+                                     </div>
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Transport Type</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.transportType || 'N/A'}</p>
+                                     </div>
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Quantity</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.packages || 'N/A'}</p>
+                                     </div>
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Cargo Ready (CRD)</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.cargoReady || 'N/A'}</p>
+                                     </div>
+                                 </div>
+                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Expected Pickup</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.etd || '-'}</p>
+                                     </div>
+                                     <div>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Expected Delivery</p>
+                                        <p className="text-sm font-bold text-gray-800">{selectedPO.eta || '-'}</p>
+                                     </div>
+                                 </div>
+                              </div>
+
+                              {/* Dimensions Table */}
+                              <div className="pt-8 border-t border-gray-100">
+                                 <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-sm font-bold text-gray-900">Dimension Breakdown</h4>
+                                    <div className="flex items-center gap-6">
+                                       <button className="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors px-3 py-1.5 rounded border border-blue-100 font-medium flex items-center gap-2">
+                                          <i className="fa-regular fa-pen-to-square"></i> Edit Dimensions
+                                       </button>
+                                       <div className="flex gap-4 items-center">
+                                          <div className="text-right flex flex-col items-center">
+                                             <div className="text-[10px] font-bold text-indigo-400 uppercase">Total CBM</div>
+                                             <div className="text-sm font-bold text-blue-700">{selectedPO.items?.reduce((acc, curr) => acc + (curr.volume || 0), 0)?.toFixed(2) || '0.00'}&nbsp;m³</div>
+                                          </div>
+                                          <div className="text-right flex flex-col items-center">
+                                             <div className="text-[10px] font-bold text-indigo-400 uppercase">Total Weight</div>
+                                             <div className="text-sm font-bold text-blue-700">{selectedPO.items?.reduce((acc, curr) => acc + (curr.weight || 0), 0)?.toFixed(1) || '0.0'} Tons</div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 
+                                 <div className="overflow-x-auto border rounded-lg">
+                                    <table className="w-full text-left text-xs whitespace-nowrap">
+                                        <thead className="bg-[#f8f9fc] text-gray-500 font-bold">
+                                           <tr>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider">Pkg ID</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider">Item Code</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider">Item Name</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">QTY</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">QTY CTNS</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">Length</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">Width</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">Height</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">CBM</th>
+                                              <th className="px-4 py-3 uppercase text-[10px] tracking-wider text-right">KG</th>
+                                           </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 text-gray-700">
+                                           {selectedPO.items?.map((item, idx) => (
+                                              <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                                 <td className="px-4 py-3 font-medium text-gray-900 border-r border-gray-100">{idx + 1}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-blue-600 cursor-pointer">{item.code}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100">{item.name}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.quantity?.toLocaleString() || 0}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.cartons?.toLocaleString() || '-'}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.length || 0}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.width || 0}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.height || 0}</td>
+                                                 <td className="px-4 py-3 border-r border-gray-100 text-right font-medium">{item.volume || 0}</td>
+                                                 <td className="px-4 py-3 text-right font-medium">{item.weight || 0}</td>
+                                              </tr>
+                                           )) || (
+                                              <tr><td colSpan={10} className="px-4 py-8 text-center text-gray-400">No items available</td></tr>
+                                           )}
+                                        </tbody>
+                                    </table>
+                                 </div>
+                              </div>
+                           </div>
+                           
+                           {/* Right Column (Sidebar Widgets) */}
+                           <div className="w-full lg:w-80 space-y-6">
+                              {/* Service Suggestion */}
+                              <div className="bg-[#f5f7fc] border border-[#e1e7f3] rounded-xl p-5 shadow-sm">
+                                 <h3 className="font-bold text-gray-900 mb-4 tracking-tight">Service Suggestion</h3>
+                                 <div className="bg-white rounded-lg p-4 border border-blue-100 shadow-sm mb-3">
+                                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Recommended Mode</p>
+                                    <p className="text-2xl font-bold text-gray-900 tracking-tight">{selectedPO.transportType === 'Road' || selectedPO.transportType === 'Truck' ? 'Domestic Trucking (FTL)' : 'Domestic Delivery'}</p>
+                                 </div>
+                                 <p className="text-xs text-blue-600/80 leading-relaxed font-medium">Based on the total volume of {selectedPO.items?.reduce((a, c) => a + (c.volume||0), 0)?.toFixed(2) || '0.0'} m³ and weight of {selectedPO.items?.reduce((a, c) => a + (c.weight||0), 0)?.toFixed(1) || '0.0'} tons, we recommend standard domestic hauling for optimal cost and safety.</p>
+                              </div>
+
+                              {/* Action Block */}
+                              {selectedPO.status !== 'Logistics Confirm' ? (
+                                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                   <h3 className="font-bold text-gray-900 mb-4 tracking-tight">Confirm Information</h3>
+                                   <div className="flex gap-3 mb-4">
+                                      <button 
+                                        onClick={() => {
+                                          const updatedPO = { ...selectedPO, status: 'Logistics Confirm' };
+                                          setPurchaseOrders(purchaseOrders.map(po => po.id === selectedPO.id ? updatedPO : po));
+                                          setSelectedPO(updatedPO);
+                                        }}
+                                        className="flex-1 bg-[#f0faf5] hover:bg-[#e6f5eb] text-[#2e8a5b] border border-[#c4e8d2] font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors"
+                                      >
+                                         <i className="fa-regular fa-circle-check"></i> Yes, Confirm
+                                      </button>
+                                      <button className="flex-1 bg-[#fff5f5] hover:bg-[#ffebeb] text-[#d64545] border border-[#f5cbcb] font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
+                                         <i className="fa-solid fa-xmark"></i> No, Reject
+                                      </button>
+                                   </div>
+                                   <div>
+                                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 ml-1 tracking-wider">Note (Required for No)</p>
+                                      <textarea 
+                                         placeholder="Explain why the information is not confirmed..." 
+                                         className="w-full bg-[#f8f9fc] border border-gray-200 rounded-lg p-3 text-xs outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 resize-none h-20 text-gray-700 placeholder:text-gray-400"
+                                      ></textarea>
+                                   </div>
+                                </div>
+                              ) : (
+                                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-t-4 border-t-blue-500">
+                                  <div className="flex items-start gap-3 mb-4">
+                                      <div className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center shrink-0 mt-0.5">
+                                          <i className="fa-solid fa-calendar-check"></i>
+                                      </div>
+                                      <div>
+                                          <h3 className="font-bold text-gray-900 tracking-tight mb-1">Shipment Planning</h3>
+                                          <p className="text-xs text-gray-500 leading-relaxed">Logistics has confirmed this purchase order. You can now plan the schedule by assigning line items to a delivery trip.</p>
+                                      </div>
+                                  </div>
+                                  <button
+                                      onClick={() => setShowShipmentPlanningModal(true)}
+                                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
+                                  >
+                                      <i className="fa-solid fa-truck-fast"></i> Plan Shipment
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Document Management */}
+                              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                 <div className="px-5 py-4 bg-[#f8f9fc] border-b border-gray-100">
+                                    <h3 className="font-bold text-gray-900 tracking-tight">Document Management</h3>
+                                 </div>
+                                 <table className="w-full text-left text-[11px] text-gray-700">
+                                    <thead className="bg-white border-b border-gray-100 text-gray-400">
+                                        <tr>
+                                           <th className="px-5 py-3 font-bold uppercase tracking-wider">Document Type</th>
+                                           <th className="px-5 py-3 font-bold uppercase tracking-wider text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        <tr className="hover:bg-gray-50 transition-colors">
+                                           <td className="px-5 py-4 font-medium">Purchase Order</td>
+                                           <td className="px-5 py-4 text-right">
+                                              <button className="text-gray-400 hover:text-blue-600 transition-colors px-2"><i className="fa-solid fa-cloud-arrow-down"></i></button>
+                                           </td>
+                                        </tr>
+                                        <tr className="hover:bg-gray-50 transition-colors">
+                                           <td className="px-5 py-4 font-medium">Packing List</td>
+                                           <td className="px-5 py-4 text-right">
+                                              <button className="text-gray-400 hover:text-blue-600 transition-colors px-2"><i className="fa-solid fa-cloud-arrow-down"></i></button>
+                                           </td>
+                                        </tr>
+                                    </tbody>
+                                 </table>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                </div>
             </div>
@@ -6577,6 +7134,19 @@ const App: React.FC = () => {
         </div>
       )}
       {/* Reject Ticket Modal */}
+      {showShipmentPlanningModal && selectedPO && (
+        <ShipmentPlanningModal 
+          po={selectedPO}
+          onClose={() => setShowShipmentPlanningModal(false)}
+          onConfirm={(plannedItems) => {
+            console.log('Planned Drop-off shipment created with items:', plannedItems);
+            // Example success handling
+            alert('Shipment Trip Planning Created Successfully!\nPlanned ' + plannedItems.length + ' item types.');
+            setShowShipmentPlanningModal(false);
+          }}
+        />
+      )}
+      
       {showRejectModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
@@ -7005,4 +7575,140 @@ const InfoRow: React.FC<{ label: string; value: React.ReactNode; bold?: boolean 
   </div>
 );
 
-export default App;
+export default App;  const renderConfigDetails = (data: any, onChange: (newData: any) => void) => (
+    <div className="pl-4 ml-3 border-l-2 border-gray-200 pt-2">
+       {/* Pickup / Dropoff Overrides */}
+       <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Pickup / Dropoff Overrides</div>
+          <div className="flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-2">
+                  <label className="text-[11px] text-gray-700 font-medium">Pickup Free</label>
+                   <div 
+                      className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${data.pickupFree !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                      onClick={() => onChange({ ...data, pickupFree: data.pickupFree === false ? true : false })}
+                   >
+                      <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${data.pickupFree !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                   </div>
+              </div>
+              <div className="flex items-center gap-2">
+                  <label className="text-[11px] text-gray-700 font-medium">Pickup On-Demand</label>
+                   <div 
+                      className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${data.pickupOnDemand ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                      onClick={() => onChange({ ...data, pickupOnDemand: !data.pickupOnDemand })}
+                   >
+                      <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${data.pickupOnDemand ? 'left-4.5' : 'left-0.5'}`}></div>
+                   </div>
+              </div>
+              <div className="flex items-center gap-2">
+                  <label className="text-[11px] text-gray-700 font-medium">Drop-off</label>
+                   <div 
+                      className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${data.dropoff !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                      onClick={() => onChange({ ...data, dropoff: data.dropoff === false ? true : false })}
+                   >
+                      <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${data.dropoff !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                   </div>
+              </div>
+          </div>
+      </div>
+       {/* Location Dropoff Points */}
+       {data.dropoff !== false && (
+       <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+           <div className="flex items-center justify-between mb-3">
+               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location Dropoff Points</div>
+               <button onClick={() => onChange({ ...data, dropOffPoints: [...(data.dropOffPoints || []), { id: Math.random().toString(36).substr(2, 9), carrier: data.carrierName || data.vendorName, address: '' }] })} className="text-[#4d9e5f] hover:text-[#1b4d3e] text-[10px] font-bold flex items-center gap-1 transition-colors">
+                   <i className="fa-solid fa-plus-circle"></i> Add Location
+               </button>
+           </div>
+           {(!data.dropOffPoints || data.dropOffPoints.length === 0) ? (
+               <div className="text-center py-4 text-gray-400 italic text-[10px]">No location drop-off points configured.</div>
+           ) : (
+               <div className="space-y-2">
+                   {data.dropOffPoints.map((point, pIndex) => (
+                       <div key={point.id} className="flex gap-2">
+                           <input 
+                               type="text" 
+                               value={point.address} 
+                               onChange={e => {
+                                   const newPoints = [...(data.dropOffPoints || [])];
+                                   newPoints[pIndex] = { ...newPoints[pIndex], address: e.target.value };
+                                   onChange({ ...data, dropOffPoints: newPoints });
+                               }} 
+                               placeholder="Enter full address for drop-off"
+                               className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-[11px] font-medium text-gray-700 focus:border-[#4d9e5f] outline-none transition-all"
+                           />
+                           <button onClick={() => {
+                                const newPoints = (data.dropOffPoints || []).filter((_, i) => i !== pIndex);
+                                onChange({ ...data, dropOffPoints: newPoints });
+                           }} className="text-gray-300 hover:text-red-500 w-8 flex items-center justify-center transition-colors">
+                               <i className="fa-solid fa-trash-can text-[10px]"></i>
+                           </button>
+                       </div>
+                   ))}
+               </div>
+           )}
+       </div>
+       )}
+
+       {/* Service Overrides */}
+       <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex">
+           <div className="flex-1">Service Code</div>
+           <div className="flex-1 ml-2">Service Name</div>
+           <div className="w-8"></div>
+       </div>
+       <div className="space-y-2">
+           {data.services?.map((svc, sIndex) => (
+               <div key={sIndex} className="flex items-center gap-2">
+                   <input 
+                       type="text" 
+                       value={svc.code} 
+                       onChange={(e) => {
+                         const newServices = [...(data.services || [])];
+                         newServices[sIndex] = { ...newServices[sIndex], code: e.target.value };
+                         onChange({ ...data, services: newServices });
+                       }} 
+                       placeholder="Code"
+                       className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+                   />
+                   <input 
+                       type="text" 
+                       value={svc.name} 
+                       onChange={(e) => {
+                         const newServices = [...(data.services || [])];
+                         newServices[sIndex] = { ...newServices[sIndex], name: e.target.value };
+                         onChange({ ...data, services: newServices });
+                       }} 
+                       placeholder="Name"
+                       className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+                   />
+                   <div 
+                      className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors shrink-0 ${svc.isActive !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                      onClick={() => {
+                         const newServices = [...(data.services || [])];
+                         newServices[sIndex] = { ...newServices[sIndex], isActive: svc.isActive === false ? true : false };
+                         onChange({ ...data, services: newServices });
+                      }}
+                      title={svc.isActive !== false ? "Service Enabled" : "Service Disabled"}
+                   >
+                      <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${svc.isActive !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                   </div>
+                   <button onClick={() => {
+                      const newServices = (data.services || []).filter((_, i) => i !== sIndex);
+                      onChange({ ...data, services: newServices });
+                   }} className="text-gray-300 hover:text-red-500 w-8 flex justify-center" title="Remove Service">
+                       <i className="fa-solid fa-xmark"></i>
+                   </button>
+               </div>
+           ))}
+           {(!data.services || data.services.length === 0) && (
+               <div className="text-xs text-gray-400 italic py-1">No services configured</div>
+           )}
+           <button onClick={() => {
+               onChange({ ...data, services: [...(data.services || []), { code: '', name: '', isActive: true }] });
+           }} className="mt-2 text-[10px] font-bold text-[#2c6e3b] hover:text-[#20512b] flex items-center gap-1">
+               <i className="fa-solid fa-plus"></i> Add Service
+           </button>
+       </div>
+    </div>
+  );
+
+

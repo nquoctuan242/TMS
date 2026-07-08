@@ -1,0 +1,181 @@
+4601:                           {expandedStoreCarriers[index] && (
+4602-                           <div className="pl-4 ml-3 border-l-2 border-gray-200 pt-2">
+4603-                               {/* Pickup / Dropoff Overrides */}
+4604-                               <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+4605-                                  <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Pickup / Dropoff Overrides</div>
+4606-                                  <div className="flex flex-wrap items-center gap-6">
+4607-                                      <div className="flex items-center gap-2">
+4608-                                          <label className="text-[11px] text-gray-700 font-medium">Pickup Free</label>
+4609-                                           <div 
+4610-                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.pickupFree !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+4611-                                              onClick={() => {
+4612-                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+4613-                                                newConfigs[index] = { ...newConfigs[index], pickupFree: config.pickupFree === false ? true : false };
+4614-                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4615-                                              }}
+4616-                                           >
+4617-                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.pickupFree !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+4618-                                           </div>
+4619-                                      </div>
+4620-                                      <div className="flex items-center gap-2">
+4621-                                          <label className="text-[11px] text-gray-700 font-medium">Pickup On-demand</label>
+4622-                                           <div 
+4623-                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.pickupOnDemand !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+4624-                                              onClick={() => {
+4625-                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+4626-                                                newConfigs[index] = { ...newConfigs[index], pickupOnDemand: config.pickupOnDemand === false ? true : false };
+4627-                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4628-                                              }}
+4629-                                           >
+4630-                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.pickupOnDemand !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+4631-                                           </div>
+4632-                                      </div>
+4633-                                      <div className="flex items-center gap-2">
+4634-                                          <label className="text-[11px] text-gray-700 font-medium">Dropoff</label>
+4635-                                           <div 
+4636-                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.dropoff !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+4637-                                              onClick={() => {
+4638-                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+4639-                                                newConfigs[index] = { ...newConfigs[index], dropoff: config.dropoff === false ? true : false };
+4640-                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4641-                                              }}
+4642-                                           >
+4643-                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.dropoff !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+4644-                                           </div>
+4645-                                      </div>
+4646-                                  </div>
+4647-                              </div>
+4648-
+4649-                               {/* Location Dropoff Points */}
+4650-                               {config.dropoff && (
+4651-                               <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+4652-                                   <div className="flex items-center justify-between mb-3">
+4653-                                       <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location Dropoff Points</div>
+4654-                                       <button onClick={() => {
+4655-                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+4656-                                           newConfigs[index] = { ...newConfigs[index], dropOffPoints: [...(newConfigs[index].dropOffPoints || []), { id: Math.random().toString(36).substr(2, 9), carrier: config.carrierName, address: '' }] };
+4657-                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4658-                                       }} className="text-[#4d9e5f] hover:text-[#1b4d3e] text-[10px] font-bold flex items-center gap-1 transition-colors">
+4659-                                           <i className="fa-solid fa-plus-circle"></i> Add Location
+4660-                                       </button>
+4661-                                   </div>
+4662-                                   {(!config.dropOffPoints || config.dropOffPoints.length === 0) ? (
+4663-                                       <div className="text-center py-4 text-gray-400 italic text-[10px]">No location drop-off points configured.</div>
+4664-                                   ) : (
+4665-                                       <div className="space-y-2">
+4666-                                           {config.dropOffPoints.map((point, pIndex) => (
+4667-                                               <div key={point.id} className="flex gap-2">
+4668-                                                   <input 
+4669-                                                       type="text" 
+4670-                                                       value={point.address} 
+4671-                                                       onChange={e => {
+4672-                                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+4673-                                                           const newPoints = [...(newConfigs[index].dropOffPoints || [])];
+4674-                                                           newPoints[pIndex] = { ...newPoints[pIndex], address: e.target.value };
+4675-                                                           newConfigs[index] = { ...newConfigs[index], dropOffPoints: newPoints };
+4676-                                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4677-                                                       }} 
+4678-                                                       placeholder="Enter full address for drop-off"
+4679-                                                       className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-[11px] font-medium text-gray-700 focus:border-[#4d9e5f] outline-none transition-all"
+4680-                                                   />
+4681-                                                   <button onClick={() => {
+4682-                                                        const newConfigs = [...(editingStore.carrierConfigs || [])];
+4683-                                                        const newPoints = (newConfigs[index].dropOffPoints || []).filter((_, i) => i !== pIndex);
+4684-                                                        newConfigs[index] = { ...newConfigs[index], dropOffPoints: newPoints };
+4685-                                                        setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4686-                                                   }} className="text-gray-300 hover:text-red-500 w-8 flex items-center justify-center transition-colors">
+4687-                                                       <i className="fa-solid fa-trash-can text-[10px]"></i>
+4688-                                                   </button>
+4689-                                               </div>
+4690-                                           ))}
+4691-                                       </div>
+4692-                                   )}
+4693-                               </div>
+4694-                               )}
+4695-
+4696-                               {/* Service Overrides */}
+4697-                               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex">
+4698-                                   <div className="flex-1">Service Code</div>
+4699-                                   <div className="flex-1 ml-2">Service Name</div>
+4700-                                   <div className="w-8"></div>
+4701-                               </div>
+4702-                               <div className="space-y-2">
+4703-                                   {config.services?.map((svc, sIndex) => (
+4704-                                       <div key={sIndex} className="flex items-center gap-2">
+4705-                                           <input 
+4706-                                               type="text" 
+4707-                                               value={svc.code} 
+4708-                                               onChange={(e) => {
+4709-                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+4710-                                                 const newServices = [...(newConfigs[index].services || [])];
+4711-                                                 newServices[sIndex] = { ...newServices[sIndex], code: e.target.value };
+4712-                                                 newConfigs[index] = { ...newConfigs[index], services: newServices };
+4713-                                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4714-                                               }} 
+4715-                                               placeholder="Code"
+4716-                                               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+4717-                                           />
+4718-                                           <input 
+4719-                                               type="text" 
+4720-                                               value={svc.name} 
+4721-                                               onChange={(e) => {
+4722-                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+4723-                                                 const newServices = [...(newConfigs[index].services || [])];
+4724-                                                 newServices[sIndex] = { ...newServices[sIndex], name: e.target.value };
+4725-                                                 newConfigs[index] = { ...newConfigs[index], services: newServices };
+4726-                                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4727-                                               }} 
+4728-                                               placeholder="Name"
+4729-                                               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+4730-                                           />
+4731-                                           <div 
+4732-                                              className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors shrink-0 ${svc.isActive !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+4733-                                              onClick={() => {
+4734-                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+4735-                                                 const newServices = [...(newConfigs[index].services || [])];
+4736-                                                 newServices[sIndex] = { ...newServices[sIndex], isActive: svc.isActive === false ? true : false };
+4737-                                                 newConfigs[index] = { ...newConfigs[index], services: newServices };
+4738-                                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4739-                                              }}
+4740-                                              title={svc.isActive !== false ? "Service Enabled" : "Service Disabled"}
+4741-                                           >
+4742-                                              <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${svc.isActive !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+4743-                                           </div>
+4744-                                           <button onClick={() => {
+4745-                                              const newConfigs = [...(editingStore.carrierConfigs || [])];
+4746-                                              const newServices = (newConfigs[index].services || []).filter((_, i) => i !== sIndex);
+4747-                                              newConfigs[index] = { ...newConfigs[index], services: newServices };
+4748-                                              setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4749-                                           }} className="text-gray-300 hover:text-red-500 w-8 flex justify-center" title="Remove Service">
+4750-                                               <i className="fa-solid fa-xmark"></i>
+4751-                                           </button>
+4752-                                       </div>
+4753-                                   ))}
+4754-                                   {(!config.services || config.services.length === 0) && (
+4755-                                       <div className="text-xs text-gray-400 italic py-1">No services configured</div>
+4756-                                   )}
+4757-                                   <button onClick={() => {
+4758-                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
+4759-                                       newConfigs[index] = { ...newConfigs[index], services: [...(newConfigs[index].services || []), { code: '', name: '', isActive: true }] };
+4760-                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+4761-                                   }} className="mt-2 text-[10px] font-bold text-[#2c6e3b] hover:text-[#20512b] flex items-center gap-1">
+4762-                                       <i className="fa-solid fa-plus"></i> Add Service
+4763-                                   </button>
+4764-                               </div>
+4765-                           </div>
+4766-                           )}
+4767-                        </div>
+4768-                      ))}
+4769-                    </div>
+4770-                  )}
+4771-                </div>
+4772-              </div>
+4773-
+4774-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+4775-                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+4776-                  <div className="flex items-center gap-2">
+4777-                    <i className="fa-solid fa-radar text-[#4d9e5f]"></i>
+4778-                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Shipper Search Radius Configuration</h3>
+4779-                  </div>
+4780-                  <button 
+4781-                    onClick={() => {

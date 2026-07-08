@@ -1,3 +1,4 @@
+import { PurchaseOrder } from "./types";
 
 import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, ScanTimeConfig, DailyCommission, PayrollPeriod } from './types';
 
@@ -239,6 +240,147 @@ export const MOCK_IT_ROUTES: ITRoute[] = [
   }
 ];
 
+export const MOCK_PURCHASE_ORDERS: PurchaseOrder[] = [
+  {
+    id: 'PO001',
+    poCode: 'PO-2026-0001',
+    customerOrderCode: 'CUST-PO-9912',
+    customer: 'Tech Solutions Inc',
+    supplier: 'Global Electronics Ltd',
+    status: 'In Transit',
+    createdAt: '2026-06-15',
+    etd: '2026-06-20',
+    eta: '2026-06-25',
+    incoterms: 'FOB',
+    serviceType: 'FCL / Ocean',
+    commodity: 'Electronics parts',
+    packages: '20 Pallets',
+    grossWeight: '12500 KGS',
+    volume: '28 CBM',
+    placeOfReceipt: 'Shenzhen Warehouse A',
+    placeOfDelivery: 'Los Angeles Hub',
+    notes: '',
+    paymentTerm: 'LC at Sight',
+    orderType: 'Export',
+    transportType: 'Sea',
+    cargoReady: '15/3/2026',
+    supplierDetails: {
+      name: 'Global Textiles Ltd.',
+      phone: '+84 91 234 5678',
+      email: 'contact@globaltextiles.vn',
+      street: '789 Fashion St',
+      address: '789 Fashion St, Hanoi, VN',
+      countryCode: 'VN',
+      countryName: 'Vietnam',
+      postalCode: '100000',
+      addressType: 'Warehouse'
+    },
+    consigneeDetails: {
+      name: 'Fashion Retailers EU',
+      phone: '+49 40 123456',
+      email: 'import@fashion-eu.de',
+      street: '101 Mode Blvd',
+      address: '101 Mode Blvd, Hamburg, DE',
+      countryCode: 'DE',
+      countryName: 'Germany',
+      postalCode: '20095',
+      addressType: 'Distribution Center'
+    },
+    items: [
+      {
+        code: 'PKG-001',
+        name: 'Cotton T-Shirts',
+        sku: 'TS-01',
+        quantity: 4000,
+        unit: 'Pieces',
+        length: 60,
+        width: 40,
+        height: 40,
+        weight: 1.5,
+        volume: 4.0,
+        retailPrice: 20,
+        wholesalePrice: 8
+      },
+      {
+        code: 'PKG-002',
+        name: 'Denim Jeans',
+        sku: 'DJ-02',
+        quantity: 2500,
+        unit: 'Pieces',
+        length: 80,
+        width: 50,
+        height: 50,
+        weight: 1.0,
+        volume: 4.0,
+        retailPrice: 50,
+        wholesalePrice: 22
+      }
+    ]
+  },
+  {
+    id: 'PO002',
+    poCode: 'PO-2026-0002',
+    customerOrderCode: 'CUST-PO-9913',
+    customer: 'Home Decor Co',
+    supplier: 'Woodwork Artisans',
+    status: 'Processing',
+    createdAt: '2026-06-18',
+    etd: '2026-06-28',
+    eta: '2026-07-15',
+    incoterms: 'CIF',
+    serviceType: 'LCL / Ocean',
+    commodity: 'Wooden Furniture',
+    packages: '5 Crates',
+    grossWeight: '1200 KGS',
+    volume: '5.5 CBM',
+    placeOfReceipt: 'Ho Chi Minh Port',
+    placeOfDelivery: 'Sydney Fulfillment Center',
+    notes: '',
+    paymentTerm: 'TT 30 Days',
+    orderType: 'Export',
+    transportType: 'Air',
+    cargoReady: '20/4/2026',
+    supplierDetails: {
+      name: 'Woodwork Artisans',
+      phone: '+84 98 765 4321',
+      email: 'sales@woodworks.vn',
+      street: '10 Artisan Alley',
+      address: '10 Artisan Alley, Ho Chi Minh, VN',
+      countryCode: 'VN',
+      countryName: 'Vietnam',
+      postalCode: '70000',
+      addressType: 'Factory'
+    },
+    consigneeDetails: {
+      name: 'Home Decor Co',
+      phone: '+61 2 9876 5432',
+      email: 'purchasing@homedecor.com.au',
+      street: '45 Design Way',
+      address: '45 Design Way, Sydney, AU',
+      countryCode: 'AU',
+      countryName: 'Australia',
+      postalCode: '2000',
+      addressType: 'Store'
+    },
+    items: [
+      {
+        code: 'PKG-003',
+        name: 'Oak Dining Table',
+        sku: 'ODT-100',
+        quantity: 50,
+        unit: 'Sets',
+        length: 200,
+        width: 100,
+        height: 20,
+        weight: 1.2,
+        volume: 5.5,
+        retailPrice: 500,
+        wholesalePrice: 200
+      }
+    ]
+  }
+];
+
 export const MOCK_INTERNAL_TRANSFERS: InternalTransfer[] = [
   {
     id: '1',
@@ -349,5 +491,72 @@ export const MOCK_SHIPPERS: Shipper[] = [
     countryCode: 'VN',
     countryName: 'Vietnam',
     postalCode: '700000'
+  }
+];
+
+export const MOCK_CARRIERS: import('./types').Carrier[] = [
+  {
+    id: '1',
+    carrierCode: 'VENDOR-35335',
+    carrierName: 'EasyPost',
+    phoneNumber: '0453344541',
+    address: '25 Tràng Thi',
+    carrierApiReference: 'EASYPOST',
+    carrierType: 'External',
+    integrationType: 'Shipping Aggregator',
+    status: 'Active',
+    taxCode: 'Tax Code',
+    email: 'Email',
+    country: 'Vietnam (VN)',
+    isMasterBill: false,
+    supportsCustomsDeclaration: false,
+    enablePickupService: false,
+    shippingVendors: [
+      { vendorName: 'USPS', services: [{ code: 'Express', name: 'Express' }] },
+      { vendorName: 'UPSDAP', services: [] }
+    ],
+    note: ''
+  }
+];
+
+export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
+  {
+    id: '1',
+    orderCode: '2607027DJR',
+    customerOrderCode: '260702USG9ZV00',
+    customer: 'Oms - Now_20250606121235',
+    carrier: 'Easypost',
+    trackingNumber: '1ZXXXXXXXXXXXXXXXX',
+    status: 'Dispatched',
+    createdAt: '02/07/2026 13:22:17',
+    estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
+    orderType: 'Domestic',
+    pickActions: '*** *** *** ***, BRADENTON, FLORI'
+  },
+  {
+    id: '2',
+    orderCode: '26070249PT',
+    customerOrderCode: '260702USG9ZQ00',
+    customer: 'Oms - Now_20250606121235',
+    carrier: 'Easypost',
+    trackingNumber: '1ZXXXXXXXXXXXXXXXX',
+    status: 'Dispatched',
+    createdAt: '02/07/2026 13:16:13',
+    estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
+    orderType: 'Domestic',
+    pickActions: '*** *** *** ***, BRADENTON, FLORI'
+  },
+  {
+    id: '3',
+    orderCode: '2607020G3L',
+    customerOrderCode: '260704USG9YM00',
+    customer: 'Oms - Now_20250606121235',
+    carrier: 'Hasaki Express',
+    trackingNumber: 'S260702U2XF',
+    status: 'Out for delivery',
+    createdAt: '02/07/2026 11:31:02',
+    estimatedDeliveryTime: '02/07/2026 - 03/07/2026',
+    orderType: 'Domestic',
+    pickActions: '*** *** *** *** California 90201, U'
   }
 ];

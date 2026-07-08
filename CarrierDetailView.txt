@@ -1,0 +1,305 @@
+0: import React, { useState } from 'react';
+1: import { Carrier } from '../types';
+2: 
+3: interface CarrierDetailViewProps {
+4:   carrier: Carrier | null;
+5: }
+6: 
+7: export function CarrierDetailView({ carrier }: CarrierDetailViewProps) {
+8:   const [formData, setFormData] = useState<Carrier | null>(carrier);
+9:   const [activeTab, setActiveTab] = useState('General information');
+10:   const [vendorStatuses, setVendorStatuses] = useState<Record<number, boolean>>({});
+11:   const [expandedVendors, setExpandedVendors] = useState<Record<number, boolean>>({});
+12: 
+13:   if (!formData) return <div className="p-4 text-sm text-gray-500">Loading...</div>;
+14: 
+15:   const updateField = (field: keyof Carrier, value: any) => {
+16:     setFormData(prev => prev ? { ...prev, [field]: value } : null);
+17:   };
+18: 
+19:   const toggleVendorStatus = (index: number) => {
+20:     setVendorStatuses(prev => ({
+21:       ...prev,
+22:       [index]: prev[index] !== undefined ? !prev[index] : false,
+23:     }));
+24:   };
+25: 
+26:   const toggleVendorExpand = (index: number) => {
+27:     setExpandedVendors(prev => ({
+28:       ...prev,
+29:       [index]: !prev[index],
+30:     }));
+31:   };
+32: 
+33:   const addVendor = () => {
+34:     updateField('shippingVendors', [...(formData.shippingVendors || []), { vendorName: '', services: [] }]);
+35:     setExpandedVendors(prev => ({ ...prev, [formData.shippingVendors?.length || 0]: true }));
+36:   };
+37: 
+38:   const updateVendorName = (index: number, val: string) => {
+39:     const newVendors = [...(formData.shippingVendors || [])];
+40:     newVendors[index] = { ...newVendors[index], vendorName: val };
+41:     updateField('shippingVendors', newVendors);
+42:   };
+43: 
+44:   const addService = (vendorIndex: number) => {
+45:     const newVendors = [...(formData.shippingVendors || [])];
+46:     newVendors[vendorIndex] = {
+47:       ...newVendors[vendorIndex],
+48:       services: [...(newVendors[vendorIndex].services || []), { code: '', name: '' }]
+49:     };
+50:     updateField('shippingVendors', newVendors);
+51:   };
+52: 
+53:   const updateService = (vendorIndex: number, serviceIndex: number, field: 'code' | 'name', val: string) => {
+54:     const newVendors = [...(formData.shippingVendors || [])];
+55:     const newServices = [...(newVendors[vendorIndex].services || [])];
+56:     newServices[serviceIndex] = { ...newServices[serviceIndex], [field]: val };
+57:     newVendors[vendorIndex] = { ...newVendors[vendorIndex], services: newServices };
+58:     updateField('shippingVendors', newVendors);
+59:   };
+60: 
+61:   const removeService = (vendorIndex: number, serviceIndex: number) => {
+62:     const newVendors = [...(formData.shippingVendors || [])];
+63:     const newServices = newVendors[vendorIndex].services?.filter((_, i) => i !== serviceIndex);
+64:     newVendors[vendorIndex] = { ...newVendors[vendorIndex], services: newServices || [] };
+65:     updateField('shippingVendors', newVendors);
+66:   };
+67: 
+68:   const removeVendor = (index: number) => {
+69:     const newVendors = formData.shippingVendors?.filter((_, i) => i !== index);
+70:     updateField('shippingVendors', newVendors || []);
+71:   };
+72: 
+73:   return (
+74:     <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+75:       
+76:       {/* Tabs */}
+77:       <div className="flex px-4 border-b border-gray-200 gap-1 bg-white pt-2">
+78:         {['General information'].map((tab) => (
+79:           <button
+80:             key={tab}
+81:             onClick={() => setActiveTab(tab)}
+82:             className={`px-4 py-2.5 text-xs font-bold border-t-2 rounded-t transition-all ${
+83:               activeTab === tab
+84:                 ? 'border-[#2c6e3b] text-[#2c6e3b] bg-white'
+85:                 : 'border-transparent text-gray-500 hover:bg-gray-50'
+86:             }`}
+87:           >
+88:             {tab}
+89:           </button>
+90:         ))}
+91:       </div>
+92: 
+93:       {/* Content */}
+94:       <div className="p-6">
+95:         <div className="border border-gray-100 rounded-lg p-6 bg-white shadow-sm">
+96:           
+97:           <div className="flex justify-end mb-6">
+98:              <button className="bg-[#2c6e3b] text-white px-5 py-2 rounded text-xs font-bold hover:bg-[#20512b] shadow-sm">
+99:                  Update Carrier
+100:              </button>
+101:           </div>
+102: 
+103:           <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
+104:              {/* Row 1 */}
+105:              <div className="space-y-1">
+106:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Carrier Code</label>
+107:                  <div className="relative">
+108:                      <input type="text" value={formData.carrierCode} onChange={(e) => updateField('carrierCode', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white" />
+109:                      <i className="fa-solid fa-circle-xmark absolute right-2 top-2 text-gray-300 hover:text-gray-400 cursor-pointer text-[10px]"></i>
+110:                  </div>
+111:              </div>
+112:              <div className="space-y-1">
+113:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Carrier Name</label>
+114:                  <div className="relative">
+115:                      <input type="text" value={formData.carrierName} onChange={(e) => updateField('carrierName', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white" />
+116:                      <i className="fa-solid fa-circle-xmark absolute right-2 top-2 text-gray-300 hover:text-gray-400 cursor-pointer text-[10px]"></i>
+117:                  </div>
+118:              </div>
+119:              <div className="space-y-1">
+120:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Phone Number</label>
+121:                  <div className="relative">
+122:                      <input type="text" value={formData.phoneNumber} onChange={(e) => updateField('phoneNumber', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white" />
+123:                      <i className="fa-solid fa-circle-xmark absolute right-2 top-2 text-gray-300 hover:text-gray-400 cursor-pointer text-[10px]"></i>
+124:                  </div>
+125:              </div>
+126:              <div className="space-y-1">
+127:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Address</label>
+128:                  <div className="relative">
+129:                      <input type="text" value={formData.address} onChange={(e) => updateField('address', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white" />
+130:                      <i className="fa-solid fa-circle-xmark absolute right-2 top-2 text-gray-300 hover:text-gray-400 cursor-pointer text-[10px]"></i>
+131:                  </div>
+132:              </div>
+133: 
+134:              {/* Row 2 */}
+135:              <div className="space-y-1">
+136:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Carrier API Reference</label>
+137:                  <select value={formData.carrierApiReference} onChange={(e) => updateField('carrierApiReference', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white">
+138:                      <option value="EASYPOST">EASYPOST</option>
+139:                  </select>
+140:              </div>
+141:              <div className="space-y-1">
+142:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Carrier Type</label>
+143:                  <select value={formData.carrierType} onChange={(e) => updateField('carrierType', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white">
+144:                      <option value="External">External</option>
+145:                      <option value="Internal">Internal</option>
+146:                  </select>
+147:              </div>
+148:              <div className="space-y-1">
+149:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Integration Type</label>
+150:                  <select value={formData.integrationType} onChange={(e) => updateField('integrationType', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white">
+151:                      <option value="Shipping Aggregator">Shipping Aggregator</option>
+152:                      <option value="Direct API">Direct API</option>
+153:                  </select>
+154:              </div>
+155:              <div className="space-y-1">
+156:                  <label className="text-[11px] font-medium text-gray-700 flex items-center"><span className="text-red-500 mr-1">*</span>Status</label>
+157:                  <select value={formData.status} onChange={(e) => updateField('status', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white">
+158:                      <option value="Active">Active</option>
+159:                      <option value="Inactive">Inactive</option>
+160:                  </select>
+161:              </div>
+162: 
+163:              {/* Row 3 */}
+164:              <div className="space-y-1">
+165:                  <label className="text-[11px] font-medium text-gray-700">Tax code</label>
+166:                  <input type="text" value={formData.taxCode} onChange={(e) => updateField('taxCode', e.target.value)} placeholder="Tax Code" className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white placeholder-gray-300" />
+167:              </div>
+168:              <div className="space-y-1">
+169:                  <label className="text-[11px] font-medium text-gray-700">Email</label>
+170:                  <input type="text" value={formData.email} onChange={(e) => updateField('email', e.target.value)} placeholder="Email" className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white placeholder-gray-300" />
+171:              </div>
+172:              <div className="space-y-1">
+173:                  <label className="text-[11px] font-medium text-gray-700">Country</label>
+174:                  <select value={formData.country} onChange={(e) => updateField('country', e.target.value)} className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white">
+175:                      <option value="Vietnam (VN)">Vietnam (VN)</option>
+176:                      <option value="United States (US)">United States (US)</option>
+177:                  </select>
+178:              </div>
+179:              <div className="space-y-1">
+180:                  <label className="text-[11px] font-medium text-gray-700 block mb-1.5">Is Master Bill</label>
+181:                  <div 
+182:                     className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors ${formData.isMasterBill ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+183:                     onClick={() => updateField('isMasterBill', !formData.isMasterBill)}
+184:                  >
+185:                     <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${formData.isMasterBill ? 'left-4.5' : 'left-0.5'}`}></div>
+186:                  </div>
+187:              </div>
+188: 
+189:              {/* Row 4 */}
+190:              <div className="space-y-1">
+191:                  <label className="text-[11px] font-medium text-gray-700 block mb-1.5">Supports Customs Declaration</label>
+192:                  <div 
+193:                     className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors ${formData.supportsCustomsDeclaration ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+194:                     onClick={() => updateField('supportsCustomsDeclaration', !formData.supportsCustomsDeclaration)}
+195:                  >
+196:                     <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${formData.supportsCustomsDeclaration ? 'left-4.5' : 'left-0.5'}`}></div>
+197:                  </div>
+198:              </div>
+199:              <div className="space-y-1">
+200:                  <label className="text-[11px] font-medium text-gray-700 block mb-1.5">Enable Pickup Service</label>
+201:                  <div 
+202:                     className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors ${formData.enablePickupService ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+203:                     onClick={() => updateField('enablePickupService', !formData.enablePickupService)}
+204:                  >
+205:                     <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${formData.enablePickupService ? 'left-4.5' : 'left-0.5'}`}></div>
+206:                  </div>
+207:              </div>
+208:           </div>
+209: 
+210:           <div className="mt-8 space-y-3">
+211:               <div className="flex items-center gap-2">
+212:                   <label className="text-[11px] font-medium text-gray-700 flex-1 block">Shipping Vendors</label>
+213:                   <label className="text-[11px] font-medium text-gray-700 shrink-0 block mr-1" title="Enable to purchase shipping service from this vendor">Buy Service</label>
+214:               </div>
+215:               <div className="space-y-4">
+216:                  {formData.shippingVendors?.map((vendor, index) => (
+217:                     <div key={index} className="border border-gray-200 rounded p-4 bg-gray-50/50">
+218:                         <div className="flex items-center gap-2 mb-3">
+219:                             <button 
+220:                                 onClick={() => toggleVendorExpand(index)}
+221:                                 className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+222:                             >
+223:                                 <i className={`fa-solid fa-chevron-${expandedVendors[index] ? 'down' : 'right'} text-[10px]`}></i>
+224:                             </button>
+225:                             <div className="relative flex-1">
+226:                                 <input 
+227:                                     type="text" 
+228:                                     value={vendor.vendorName || ''} 
+229:                                     onChange={(e) => updateVendorName(index, e.target.value)} 
+230:                                     className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white font-medium"
+231:                                     placeholder="Vendor Name"
+232:                                 />
+233:                                 <i className="fa-solid fa-circle-xmark absolute right-3 top-2 text-gray-300 hover:text-gray-400 cursor-pointer text-[10px]" onClick={() => updateVendorName(index, '')}></i>
+234:                             </div>
+235:                             <div 
+236:                                className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors shrink-0 ${vendorStatuses[index] !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+237:                                onClick={() => toggleVendorStatus(index)}
+238:                             >
+239:                                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${vendorStatuses[index] !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+240:                             </div>
+241:                             <button onClick={() => removeVendor(index)} className="text-red-500 hover:text-red-700 w-6 flex justify-center ml-2">
+242:                                 <i className="fa-regular fa-trash-can text-sm"></i>
+243:                             </button>
+244:                         </div>
+245:                         
+246:                         {expandedVendors[index] && (
+247:                         <div className="pl-4 ml-3 border-l-2 border-gray-200">
+248:                             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex">
+249:                                 <div className="flex-1">Shipping Vendor Service Code</div>
+250:                                 <div className="flex-1 ml-2">Shipping Vendor Service Name</div>
+251:                                 <div className="w-8"></div>
+252:                             </div>
+253:                             <div className="space-y-2">
+254:                                 {vendor.services?.map((svc, sIndex) => (
+255:                                     <div key={sIndex} className="flex items-center gap-2">
+256:                                         <input 
+257:                                             type="text" 
+258:                                             value={svc.code} 
+259:                                             onChange={(e) => updateService(index, sIndex, 'code', e.target.value)} 
+260:                                             placeholder="Code"
+261:                                             className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+262:                                         />
+263:                                         <input 
+264:                                             type="text" 
+265:                                             value={svc.name} 
+266:                                             onChange={(e) => updateService(index, sIndex, 'name', e.target.value)} 
+267:                                             placeholder="Name"
+268:                                             className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+269:                                         />
+270:                                         <button onClick={() => removeService(index, sIndex)} className="text-red-400 hover:text-red-600 w-8 flex justify-center">
+271:                                             <i className="fa-solid fa-xmark"></i>
+272:                                         </button>
+273:                                     </div>
+274:                                 ))}
+275:                                 {(!vendor.services || vendor.services.length === 0) && (
+276:                                     <div className="text-xs text-gray-400 italic py-1">No services configured</div>
+277:                                 )}
+278:                                 <button onClick={() => addService(index)} className="mt-2 text-[10px] font-bold text-[#2c6e3b] hover:text-[#20512b] flex items-center gap-1">
+279:                                     <i className="fa-solid fa-plus"></i> Add Service
+280:                                 </button>
+281:                             </div>
+282:                         </div>
+283:                         )}
+284:                     </div>
+285:                  ))}
+286:               </div>
+287:               <div>
+288:                   <button onClick={addVendor} className="px-3 py-1.5 border border-gray-300 rounded text-[11px] font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 bg-white">
+289:                       <i className="fa-solid fa-plus text-[10px]"></i> Add vendor
+290:                   </button>
+291:               </div>
+292:           </div>
+293: 
+294:           <div className="mt-6 space-y-1">
+295:               <label className="text-[11px] font-medium text-gray-700 block">Note</label>
+296:               <input type="text" value={formData.note} onChange={(e) => updateField('note', e.target.value)} placeholder="Note" className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 bg-white placeholder-gray-300" />
+297:           </div>
+298: 
+299:         </div>
+300:       </div>
+301:     </div>
+302:   );
+303: }
+304: 

@@ -1,0 +1,85 @@
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-truck-ramp-box text-[#4d9e5f]"></i>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Carrier Drop-off Points</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newPoint: DropOffPoint = { id: Math.random().toString(36).substr(2, 9), carrier: '', address: '' };
+                      setEditingStore({ ...editingStore, dropOffPoints: [...(editingStore.dropOffPoints || []), newPoint] });
+                    }}
+                    className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <i className="fa-solid fa-plus-circle"></i> Add Drop-off Point
+                  </button>
+                </div>
+                <div className="p-4">
+                  {(!editingStore.dropOffPoints || editingStore.dropOffPoints.length === 0) ? (
+                    <div className="text-center py-8 text-gray-400 italic text-xs">
+                      No drop-off points configured for this store.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {editingStore.dropOffPoints.map((point, index) => (
+                        <div key={point.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50/50 p-4 rounded-lg border border-gray-100 group transition-all hover:border-green-100">
+                          <div className="md:col-span-3 space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Carrier</label>
+                            <input 
+                              type="text"
+                              value={point.carrier}
+                              onChange={e => {
+                                const newPoints = [...(editingStore.dropOffPoints || [])];
+                                newPoints[index] = { ...point, carrier: e.target.value };
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              placeholder="e.g. GHTK, J&T"
+                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
+                            />
+                          </div>
+                          <div className="md:col-span-8 space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Drop-off Address</label>
+                            <input 
+                              type="text"
+                              value={point.address}
+                              onChange={e => {
+                                const newPoints = [...(editingStore.dropOffPoints || [])];
+                                newPoints[index] = { ...point, address: e.target.value };
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              placeholder="Enter full address for drop-off"
+                              className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700 focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all"
+                            />
+                          </div>
+                          <div className="md:col-span-1 flex justify-center gap-1">
+                            <button 
+                              onClick={() => setConfiguringDropOffPoint({ index, point })}
+                              className="text-gray-300 hover:text-[#4d9e5f] transition-colors p-2"
+                              title="Configure Detailed Address"
+                            >
+                              <i className="fa-solid fa-gear"></i>
+                            </button>
+                            <button 
+                              onClick={() => {
+                                const newPoints = (editingStore.dropOffPoints || []).filter(p => p.id !== point.id);
+                                setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                              }}
+                              className="text-gray-300 hover:text-red-500 transition-colors p-2"
+                              title="Remove"
+                            >
+                              <i className="fa-solid fa-trash-can"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-radar text-[#4d9e5f]"></i>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Shipper Search Radius Configuration</h3>

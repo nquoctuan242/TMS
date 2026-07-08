@@ -1,0 +1,201 @@
+                                      onChange={(e) => {
+                                        const carrier = MOCK_CARRIERS.find(c => c.id === e.target.value);
+                                        const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                        if (carrier) {
+                                           const isAggregator = carrier.integrationType === 'Shipping Aggregator';
+                                           const defaultVendor = !isAggregator && carrier.shippingVendors?.[0] ? carrier.shippingVendors[0] : null;
+                                           newConfigs[index] = { 
+                                               ...newConfigs[index], 
+                                               carrierId: carrier.id, 
+                                               carrierCode: carrier.carrierCode, 
+                                               carrierName: carrier.carrierName,
+                                               vendorName: '',
+                                               services: defaultVendor ? defaultVendor.services || [] : [],
+                                               pickupFree: defaultVendor ? defaultVendor.pickupFree : false,
+                                               pickupOnDemand: defaultVendor ? defaultVendor.pickupOnDemand : false,
+                                               dropoff: defaultVendor ? defaultVendor.dropoff : false,
+                                               dropOffPoints: []
+                                           };
+                                        } else {
+                                           newConfigs[index] = { ...newConfigs[index], carrierId: '', carrierCode: '', carrierName: '', vendorName: '', services: [], dropOffPoints: [] };
+                                        }
+                                        setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                      }}
+                                      className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                  >
+                                      <option value="">Select Carrier...</option>
+                                      {MOCK_CARRIERS.map(c => <option key={c.id} value={c.id}>{c.carrierName} ({c.carrierCode})</option>)}
+                                  </select>
+                                  
+                                  {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' && (
+                                     <select
+                                         value={config.vendorName || ''}
+                                         onChange={(e) => {
+                                            const carrier = MOCK_CARRIERS.find(c => c.id === config.carrierId);
+                                            const vendor = carrier?.shippingVendors?.find(v => v.vendorName === e.target.value);
+                                            const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                            if (vendor) {
+                                                newConfigs[index] = { 
+                                                    ...newConfigs[index], 
+                                                    vendorName: vendor.vendorName,
+                                                    services: vendor.services || [],
+                                                    pickupFree: vendor.pickupFree,
+                                                    pickupOnDemand: vendor.pickupOnDemand,
+                                                    dropoff: vendor.dropoff
+                                                };
+                                            } else {
+                                                newConfigs[index] = { ...newConfigs[index], vendorName: '', services: [] };
+                                            }
+                                            setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                         }}
+                                         className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                     >
+                                         <option value="">Select Vendor...</option>
+                                         {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
+                                     </select>
+                                  )}
+                              </div>
+                              <button onClick={() => {
+                                const newConfigs = (editingStore.carrierConfigs || []).filter(c => c.id !== config.id);
+                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                              }} className="text-gray-300 hover:text-red-500 w-6 flex justify-center ml-2 transition-colors">
+                                  <i className="fa-regular fa-trash-can text-sm"></i>
+                              </button>
+                           </div>
+                           
+                           {expandedStoreCarriers[index] && (
+                           <div className="pl-4 ml-3 border-l-2 border-gray-200 pt-2">
+                               {/* Pickup / Dropoff Overrides */}
+                               <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+                                  <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Pickup / Dropoff Overrides</div>
+                                  <div className="flex flex-wrap items-center gap-6">
+                                      <div className="flex items-center gap-2">
+                                          <label className="text-[11px] text-gray-700 font-medium">Pickup Free</label>
+                                           <div 
+                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.pickupFree !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                                              onClick={() => {
+                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                newConfigs[index] = { ...newConfigs[index], pickupFree: config.pickupFree === false ? true : false };
+                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                              }}
+                                           >
+                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.pickupFree !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                                           </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                          <label className="text-[11px] text-gray-700 font-medium">Pickup On-demand</label>
+                                           <div 
+                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.pickupOnDemand !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                                              onClick={() => {
+                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                newConfigs[index] = { ...newConfigs[index], pickupOnDemand: config.pickupOnDemand === false ? true : false };
+                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                              }}
+                                           >
+                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.pickupOnDemand !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                                           </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                          <label className="text-[11px] text-gray-700 font-medium">Dropoff</label>
+                                           <div 
+                                              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors shrink-0 ${config.dropoff !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                                              onClick={() => {
+                                                const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                newConfigs[index] = { ...newConfigs[index], dropoff: config.dropoff === false ? true : false };
+                                                setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                              }}
+                                           >
+                                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${config.dropoff !== false ? 'left-4.5' : 'left-0.5'}`}></div>
+                                           </div>
+                                      </div>
+                                  </div>
+                              </div>
+
+                               {/* Location Dropoff Points */}
+                               {config.dropoff && (
+                               <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
+                                   <div className="flex items-center justify-between mb-3">
+                                       <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location Dropoff Points</div>
+                                       <button onClick={() => {
+                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                           newConfigs[index] = { ...newConfigs[index], dropOffPoints: [...(newConfigs[index].dropOffPoints || []), { id: Math.random().toString(36).substr(2, 9), carrier: config.carrierName, address: '' }] };
+                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                       }} className="text-[#4d9e5f] hover:text-[#1b4d3e] text-[10px] font-bold flex items-center gap-1 transition-colors">
+                                           <i className="fa-solid fa-plus-circle"></i> Add Location
+                                       </button>
+                                   </div>
+                                   {(!config.dropOffPoints || config.dropOffPoints.length === 0) ? (
+                                       <div className="text-center py-4 text-gray-400 italic text-[10px]">No location drop-off points configured.</div>
+                                   ) : (
+                                       <div className="space-y-2">
+                                           {config.dropOffPoints.map((point, pIndex) => (
+                                               <div key={point.id} className="flex gap-2">
+                                                   <input 
+                                                       type="text" 
+                                                       value={point.address} 
+                                                       onChange={e => {
+                                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                           const newPoints = [...(newConfigs[index].dropOffPoints || [])];
+                                                           newPoints[pIndex] = { ...newPoints[pIndex], address: e.target.value };
+                                                           newConfigs[index] = { ...newConfigs[index], dropOffPoints: newPoints };
+                                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                       }} 
+                                                       placeholder="Enter full address for drop-off"
+                                                       className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-[11px] font-medium text-gray-700 focus:border-[#4d9e5f] outline-none transition-all"
+                                                   />
+                                                   <button onClick={() => {
+                                                        const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                        const newPoints = (newConfigs[index].dropOffPoints || []).filter((_, i) => i !== pIndex);
+                                                        newConfigs[index] = { ...newConfigs[index], dropOffPoints: newPoints };
+                                                        setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                   }} className="text-gray-300 hover:text-red-500 w-8 flex items-center justify-center transition-colors">
+                                                       <i className="fa-solid fa-trash-can text-[10px]"></i>
+                                                   </button>
+                                               </div>
+                                           ))}
+                                       </div>
+                                   )}
+                               </div>
+                               )}
+
+                               {/* Service Overrides */}
+                               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex">
+                                   <div className="flex-1">Service Code</div>
+                                   <div className="flex-1 ml-2">Service Name</div>
+                                   <div className="w-8"></div>
+                               </div>
+                               <div className="space-y-2">
+                                   {config.services?.map((svc, sIndex) => (
+                                       <div key={sIndex} className="flex items-center gap-2">
+                                           <input 
+                                               type="text" 
+                                               value={svc.code} 
+                                               onChange={(e) => {
+                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                 const newServices = [...(newConfigs[index].services || [])];
+                                                 newServices[sIndex] = { ...newServices[sIndex], code: e.target.value };
+                                                 newConfigs[index] = { ...newConfigs[index], services: newServices };
+                                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                               }} 
+                                               placeholder="Code"
+                                               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+                                           />
+                                           <input 
+                                               type="text" 
+                                               value={svc.name} 
+                                               onChange={(e) => {
+                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                 const newServices = [...(newConfigs[index].services || [])];
+                                                 newServices[sIndex] = { ...newServices[sIndex], name: e.target.value };
+                                                 newConfigs[index] = { ...newConfigs[index], services: newServices };
+                                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                               }} 
+                                               placeholder="Name"
+                                               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white"
+                                           />
+                                           <div 
+                                              className={`w-9 h-5 rounded-full relative cursor-pointer transition-colors shrink-0 ${svc.isActive !== false ? 'bg-[#2c6e3b]' : 'bg-gray-300'}`}
+                                              onClick={() => {
+                                                 const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                 const newServices = [...(newConfigs[index].services || [])];
+                                                 newServices[sIndex] = { ...newServices[sIndex], isActive: svc.isActive === false ? true : false };
