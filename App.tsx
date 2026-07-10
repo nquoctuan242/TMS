@@ -3519,6 +3519,15 @@ const App: React.FC = () => {
                         <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingTicketType.showPenaltyAmountOnApp !== false && editingTicketType.violationPenaltyAmount && editingTicketType.violationPenaltyAmount > 0 ? 'translate-x-4' : 'translate-x-0'}`} />
                       </button>
                     </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Auto Create Ticket</label>
+                      <button 
+                        onClick={() => setEditingTicketType({...editingTicketType, autoCreateTicket: !editingTicketType.autoCreateTicket})}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingTicketType.autoCreateTicket ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingTicketType.autoCreateTicket ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Country</label>
                       <select 
@@ -3540,6 +3549,106 @@ const App: React.FC = () => {
                         className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
                         placeholder="e.g. Ho Chi Minh"
                       />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Apply to Order Types</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {(editingTicketType.applyOrderTypes || []).map(type => (
+                          <span key={type} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 border border-[#cbe1d4]">
+                            {type}
+                            <button onClick={() => setEditingTicketType({...editingTicketType, applyOrderTypes: (editingTicketType.applyOrderTypes || []).filter(t => t !== type)})} className="hover:text-red-500 opacity-70 hover:opacity-100 transition-opacity"><i className="fa-solid fa-xmark"></i></button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            list="order-type-options"
+                            placeholder="Type or select to add..."
+                            id="order-type-input"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val && !(editingTicketType.applyOrderTypes || []).includes(val)) {
+                                   setEditingTicketType({...editingTicketType, applyOrderTypes: [...(editingTicketType.applyOrderTypes || []), val]});
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                            className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <button 
+                             onClick={() => {
+                                 const input = document.getElementById('order-type-input') as HTMLInputElement;
+                                 if (input) {
+                                     const val = input.value.trim();
+                                     if (val && !(editingTicketType.applyOrderTypes || []).includes(val)) {
+                                         setEditingTicketType({...editingTicketType, applyOrderTypes: [...(editingTicketType.applyOrderTypes || []), val]});
+                                     }
+                                     input.value = '';
+                                 }
+                             }}
+                             className="bg-[#4d9e5f] hover:bg-[#3d7d4c] text-white px-3 rounded-[4px] text-xs font-bold transition-colors h-[34px]"
+                          >
+                             Add
+                          </button>
+                      </div>
+                      <datalist id="order-type-options">
+                        <option value="Online" />
+                        <option value="IT" />
+                      </datalist>
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Apply to Service Types</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {(editingTicketType.applyServiceTypes || []).map(type => (
+                          <span key={type} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 border border-[#cbe1d4]">
+                            {type}
+                            <button onClick={() => setEditingTicketType({...editingTicketType, applyServiceTypes: (editingTicketType.applyServiceTypes || []).filter(t => t !== type)})} className="hover:text-red-500 opacity-70 hover:opacity-100 transition-opacity"><i className="fa-solid fa-xmark"></i></button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            list="service-type-options"
+                            placeholder="Type or select to add..."
+                            id="service-type-input"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val && !(editingTicketType.applyServiceTypes || []).includes(val)) {
+                                   setEditingTicketType({...editingTicketType, applyServiceTypes: [...(editingTicketType.applyServiceTypes || []), val]});
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                            className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <button 
+                             onClick={() => {
+                                 const input = document.getElementById('service-type-input') as HTMLInputElement;
+                                 if (input) {
+                                     const val = input.value.trim();
+                                     if (val && !(editingTicketType.applyServiceTypes || []).includes(val)) {
+                                         setEditingTicketType({...editingTicketType, applyServiceTypes: [...(editingTicketType.applyServiceTypes || []), val]});
+                                     }
+                                     input.value = '';
+                                 }
+                             }}
+                             className="bg-[#4d9e5f] hover:bg-[#3d7d4c] text-white px-3 rounded-[4px] text-xs font-bold transition-colors h-[34px]"
+                          >
+                             Add
+                          </button>
+                      </div>
+                      <datalist id="service-type-options">
+                        <option value="Standard" />
+                        <option value="Same day" />
+                        <option value="2h" />
+                        <option value="4h" />
+                      </datalist>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Status</label>
@@ -4511,15 +4620,16 @@ const App: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       {editingStore.carrierConfigs.map((config, index) => (
-                        <div key={config.id} className="border border-gray-200 rounded p-4 bg-gray-50/50 group transition-all hover:border-green-100">
-                           <div className="flex items-center gap-2 mb-3">
+                        <div key={config.id} className="border border-gray-200 rounded-lg p-0 bg-white mb-4 shadow-sm overflow-hidden group transition-all">
+                           <div className="flex items-center gap-2 p-3 bg-gray-50 border-b border-gray-100">
                               <button 
                                   onClick={() => setExpandedStoreCarriers(prev => ({...prev, [index]: !prev[index]}))}
-                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                                  className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-[#4d9e5f] hover:bg-[#e9f2ee] rounded transition-all"
                               >
                                   <i className={`fa-solid fa-chevron-${expandedStoreCarriers[index] ? 'down' : 'right'} text-[10px]`}></i>
                               </button>
-                              <div className="relative flex-1 flex gap-2">
+                              
+                              <div className="flex-1 flex gap-4">
                                   <select 
                                       value={config.carrierId || ''} 
                                       onChange={(e) => {
@@ -4545,88 +4655,102 @@ const App: React.FC = () => {
                                         }
                                         setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
                                       }}
-                                      className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                      className="w-1/2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
                                   >
                                       <option value="">Select Carrier...</option>
                                       {MOCK_CARRIERS.map(c => <option key={c.id} value={c.id}>{c.carrierName} ({c.carrierCode})</option>)}
                                   </select>
-                                  
-                                  {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' && (
-                                     <select
-                                         value=""
-                                         onChange={(e) => {
-                                            if (!e.target.value) return;
-                                            const carrier = MOCK_CARRIERS.find(c => c.id === config.carrierId);
-                                            const vendor = carrier?.shippingVendors?.find(v => v.vendorName === e.target.value);
-                                            const newConfigs = [...(editingStore.carrierConfigs || [])];
-                                            if (vendor) {
-                                                const currentVendors = newConfigs[index].vendors || [];
-                                                if (!currentVendors.find(v => v.vendorName === vendor.vendorName)) {
-                                                    newConfigs[index] = { 
-                                                        ...newConfigs[index], 
-                                                        vendors: [...currentVendors, {
-                                                            vendorName: vendor.vendorName,
-                                                            services: vendor.services || [],
-                                                            pickupFree: vendor.pickupFree,
-                                                            pickupOnDemand: vendor.pickupOnDemand,
-                                                            dropoff: vendor.dropoff,
-                                                            dropOffPoints: []
-                                                        }]
-                                                    };
-                                                    setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
-                                                }
-                                            }
-                                         }}
-                                         className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
-                                     >
-                                         <option value="">Add Vendor...</option>
-                                         {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.filter(v => !(config.vendors || []).find(cv => cv.vendorName === v.vendorName)).map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
-                                     </select>
-                                  )}
                               </div>
                               <button onClick={() => {
                                 const newConfigs = (editingStore.carrierConfigs || []).filter(c => c.id !== config.id);
                                 setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
-                              }} className="text-gray-300 hover:text-red-500 w-6 flex justify-center ml-2 transition-colors">
+                              }} className="text-gray-300 hover:text-red-500 w-8 h-8 flex justify-center items-center rounded hover:bg-red-50 transition-colors">
                                   <i className="fa-regular fa-trash-can text-sm"></i>
                               </button>
                            </div>
                            
-                           {expandedStoreCarriers[index] && (
-                           <div className="mt-2">
+                           {config.carrierId && expandedStoreCarriers[index] && (
+                           <div className="p-4 bg-white">
                                {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' ? (
                                    <div className="space-y-4">
-                                       {(config.vendors || []).map((vendor, vIndex) => (
-                                           <div key={vIndex} className="border border-gray-200 rounded p-3 bg-white">
-                                               <div className="flex justify-between items-center mb-2">
-                                                   <div className="font-bold text-sm text-[#1b4d3e]">{vendor.vendorName}</div>
-                                                   <button onClick={() => {
-                                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
-                                                       newConfigs[index] = { ...newConfigs[index], vendors: (newConfigs[index].vendors || []).filter((_, i) => i !== vIndex) };
-                                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
-                                                   }} className="text-gray-400 hover:text-red-500 transition-colors">
-                                                       <i className="fa-solid fa-trash-can text-xs"></i>
-                                                   </button>
+                                       <div className="flex justify-between items-center mb-2">
+                                           <h4 className="text-xs font-bold text-[#1b4d3e] uppercase tracking-wider">Configured Vendors</h4>
+                                           <select
+                                               value=""
+                                               onChange={(e) => {
+                                                  if (!e.target.value) return;
+                                                  const carrier = MOCK_CARRIERS.find(c => c.id === config.carrierId);
+                                                  const vendor = carrier?.shippingVendors?.find(v => v.vendorName === e.target.value);
+                                                  const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                  if (vendor) {
+                                                      const currentVendors = newConfigs[index].vendors || [];
+                                                      if (!currentVendors.find(v => v.vendorName === vendor.vendorName)) {
+                                                          newConfigs[index] = { 
+                                                              ...newConfigs[index], 
+                                                              vendors: [...currentVendors, {
+                                                                  vendorName: vendor.vendorName,
+                                                                  services: vendor.services || [],
+                                                                  pickupFree: vendor.pickupFree,
+                                                                  pickupOnDemand: vendor.pickupOnDemand,
+                                                                  dropoff: vendor.dropoff,
+                                                                  dropOffPoints: []
+                                                              }]
+                                                          };
+                                                          setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                      }
+                                                  }
+                                               }}
+                                               className="w-48 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                                           >
+                                               <option value="">+ Add Vendor...</option>
+                                               {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.filter(v => !(config.vendors || []).find(cv => cv.vendorName === v.vendorName)).map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
+                                           </select>
+                                       </div>
+                                       
+                                       <div className="space-y-4">
+                                           {(config.vendors || []).map((vendor, vIndex) => (
+                                               <div key={vIndex} className="border border-[#e9f2ee] rounded-md overflow-hidden bg-white shadow-sm">
+                                                   <div className="bg-[#f3f8f5] px-4 py-2 border-b border-[#e9f2ee] flex justify-between items-center">
+                                                       <div className="font-bold text-[13px] text-[#1b4d3e] flex items-center">
+                                                           <i className="fa-solid fa-truck-fast mr-2 opacity-50 text-[10px]"></i>
+                                                           {vendor.vendorName}
+                                                       </div>
+                                                       <button onClick={() => {
+                                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                           newConfigs[index] = { ...newConfigs[index], vendors: (newConfigs[index].vendors || []).filter((_, i) => i !== vIndex) };
+                                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                       }} className="text-gray-400 hover:text-red-500 transition-colors">
+                                                           <i className="fa-solid fa-trash-can text-xs"></i>
+                                                       </button>
+                                                   </div>
+                                                   <div className="p-4 bg-white">
+                                                       {renderConfigDetails(vendor, (newVendorData) => {
+                                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                                           const newVendors = [...(newConfigs[index].vendors || [])];
+                                                           newVendors[vIndex] = newVendorData;
+                                                           newConfigs[index] = { ...newConfigs[index], vendors: newVendors };
+                                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                                       })}
+                                                   </div>
                                                </div>
-                                               {renderConfigDetails(vendor, (newVendorData) => {
-                                                   const newConfigs = [...(editingStore.carrierConfigs || [])];
-                                                   const newVendors = [...(newConfigs[index].vendors || [])];
-                                                   newVendors[vIndex] = newVendorData;
-                                                   newConfigs[index] = { ...newConfigs[index], vendors: newVendors };
-                                                   setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
-                                               })}
-                                           </div>
-                                       ))}
-                                       {(!config.vendors || config.vendors.length === 0) && (
-                                           <div className="text-xs text-gray-400 italic py-2 px-3">No vendors added yet. Please add a vendor from the dropdown above.</div>
-                                       )}
+                                           ))}
+                                           {(!config.vendors || config.vendors.length === 0) && (
+                                               <div className="text-xs text-gray-400 italic py-6 px-3 text-center border border-dashed rounded-md bg-gray-50/50">
+                                                   <div className="text-gray-300 mb-1"><i className="fa-solid fa-box-open text-xl"></i></div>
+                                                   No vendors added yet. Please select from the dropdown above.
+                                               </div>
+                                           )}
+                                       </div>
                                    </div>
                                ) : (
-                                   renderConfigDetails(config, (newConfigData) => {
-                                       const newConfigs = [...(editingStore.carrierConfigs || [])];
-                                       newConfigs[index] = newConfigData;
-                                       setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
-                                   })
+                                   <div>
+                                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Carrier Settings</h4>
+                                       {renderConfigDetails(config, (newConfigData) => {
+                                           const newConfigs = [...(editingStore.carrierConfigs || [])];
+                                           newConfigs[index] = newConfigData;
+                                           setEditingStore({ ...editingStore, carrierConfigs: newConfigs });
+                                       })}
+                                   </div>
                                )}
                            </div>
                            )}
@@ -7576,7 +7700,7 @@ const InfoRow: React.FC<{ label: string; value: React.ReactNode; bold?: boolean 
 );
 
 export default App;  const renderConfigDetails = (data: any, onChange: (newData: any) => void) => (
-    <div className="pl-4 ml-3 border-l-2 border-gray-200 pt-2">
+    <div className="">
        {/* Pickup / Dropoff Overrides */}
        <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
           <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Pickup / Dropoff Overrides</div>

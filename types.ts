@@ -311,6 +311,9 @@ export interface TicketType {
   violationPenaltyAmount?: number;
   showPenaltyAmountOnApp?: boolean;
   currency?: string;
+  applyOrderTypes?: string[];
+  applyServiceTypes?: string[];
+  autoCreateTicket?: boolean;
   createdAt: string;
 }
 export interface Carrier {
