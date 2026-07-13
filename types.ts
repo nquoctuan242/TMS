@@ -381,3 +381,13 @@ export interface StoreCarrierConfig {
   dropoff?: boolean;
   dropOffPoints?: DropOffPoint[];
 }
+
+export interface ShiftControlConfig {
+  id: string;
+  stateProvince?: string;
+  country: string;
+  warnBeforeShiftEndMinutes: number;
+  blockDeliveryActionsAtEnd: boolean;
+  allowReturnAllAtEnd: boolean;
+  createdAt: string;
+}

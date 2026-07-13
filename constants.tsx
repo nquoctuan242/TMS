@@ -560,3 +560,24 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     pickActions: '*** *** *** *** California 90201, U'
   }
 ];
+
+export const MOCK_SHIFT_CONTROL_CONFIGS: import('./types').ShiftControlConfig[] = [
+  {
+    id: '1',
+    country: 'Vietnam (VN)',
+    stateProvince: '',
+    warnBeforeShiftEndMinutes: 30,
+    blockDeliveryActionsAtEnd: true,
+    allowReturnAllAtEnd: true,
+    createdAt: '2026-07-12T10:00:00Z'
+  },
+  {
+    id: '2',
+    country: 'Vietnam (VN)',
+    stateProvince: 'Ho Chi Minh',
+    warnBeforeShiftEndMinutes: 15,
+    blockDeliveryActionsAtEnd: true,
+    allowReturnAllAtEnd: false,
+    createdAt: '2026-07-12T11:00:00Z'
+  }
+];

@@ -1,4 +1,6 @@
 import { TicketContentListView } from './src/TicketContentListView';
+import { ShiftControlListView } from './src/ShiftControlListView';
+import { ShiftControlDetailView } from './src/ShiftControlDetailView';
 import { TicketContentDetailView } from './src/TicketContentDetailView';
 
 import React, { useState } from 'react';
@@ -1355,7 +1357,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-car-side" 
             label="Fleet" 
-            active={currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail'} 
+            active={currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
             hasSubItems
             onClick={() => {}}
           >
@@ -1538,6 +1540,8 @@ const App: React.FC = () => {
                  currentView === 'daily-commission' ? 'Daily Commission' :
                  currentView === 'payroll-period-list' ? 'Payroll Period' :
                  currentView === 'payroll-period-detail' ? 'Payroll Period Detail' :
+                 currentView === 'shift-control-list' ? 'Shift Control' :
+                 currentView === 'shift-control-detail' ? 'Shift Control Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
