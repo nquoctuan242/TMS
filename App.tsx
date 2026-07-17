@@ -1475,10 +1475,10 @@ const App: React.FC = () => {
              </div>
           </SidebarItem>
           <SidebarItem 
-            icon="fa-money-bill-transfer" 
-            label="Landing Cost" 
-            active={currentView === 'landing-cost-list' || currentView === 'landing-cost-detail'} 
-            onClick={() => setCurrentView('landing-cost-list')}
+            icon="fa-calculator" 
+            label="Landing Cost Calculator" 
+            active={currentView === 'landing-cost-list' || currentView === 'landing-cost-detail' || currentView === 'landing-cost-calculator'} 
+            onClick={() => setCurrentView('landing-cost-calculator')}
           />
           <SidebarItem 
             icon="fa-gear" 
@@ -1563,6 +1563,9 @@ const App: React.FC = () => {
                  currentView === 'order-online' ? 'Online Order' :
                  currentView === 'shipper-list' ? 'Shipper List' :
                  currentView === 'shipper-detail' ? 'Shipper Detail' :
+                 currentView === 'landing-cost-list' ? 'Landing Cost' :
+                 currentView === 'landing-cost-detail' ? 'Landing Cost Detail' :
+                 currentView === 'landing-cost-calculator' ? 'Landing Cost Calculator' :
                  currentView === 'scan-time-list' ? 'Scan Time Configs' :
                  currentView === 'scan-time-detail' ? 'Scan Time Detail' :
                  currentView === 'daily-commission' ? 'Daily Commission' :
@@ -2036,6 +2039,29 @@ const App: React.FC = () => {
                   </div>
                 </div>
              </div>
+          ) : currentView === 'landing-cost-list' ? (
+             <LandingCostListView 
+               configs={landingCostConfigs}
+               onAddNew={() => { setEditingLandingCostConfig(null); setCurrentView('landing-cost-detail'); }}
+               onEdit={(c) => { setEditingLandingCostConfig(c); setCurrentView('landing-cost-detail'); }}
+               onOpenCalculator={() => setCurrentView('landing-cost-calculator')}
+             />
+          ) : currentView === 'landing-cost-detail' ? (
+             <LandingCostDetailView 
+               config={editingLandingCostConfig}
+               stores={stores}
+               onBack={() => setCurrentView('landing-cost-list')}
+               onSave={(newConfig) => {
+                 if (editingLandingCostConfig) {
+                   setLandingCostConfigs(prev => prev.map(c => c.id === newConfig.id ? newConfig : c));
+                 } else {
+                   setLandingCostConfigs(prev => [{...newConfig, id: Date.now().toString()}, ...prev]);
+                 }
+                 setCurrentView('landing-cost-list');
+               }}
+             />
+          ) : currentView === 'landing-cost-calculator' ? (
+             <LandingCostCalculatorView />
           ) : currentView === 'scan-time-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                <div className="flex items-center justify-between border-b px-4 py-3">

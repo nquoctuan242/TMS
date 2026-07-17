@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { DeclareCartonCatalogModal } from './DeclareCartonCatalogModal';
 
-export function LandingCostCalculatorView({ onBack }: { onBack: () => void }) {
+export function LandingCostCalculatorView() {
   const [items, setItems] = useState([
     {
       id: '1',
@@ -25,6 +26,8 @@ export function LandingCostCalculatorView({ onBack }: { onBack: () => void }) {
       cw: '1'
     }
   ]);
+
+  const [showCartonModal, setShowCartonModal] = useState(false);
 
   const [packingGroups, setPackingGroups] = useState([
     {
@@ -69,12 +72,9 @@ export function LandingCostCalculatorView({ onBack }: { onBack: () => void }) {
         <div className="flex justify-between items-center bg-white p-5 rounded-lg shadow-sm mb-6 border border-gray-100">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <button onClick={onBack} className="text-gray-400 hover:text-gray-800 transition-colors">
-                <i className="fa-solid fa-arrow-left"></i>
-              </button>
-              <h1 className="text-2xl font-bold text-gray-800">Landing Cost</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Landing Cost Calculator</h1>
             </div>
-            <p className="text-sm text-gray-500 ml-7">Determine import/export duties and shipping costs per item</p>
+            <p className="text-sm text-gray-500">Determine import/export duties and shipping costs per item</p>
           </div>
           <button className="bg-[#1b4d3e] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#153a2f] shadow-sm transition-colors flex items-center gap-2">
             <i className="fa-regular fa-calendar-check"></i> Check Cargo Ready Date
@@ -257,7 +257,7 @@ export function LandingCostCalculatorView({ onBack }: { onBack: () => void }) {
               <h3 className="font-bold text-gray-700 text-sm">Packaging Plan</h3>
             </div>
             <div className="flex items-center gap-3">
-              <button className="text-[#1b4d3e] border border-[#1b4d3e] bg-white hover:bg-green-50 px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1 transition-colors">
+              <button onClick={() => setShowCartonModal(true)} className="text-[#1b4d3e] border border-[#1b4d3e] bg-white hover:bg-green-50 px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1 transition-colors">
                 <i className="fa-solid fa-file-import"></i> Import Packing Cartons
               </button>
               <button className="text-gray-700 border border-gray-300 hover:bg-gray-50 px-3 py-1.5 rounded text-xs font-bold transition-colors">
@@ -377,6 +377,7 @@ export function LandingCostCalculatorView({ onBack }: { onBack: () => void }) {
         </div>
 
       </div>
+      {showCartonModal && <DeclareCartonCatalogModal onClose={() => setShowCartonModal(false)} />}
     </div>
   );
 }
