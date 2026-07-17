@@ -6,6 +6,9 @@ import { UserStoreAccessListView } from './src/UserStoreAccessListView';
 import { UserStoreAccessDetailView } from './src/UserStoreAccessDetailView';
 
 import React, { useState } from 'react';
+import { LandingCostListView } from './src/LandingCostListView';
+import { LandingCostDetailView } from './src/LandingCostDetailView';
+import { LandingCostCalculatorView } from './src/LandingCostCalculatorView';
 import { ShipmentPlanningModal } from './ShipmentPlanningModal';
 import { ConfigStrategyView } from './src/ConfigStrategyView';
 import { CarrierListView } from './src/CarrierListView';
@@ -14,9 +17,9 @@ import { OrderOnlineView } from './src/OrderOnlineView';
 import { OrderOnlineDetailView } from './src/OrderOnlineDetailView';
 import { OnlineOrder } from './types';
 import { MOCK_ONLINE_ORDERS } from './constants';
-import { Carrier } from './types';
+import { Carrier, LandingCostConfig } from './types';
 import { MOCK_CARRIERS } from './constants';
-import { MOCK_SHIPMENT, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
+import { MOCK_SHIPMENT, MOCK_LANDING_COST_CONFIGS, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
 import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
 
 const REJECT_REASONS = [
@@ -407,7 +410,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -430,6 +433,8 @@ const App: React.FC = () => {
   const [shippers, setShippers] = useState<Shipper[]>(MOCK_SHIPPERS);
   const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>(MOCK_PAYROLL_PERIODS);
   const [kpiRules, setKpiRules] = useState([{ id: 1, name: 'KPI 1' }]);
+    const [landingCostConfigs, setLandingCostConfigs] = useState<LandingCostConfig[]>(MOCK_LANDING_COST_CONFIGS);
+  const [editingLandingCostConfig, setEditingLandingCostConfig] = useState<LandingCostConfig | null>(null);
   const [scanTimeConfigs, setScanTimeConfigs] = useState<ScanTimeConfig[]>(MOCK_SCAN_TIME_CONFIGS);
   const [editingScanTimeConfig, setEditingScanTimeConfig] = useState<Partial<ScanTimeConfig>>({});
   const [tickets, setTickets] = useState<Ticket[]>(MOCK_TICKETS);
@@ -1469,6 +1474,12 @@ const App: React.FC = () => {
                 </div>
              </div>
           </SidebarItem>
+          <SidebarItem 
+            icon="fa-money-bill-transfer" 
+            label="Landing Cost" 
+            active={currentView === 'landing-cost-list' || currentView === 'landing-cost-detail'} 
+            onClick={() => setCurrentView('landing-cost-list')}
+          />
           <SidebarItem 
             icon="fa-gear" 
             label="Configs" 

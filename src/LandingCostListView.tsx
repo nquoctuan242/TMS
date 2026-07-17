@@ -5,9 +5,10 @@ interface LandingCostListViewProps {
   configs: LandingCostConfig[];
   onAddNew: () => void;
   onEdit: (config: LandingCostConfig) => void;
+  onOpenCalculator: () => void;
 }
 
-export function LandingCostListView({ configs, onAddNew, onEdit }: LandingCostListViewProps) {
+export function LandingCostListView({ configs, onAddNew, onEdit, onOpenCalculator }: LandingCostListViewProps) {
   return (
     <div className="bg-[#f8fafc] min-h-full py-6 px-4 pb-24 font-sans animate-in fade-in duration-300">
       <div className="max-w-[1200px] mx-auto">
@@ -16,12 +17,20 @@ export function LandingCostListView({ configs, onAddNew, onEdit }: LandingCostLi
             <h1 className="text-2xl font-bold text-gray-800 mb-1">Landing Cost Configs</h1>
             <p className="text-sm text-gray-500">Manage rules and formulas for calculating landing costs.</p>
           </div>
-          <button 
-            onClick={onAddNew}
-            className="bg-[#1b4d3e] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#153a2f] shadow-sm transition-colors flex items-center gap-2"
-          >
-            <i className="fa-solid fa-plus"></i> Add Config
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={onOpenCalculator}
+              className="bg-white text-gray-700 border border-gray-300 px-5 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2"
+            >
+              <i className="fa-solid fa-calculator"></i> Calculator
+            </button>
+            <button 
+              onClick={onAddNew}
+              className="bg-[#1b4d3e] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#153a2f] shadow-sm transition-colors flex items-center gap-2"
+            >
+              <i className="fa-solid fa-plus"></i> Add Config
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
