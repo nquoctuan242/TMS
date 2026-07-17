@@ -2,6 +2,8 @@ import { TicketContentListView } from './src/TicketContentListView';
 import { ShiftControlListView } from './src/ShiftControlListView';
 import { ShiftControlDetailView } from './src/ShiftControlDetailView';
 import { TicketContentDetailView } from './src/TicketContentDetailView';
+import { UserStoreAccessListView } from './src/UserStoreAccessListView';
+import { UserStoreAccessDetailView } from './src/UserStoreAccessDetailView';
 
 import React, { useState } from 'react';
 import { ShipmentPlanningModal } from './ShipmentPlanningModal';
@@ -514,6 +516,7 @@ const App: React.FC = () => {
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   
   const [selectedShipmentId, setSelectedShipmentId] = useState<string | null>(null);
+  const [selectedShiftControlId, setSelectedShiftControlId] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState(STORES[0]);
   const [selectedReturnStore, setSelectedReturnStore] = useState(STORES[0]);
 
@@ -1380,6 +1383,12 @@ const App: React.FC = () => {
                 >
                   Payroll Period
                 </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shift-control-list' || currentView === 'shift-control-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shift-control-list')}
+                >
+                  Shift Control
+                </div>
              </div>
           </SidebarItem>
           <SidebarItem 
@@ -1462,8 +1471,8 @@ const App: React.FC = () => {
           </SidebarItem>
           <SidebarItem 
             icon="fa-gear" 
-            label="Settings" 
-            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config'} 
+            label="Configs" 
+            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1485,6 +1494,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('service-delivery-config')}
                 >
                   Service Delivery
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'user-store-access-list' || currentView === 'user-store-access-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('user-store-access-list')}
+                >
+                  User Store Access
                 </div>
              </div>
           </SidebarItem>
@@ -1528,7 +1543,9 @@ const App: React.FC = () => {
                  currentView === 'store-list' ? 'Store List' :
                  currentView === 'store-detail' ? 'Store Detail' :
                  currentView === 'company-list' ? 'Company List' : 
-                 currentView === 'company-detail' ? 'Company Detail' : 
+                 currentView === 'company-detail' ? 'Company Detail' :
+                 currentView === 'user-store-access-list' ? 'User Store Access' :
+                 currentView === 'user-store-access-detail' ? 'User Store Access Detail' : 
                  currentView === 'config-strategy' ? 'Partner / Allocate Strategy / Config Strategy' : 
                  currentView === 'carrier-list' ? 'Partner / Carrier / Carrier List' : 
                  currentView === 'carrier-detail' ? 'Partner / Carrier / Edit Carrier' : 
@@ -2272,7 +2289,24 @@ const App: React.FC = () => {
                   </table>
                 </div>
              </div>
-           ) : currentView === 'payroll-period-detail' ? (
+           ) : currentView === 'shift-control-list' ? (
+             <ShiftControlListView 
+               onRowClick={(id) => {
+                 setSelectedShiftControlId(id);
+                 setCurrentView('shift-control-detail');
+               }}
+               onCreateClick={() => {
+                 setSelectedShiftControlId(null);
+                 setCurrentView('shift-control-detail');
+               }}
+             />
+          ) : currentView === 'shift-control-detail' ? (
+             <ShiftControlDetailView
+               stores={stores}
+               configId={selectedShiftControlId}
+               onBack={() => setCurrentView('shift-control-list')}
+             />
+          ) : currentView === 'payroll-period-detail' ? (
              <div className="bg-[#f8fafc] min-h-full flex flex-col items-center py-6 px-4 pb-24 animate-in fade-in duration-300 relative">
                <div className="w-full flex justify-start max-w-[900px] mb-4">
                  <button onClick={() => setCurrentView('payroll-period-list')} className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-bold flex items-center gap-2">
@@ -3668,6 +3702,25 @@ const App: React.FC = () => {
                   </div>
                 </div>
              </div>
+          ) : currentView === 'user-store-access-list' ? (
+             <UserStoreAccessListView
+               users={users}
+               roles={MOCK_ROLES}
+               onRowClick={(user) => {
+                 setEditingUser(user);
+                 setCurrentView('user-store-access-detail');
+               }}
+             />
+          ) : currentView === 'user-store-access-detail' ? (
+             <UserStoreAccessDetailView
+               user={editingUser}
+               stores={stores}
+               onBack={() => setCurrentView('user-store-access-list')}
+               onSave={(updatedUser) => {
+                 setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+                 setCurrentView('user-store-access-list');
+               }}
+             />
           ) : currentView === 'service-delivery-config' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300 relative">
                 <div className="flex items-center justify-between border-b px-4 py-3">

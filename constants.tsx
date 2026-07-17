@@ -566,6 +566,7 @@ export const MOCK_SHIFT_CONTROL_CONFIGS: import('./types').ShiftControlConfig[] 
     id: '1',
     country: 'Vietnam (VN)',
     stateProvince: '',
+    warnBeforeShiftEndEnabled: true,
     warnBeforeShiftEndMinutes: 30,
     blockDeliveryActionsAtEnd: true,
     allowReturnAllAtEnd: true,
@@ -575,9 +576,32 @@ export const MOCK_SHIFT_CONTROL_CONFIGS: import('./types').ShiftControlConfig[] 
     id: '2',
     country: 'Vietnam (VN)',
     stateProvince: 'Ho Chi Minh',
+    warnBeforeShiftEndEnabled: true,
     warnBeforeShiftEndMinutes: 15,
     blockDeliveryActionsAtEnd: true,
     allowReturnAllAtEnd: false,
     createdAt: '2026-07-12T11:00:00Z'
+  }
+];
+
+export const MOCK_LANDING_COST_CONFIGS: import('./types').LandingCostConfig[] = [
+  {
+    id: '1',
+    name: 'Standard Import Duty',
+    type: 'Duty',
+    formula: 'FOB_PRICE * 0.15',
+    isActive: true,
+    country: 'Vietnam (VN)',
+    createdAt: '2026-07-16T10:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'Fragile Handling Fee',
+    type: 'Handling',
+    formula: 'QTY * 2.5',
+    isActive: true,
+    country: 'Vietnam (VN)',
+    stateProvince: 'Ho Chi Minh',
+    createdAt: '2026-07-16T11:00:00Z'
   }
 ];

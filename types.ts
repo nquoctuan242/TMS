@@ -384,10 +384,24 @@ export interface StoreCarrierConfig {
 
 export interface ShiftControlConfig {
   id: string;
+  storeId?: string;
   stateProvince?: string;
   country: string;
+  warnBeforeShiftEndEnabled?: boolean;
   warnBeforeShiftEndMinutes: number;
   blockDeliveryActionsAtEnd: boolean;
   allowReturnAllAtEnd: boolean;
+  createdAt: string;
+}
+
+export interface LandingCostConfig {
+  id: string;
+  name: string;
+  type: string;
+  formula: string;
+  isActive: boolean;
+  country: string;
+  stateProvince?: string;
+  storeId?: string;
   createdAt: string;
 }

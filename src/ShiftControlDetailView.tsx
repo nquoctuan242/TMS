@@ -4,15 +4,17 @@ import { MOCK_SHIFT_CONTROL_CONFIGS } from '../constants';
 
 interface ShiftControlDetailViewProps {
   configId: string | null;
+  stores: any[];
   onBack: () => void;
 }
 
-export function ShiftControlDetailView({ configId, onBack }: ShiftControlDetailViewProps) {
+export function ShiftControlDetailView({ configId, onBack, stores }: ShiftControlDetailViewProps) {
   const isCreate = !configId;
   const [formData, setFormData] = useState<ShiftControlConfig>({
     id: '',
     country: 'Vietnam (VN)',
     stateProvince: '',
+    warnBeforeShiftEndEnabled: true,
     warnBeforeShiftEndMinutes: 30,
     blockDeliveryActionsAtEnd: true,
     allowReturnAllAtEnd: true,
@@ -70,10 +72,10 @@ export function ShiftControlDetailView({ configId, onBack }: ShiftControlDetailV
           <div className="p-5">
             <div className="text-[11px] text-gray-500 mb-4 bg-blue-50 text-blue-700 p-3 rounded border border-blue-100 flex items-start gap-2">
               <i className="fa-solid fa-circle-info mt-0.5"></i>
-              <span>If you select a specific State/Province, this configuration will apply only to that area. If left empty, it will apply as the default rule for the entire country.</span>
+              <span>If you select a specific Store, this configuration applies only to that store. Otherwise, it falls back to State/Province, then Country.</span>
             </div>
             
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Country</label>
                 <select 
@@ -92,13 +94,27 @@ export function ShiftControlDetailView({ configId, onBack }: ShiftControlDetailV
                 <select 
                   className="w-full border border-gray-300 rounded px-3 py-2 text-xs outline-none focus:border-[#4d9e5f] bg-white font-medium"
                   value={formData.stateProvince}
-                  onChange={(e) => setFormData({...formData, stateProvince: e.target.value})}
+                  onChange={(e) => setFormData({...formData, stateProvince: e.target.value, storeId: ''})}
                 >
                   <option value="">All (Apply to Country)</option>
                   <option value="Ho Chi Minh">Ho Chi Minh</option>
                   <option value="Ha Noi">Ha Noi</option>
                   <option value="Da Nang">Da Nang</option>
                   <option value="Binh Duong">Binh Duong</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Store</label>
+                <select 
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-xs outline-none focus:border-[#4d9e5f] bg-white font-medium"
+                  value={formData.storeId || ''}
+                  onChange={(e) => setFormData({...formData, storeId: e.target.value})}
+                >
+                  <option value="">All (Apply to State/Country)</option>
+                  {stores.map(store => (
+                    <option key={store.id} value={store.id}>{store.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -118,15 +134,25 @@ export function ShiftControlDetailView({ configId, onBack }: ShiftControlDetailV
                 <h4 className="text-xs font-bold text-gray-800 mb-1">Warning Before Shift Ends</h4>
                 <p className="text-[11px] text-gray-500">Alert the shipper when their shift is about to end.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="number"
-                  min="0"
-                  className="w-20 border border-gray-300 rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f] text-center font-bold"
-                  value={formData.warnBeforeShiftEndMinutes}
-                  onChange={(e) => setFormData({...formData, warnBeforeShiftEndMinutes: parseInt(e.target.value) || 0})}
-                />
-                <span className="text-xs font-medium text-gray-600">minutes</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="number"
+                    min="0"
+                    disabled={!formData.warnBeforeShiftEndEnabled}
+                    className={`w-20 border rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f] text-center font-bold ${formData.warnBeforeShiftEndEnabled !== false ? 'border-gray-300' : 'border-gray-200 bg-gray-50 text-gray-400'}`}
+                    value={formData.warnBeforeShiftEndMinutes}
+                    onChange={(e) => setFormData({...formData, warnBeforeShiftEndMinutes: parseInt(e.target.value) || 0})}
+                  />
+                  <span className={`text-xs font-medium ${formData.warnBeforeShiftEndEnabled !== false ? 'text-gray-600' : 'text-gray-400'}`}>minutes</span>
+                </div>
+                <div className="h-6 w-px bg-gray-200"></div>
+                <button 
+                  onClick={() => setFormData({...formData, warnBeforeShiftEndEnabled: formData.warnBeforeShiftEndEnabled === false ? true : false})}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.warnBeforeShiftEndEnabled !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.warnBeforeShiftEndEnabled !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
               </div>
             </div>
             
