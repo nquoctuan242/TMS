@@ -206,6 +206,9 @@ export interface Shipper {
   countryCode?: string;
   countryName?: string;
   postalCode?: string;
+  blockDeliveryActionsAtEndOverride?: "default" | "always_stop" | "temporary_allow" | "allow_indefinitely";
+  temporaryAllowUntil?: string;
+  temporaryAllowReason?: string;
 }
 
 export interface Attachment {

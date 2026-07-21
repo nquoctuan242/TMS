@@ -736,7 +736,7 @@ const App: React.FC = () => {
   };
 
   const startCreateShipper = () => {
-    setEditingShipper({ type: 'Motorbike', assignedStoreIds: [] });
+    setEditingShipper({ type: 'Motorbike', assignedStoreIds: [], blockDeliveryActionsAtEndOverride: 'default' });
     setCurrentView('shipper-detail');
   };
 
@@ -1997,6 +1997,76 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="border rounded-lg overflow-hidden mb-6">
+                    <div className="bg-gray-50 px-4 py-2 border-b flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+                        <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Delivery Actions (Override)</span>
+                      </div>
+                    </div>
+                    <div className="p-6 bg-white">
+                      <div className="flex flex-col gap-2 max-w-lg">
+                        <label className="text-[11px] font-bold text-gray-700 tracking-tight">Block Delivery Actions (End of Shift)</label>
+                        <p className="text-[10px] text-gray-500 mb-2">Overrides the global Shift Control configuration for this specific shipper.</p>
+                        <select 
+                          value={editingShipper.blockDeliveryActionsAtEndOverride || 'default'}
+                          onChange={e => {
+                            const val = e.target.value as any;
+                            setEditingShipper({
+                                ...editingShipper, 
+                                blockDeliveryActionsAtEndOverride: val,
+                                temporaryAllowUntil: val === 'temporary_allow' ? editingShipper.temporaryAllowUntil : undefined,
+                                temporaryAllowReason: val === 'temporary_allow' ? editingShipper.temporaryAllowReason : undefined,
+                            });
+                          }}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        >
+                          <option value="default">Default (Use Shift Control)</option>
+                          <option value="always_stop">Always Stop New Deliveries</option>
+                          <option value="temporary_allow">Temporary Allow (until [datetime])</option>
+                          <option value="allow_indefinitely">Allow indefinitely (Warning)</option>
+                        </select>
+                        
+                        {editingShipper.blockDeliveryActionsAtEndOverride === 'allow_indefinitely' && (
+                          <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md shadow-sm">
+                            <i className="fa-solid fa-triangle-exclamation text-red-500 mt-0.5"></i>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[11px] font-bold text-red-700">Warning: Allow Indefinitely</span>
+                              <span className="text-[10px] text-red-600">This shipper will ALWAYS be able to perform delivery actions regardless of shift status. This bypasses all shift restrictions permanently.</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {editingShipper.blockDeliveryActionsAtEndOverride === 'temporary_allow' && (
+                          <div className="mt-3 flex flex-col gap-3 p-3 bg-[#fefcfa] border border-orange-200 rounded-md shadow-sm">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-bold text-gray-700 tracking-tight flex items-center gap-1"><span className="text-red-500">*</span> Temporary Allow Until (Datetime)</label>
+                                <input 
+                                  type="datetime-local" 
+                                  value={editingShipper.temporaryAllowUntil || ''} 
+                                  onChange={e => setEditingShipper({...editingShipper, temporaryAllowUntil: e.target.value})} 
+                                  className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-1.5 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-orange-400 bg-white transition-all h-[32px]"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-bold text-gray-700 tracking-tight flex items-center gap-1"><span className="text-red-500">*</span> Reason (Log Required)</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="e.g. Waiting for HR to sync overtime"
+                                  value={editingShipper.temporaryAllowReason || ''} 
+                                  onChange={e => setEditingShipper({...editingShipper, temporaryAllowReason: e.target.value})} 
+                                  className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-1.5 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-orange-400 bg-white transition-all h-[32px]"
+                                />
+                            </div>
+                            <div className="text-[10px] text-orange-600 flex items-start gap-1.5 mt-1">
+                                <i className="fa-solid fa-circle-info mt-0.5"></i>
+                                <span>Automatically reverts to Default after expiry. Action will be logged.</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <div className="border rounded-lg overflow-hidden">
                     <div className="bg-gray-50 px-4 py-2 border-b flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-2">
