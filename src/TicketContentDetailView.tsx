@@ -11,9 +11,9 @@ export function TicketContentDetailView({ ticketId, onBack, stores }: { ticketId
     stateProvince: ticketId === '2' ? 'Ho Chi Minh' : '',
     storeId: ticketId === '3' ? '2' : '',
     explanationReasons: [
-        { id: 1, text: 'Shipper was involved in an accident' },
-        { id: 2, text: 'Vehicle breakdown' },
-        { id: 3, text: 'Weather conditions' }
+        { id: 1, text: 'Shipper was involved in an accident', showMobileApp: true },
+        { id: 2, text: 'Vehicle breakdown', showMobileApp: true },
+        { id: 3, text: 'Weather conditions', showMobileApp: true }
       ],
       conditions: ticketId === '1' 
       ? [{ id: 1, label: 'Default', descriptionTemplate: 'Order "{order_code}": {delay_minutes}-min delay\nCommitted deadline: {committed_deadline}\n(UTC+7)' }]
@@ -53,7 +53,7 @@ export function TicketContentDetailView({ ticketId, onBack, stores }: { ticketId
     const newId = Math.max(...(formData.explanationReasons || []).map(r => r.id), 0) + 1;
     setFormData({
       ...formData,
-      explanationReasons: [...(formData.explanationReasons || []), { id: newId, text: '' }]
+      explanationReasons: [...(formData.explanationReasons || []), { id: newId, text: '', showMobileApp: true }]
     });
   };
 
@@ -68,6 +68,13 @@ export function TicketContentDetailView({ ticketId, onBack, stores }: { ticketId
     setFormData({
       ...formData,
       explanationReasons: (formData.explanationReasons || []).filter(r => r.id !== id)
+    });
+  };
+
+  const toggleExplanationReasonMobileApp = (id: number) => {
+    setFormData({
+      ...formData,
+      explanationReasons: (formData.explanationReasons || []).map(r => r.id === id ? { ...r, showMobileApp: r.showMobileApp === false ? true : false } : r)
     });
   };
 
@@ -361,6 +368,7 @@ export function TicketContentDetailView({ ticketId, onBack, stores }: { ticketId
                         <tr>
                           <th className="px-4 py-2 w-12 text-center">No.</th>
                           <th className="px-4 py-2">Pre-defined Violation Reason</th>
+                          <th className="px-4 py-2 w-24 text-center">Show Mobile App</th>
                           <th className="px-4 py-2 w-16 text-center">Action</th>
                         </tr>
                       </thead>
@@ -377,6 +385,14 @@ export function TicketContentDetailView({ ticketId, onBack, stores }: { ticketId
                                   placeholder="Enter explanation reason..."
                                   className="w-full border-none bg-transparent px-0 py-1 text-xs outline-none focus:ring-0 text-gray-700 font-medium placeholder-gray-400" 
                                 />
+                              </td>
+                              <td className="px-4 py-2 text-center">
+                                <button 
+                                  onClick={() => toggleExplanationReasonMobileApp(reason.id)}
+                                  className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${reason.showMobileApp !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                                >
+                                  <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${reason.showMobileApp !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+                                </button>
                               </td>
                               <td className="px-4 py-2 text-center">
                                 <button 

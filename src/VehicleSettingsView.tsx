@@ -13,7 +13,7 @@ export function VehicleSettingsView() {
     { id: '5', code: 'TX-KHACH', name: 'Passenger Bus', unit: 'Seats', maintenanceCycle: '10,000 km', description: '' }
   ]);
   const [editingType, setEditingType] = useState<Partial<VehicleTypeConfig>>({});
-  const [showTypeForm, setShowTypeForm] = useState(false);
+  const [showTypeForm, setShowTypeForm] = useState(true);
 
   // MOCK DATA FOR DOC THRESHOLDS
   const [docThresholds, setDocThresholds] = useState<DocumentTypeThreshold[]>([
@@ -23,7 +23,16 @@ export function VehicleSettingsView() {
     { id: '4', documentType: 'Transport Business License', group: 'Legal', blockVehicleOnExpiry: false, reminder1Days: 30, reminder2Days: 15, escalateDays: 7, blockDays: 0 },
     { id: '5', documentType: 'Physical Damage Insurance', group: 'Financial', blockVehicleOnExpiry: false, reminder1Days: 30, reminder2Days: 15, escalateDays: 7, blockDays: 0 }
   ]);
-  const [selectedThreshold, setSelectedThreshold] = useState<DocumentTypeThreshold>(docThresholds[0]);
+  const [selectedThreshold, setSelectedThreshold] = useState<DocumentTypeThreshold>({
+    id: '',
+    documentType: '',
+    group: 'Legal',
+    blockVehicleOnExpiry: true,
+    reminder1Days: 30,
+    reminder2Days: 15,
+    escalateDays: 7,
+    blockDays: 0
+  });
 
   return (
     <div className="bg-[#f0f2f5] min-h-full flex flex-col animate-in fade-in duration-300">
@@ -69,12 +78,7 @@ export function VehicleSettingsView() {
                       <h3 className="font-bold text-gray-900">Vehicle Types List</h3>
                       <span className="text-[12px] text-gray-400">{vehicleTypes.length} types</span>
                    </div>
-                   <button 
-                      onClick={() => { setEditingType({}); setShowTypeForm(true); }}
-                      className="bg-[#2563eb] text-white px-4 py-1.5 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors shadow-sm"
-                   >
-                     + Add Type
-                   </button>
+
                 </div>
                 <div className="overflow-x-auto p-0">
                   <table className="w-full text-left text-[13px]">
@@ -143,13 +147,15 @@ export function VehicleSettingsView() {
                                } else {
                                    setVehicleTypes([...vehicleTypes, { ...editingType, id: Date.now().toString() } as VehicleTypeConfig]);
                                }
+                               setEditingType({});
                                alert('Vehicle type saved!');
                            }} className="bg-[#2563eb] text-white px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors shadow-sm">
                               Save Type
                            </button>
-                           <button onClick={() => setShowTypeForm(false)} className="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
-                              Cancel
+                           <button onClick={() => setEditingType({})} className="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
+                              Clear Form
                            </button>
+
                        </div>
 
                        <div className="mt-4 bg-purple-50 text-purple-800 p-4 rounded-lg text-[12px] border border-purple-100 flex items-start gap-2">
@@ -192,11 +198,7 @@ export function VehicleSettingsView() {
                       <h3 className="font-bold text-gray-900">Document Types</h3>
                       <span className="text-[12px] text-gray-400">{docThresholds.length} types</span>
                    </div>
-                   <button 
-                      className="bg-[#2563eb] text-white px-4 py-1.5 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors shadow-sm"
-                   >
-                     + Add Type
-                   </button>
+
                 </div>
                 <div className="overflow-x-auto p-0">
                   <table className="w-full text-left text-[13px]">
@@ -239,11 +241,46 @@ export function VehicleSettingsView() {
               {/* Threshold Config Panel */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-fit">
                  <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="font-bold text-gray-900">Threshold Configuration • {selectedThreshold.documentType}</h3>
+                    <h3 className="font-bold text-gray-900">{selectedThreshold.id ? 'Threshold Configuration • ' + selectedThreshold.documentType : 'Add Document Type & Threshold'}</h3>
                  </div>
                  
                  <div className="p-6 flex flex-col gap-6">
-                    <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-4 mb-4">
+                       <div className="space-y-1">
+                          <label className="text-[12px] font-medium text-gray-600">Document Type Name</label>
+                          <input 
+                            value={selectedThreshold.documentType || ''} 
+                            onChange={(e) => setSelectedThreshold({...selectedThreshold, documentType: e.target.value})} 
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#2563eb]" 
+                            placeholder="e.g. Transport Badge"
+                          />
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                             <label className="text-[12px] font-medium text-gray-600">Group</label>
+                             <select 
+                               value={selectedThreshold.group || 'Legal'} 
+                               onChange={(e) => setSelectedThreshold({...selectedThreshold, group: e.target.value})} 
+                               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#2563eb]"
+                             >
+                               <option value="Legal">Legal</option>
+                               <option value="Financial">Financial</option>
+                             </select>
+                          </div>
+                          <div className="space-y-1">
+                             <label className="text-[12px] font-medium text-gray-600">Block Vehicle on Expiry</label>
+                             <select 
+                               value={selectedThreshold.blockVehicleOnExpiry ? 'yes' : 'no'} 
+                               onChange={(e) => setSelectedThreshold({...selectedThreshold, blockVehicleOnExpiry: e.target.value === 'yes'})} 
+                               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#2563eb]"
+                             >
+                               <option value="yes">Yes</option>
+                               <option value="no">No</option>
+                             </select>
+                          </div>
+                       </div>
+                    </div>
+                    <div className="flex flex-col gap-5 border-t border-gray-100 pt-6">
                        <div className="flex items-center justify-between border-b border-dashed border-gray-200 pb-4">
                           <span className="text-[13px] font-medium text-gray-700">Reminder 1 (expiring soon)</span>
                           <div className="flex items-center gap-2">
@@ -283,14 +320,43 @@ export function VehicleSettingsView() {
 
                     <div className="flex gap-3 mt-2">
                         <button onClick={() => {
-                            setDocThresholds(docThresholds.map(t => t.id === selectedThreshold.id ? selectedThreshold : t));
+                            if (!selectedThreshold.documentType) {
+                                alert('Please enter Document Type Name');
+                                return;
+                            }
+                            if (selectedThreshold.id) {
+                                setDocThresholds(docThresholds.map(t => t.id === selectedThreshold.id ? selectedThreshold : t));
+                            } else {
+                                const newThreshold = { ...selectedThreshold, id: Date.now().toString() };
+                                setDocThresholds([...docThresholds, newThreshold]);
+                            }
+                            setSelectedThreshold({
+                                id: '',
+                                documentType: '',
+                                group: 'Legal',
+                                blockVehicleOnExpiry: true,
+                                reminder1Days: 30,
+                                reminder2Days: 15,
+                                escalateDays: 7,
+                                blockDays: 0
+                            });
                             alert('Thresholds saved successfully!');
                         }} className="bg-[#2563eb] text-white px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors shadow-sm">
                            Save Thresholds
                         </button>
-                        <button className="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
-                           Restore Default
+                        <button onClick={() => setSelectedThreshold({
+                            id: '',
+                            documentType: '',
+                            group: 'Legal',
+                            blockVehicleOnExpiry: true,
+                            reminder1Days: 30,
+                            reminder2Days: 15,
+                            escalateDays: 7,
+                            blockDays: 0
+                        })} className="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
+                           Clear Form
                         </button>
+
                     </div>
 
                     <div className="mt-2 bg-purple-50 text-purple-800 p-4 rounded-lg text-[12px] border border-purple-100 flex items-start gap-2">
