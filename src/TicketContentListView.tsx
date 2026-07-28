@@ -2,9 +2,9 @@ import React from 'react';
 
 export function TicketContentListView({ onRowClick, onCreateClick }: { onRowClick: (id: string) => void, onCreateClick: () => void }) {
   const templates = [
-    { id: '1', ticketType: 'Delivery Delayed', updatedAt: '07/07/2026' },
-    { id: '2', ticketType: 'DCR Failure', updatedAt: '07/07/2026' },
-    { id: '3', ticketType: 'FAD Failure', updatedAt: '07/07/2026' }
+    { id: '1', ticketType: 'Delivery Delayed', country: 'Vietnam (VN)', stateProvince: 'All', store: 'All', updatedAt: '07/07/2026' },
+    { id: '2', ticketType: 'DCR Failure', country: 'Vietnam (VN)', stateProvince: 'Ho Chi Minh', store: 'All', updatedAt: '07/07/2026' },
+    { id: '3', ticketType: 'FAD Failure', country: 'Vietnam (VN)', stateProvince: 'All', store: 'Van Store', updatedAt: '07/07/2026' }
   ];
 
   return (
@@ -24,6 +24,9 @@ export function TicketContentListView({ onRowClick, onCreateClick }: { onRowClic
           <thead className="bg-[#f8fafc] text-gray-600 font-bold border-b border-gray-300">
             <tr>
               <th className="px-4 py-3 border-r border-gray-200">Ticket Type</th>
+              <th className="px-4 py-3 border-r border-gray-200">Country</th>
+              <th className="px-4 py-3 border-r border-gray-200">State / Province</th>
+              <th className="px-4 py-3 border-r border-gray-200">Store</th>
               <th className="px-4 py-3 border-r border-gray-200 w-48">Last Updated</th>
               <th className="px-4 py-3 text-center w-28">Action</th>
             </tr>
@@ -32,6 +35,13 @@ export function TicketContentListView({ onRowClick, onCreateClick }: { onRowClic
             {templates.map(tpl => (
               <tr key={tpl.id} className="hover:bg-blue-50/50 transition-colors cursor-pointer group" onClick={() => onRowClick(tpl.id)}>
                 <td className="px-4 py-3 border-r border-gray-100 font-bold text-[#1b4d3e]">{tpl.ticketType}</td>
+                <td className="px-4 py-3 border-r border-gray-100 text-gray-700">{tpl.country}</td>
+                <td className="px-4 py-3 border-r border-gray-100 text-gray-700">
+                  {tpl.stateProvince === 'All' ? <span className="text-gray-400 italic">All States</span> : tpl.stateProvince}
+                </td>
+                <td className="px-4 py-3 border-r border-gray-100 text-gray-700">
+                  {tpl.store === 'All' ? <span className="text-gray-400 italic">All Stores</span> : tpl.store}
+                </td>
                 <td className="px-4 py-3 border-r border-gray-100 text-gray-500">{tpl.updatedAt}</td>
                 <td className="px-4 py-3 text-center">
                   <button className="text-blue-500 hover:text-blue-700 font-medium flex items-center justify-center gap-1 mx-auto transition-colors group-hover:scale-105">

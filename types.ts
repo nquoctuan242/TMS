@@ -408,3 +408,57 @@ export interface LandingCostConfig {
   storeId?: string;
   createdAt: string;
 }
+
+export interface VehicleDocument {
+  id: string;
+  type: string;
+  expirationDate: string;
+  remainingDays: number;
+  status: 'valid' | 'expiring' | 'expired';
+  hasScan: boolean;
+}
+
+export interface VehicleDriver {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface Vehicle {
+  id: string;
+  licensePlate: string;
+  makeModel: string;
+  vehicleType: string;
+  source: string;
+  vin: string;
+  engineNumber: string;
+  manufactureYear: number;
+  inServiceDate: string;
+  department: string;
+  status: 'active' | 'blocked' | 'maintenance';
+  statusReason?: string;
+  currentMileage: number;
+  remainingValue: number;
+  documents: VehicleDocument[];
+  drivers: VehicleDriver[];
+}
+
+export interface VehicleTypeConfig {
+  id: string;
+  code: string;
+  name: string;
+  unit: string;
+  maintenanceCycle: string;
+  description: string;
+}
+
+export interface DocumentTypeThreshold {
+  id: string;
+  documentType: string;
+  group: string;
+  blockVehicleOnExpiry: boolean;
+  reminder1Days: number;
+  reminder2Days: number;
+  escalateDays: number;
+  blockDays: number;
+}

@@ -1,6 +1,9 @@
 import { TicketContentListView } from './src/TicketContentListView';
 import { ShiftControlListView } from './src/ShiftControlListView';
 import { ShiftControlDetailView } from './src/ShiftControlDetailView';
+import { VehicleListView } from './src/VehicleListView';
+import { VehicleDetailView } from './src/VehicleDetailView';
+import { VehicleSettingsView } from './src/VehicleSettingsView';
 import { TicketContentDetailView } from './src/TicketContentDetailView';
 import { UserStoreAccessListView } from './src/UserStoreAccessListView';
 import { UserStoreAccessDetailView } from './src/UserStoreAccessDetailView';
@@ -452,6 +455,7 @@ const App: React.FC = () => {
   const [editingShipper, setEditingShipper] = useState<Partial<Shipper>>({});
   const [editingTicket, setEditingTicket] = useState<Partial<Ticket>>({});
   const [selectedTicketContentId, setSelectedTicketContentId] = useState<string | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReasonType, setRejectReasonType] = useState<string>('');
   const [rejectNote, setRejectNote] = useState<string>('');
@@ -1365,11 +1369,17 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-car-side" 
             label="Fleet" 
-            active={currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
+            active={currentView === 'vehicle-list' || currentView === 'vehicle-detail' || currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
             hasSubItems
             onClick={() => {}}
           >
              <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-list' || currentView === 'vehicle-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-list')}
+                >
+                  Vehicle
+                </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipper-list' || currentView === 'shipper-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
                   onClick={() => setCurrentView('shipper-list')}
@@ -1483,7 +1493,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-gear" 
             label="Configs" 
-            active={currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
+            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1493,6 +1503,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('store-list')}
                 >
                   Stores
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-settings' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-settings')}
+                >
+                  Vehicle Settings
                 </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'it-route-list' || currentView === 'it-route-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -1573,6 +1589,8 @@ const App: React.FC = () => {
                  currentView === 'payroll-period-detail' ? 'Payroll Period Detail' :
                  currentView === 'shift-control-list' ? 'Shift Control' :
                  currentView === 'shift-control-detail' ? 'Shift Control Detail' :
+                 currentView === 'vehicle-list' ? 'Vehicle Management' :
+                 currentView === 'vehicle-detail' ? 'Vehicle Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
                  currentView === 'it-route-detail' ? 'IT Route Detail' :
                  currentView === 'internal-transfer' ? 'Internal Transfer' :
@@ -2413,6 +2431,22 @@ const App: React.FC = () => {
                configId={selectedShiftControlId}
                onBack={() => setCurrentView('shift-control-list')}
              />
+          ) : currentView === 'vehicle-list' ? (
+            <VehicleListView
+               onRowClick={(id) => {
+                 setSelectedVehicleId(id);
+                 setCurrentView('vehicle-detail');
+               }}
+               onCreateClick={() => {
+                 setSelectedVehicleId(null);
+                 setCurrentView('vehicle-detail');
+               }}
+            />
+          ) : currentView === 'vehicle-detail' ? (
+            <VehicleDetailView
+               vehicleId={selectedVehicleId}
+               onBack={() => setCurrentView('vehicle-list')}
+            />
           ) : currentView === 'payroll-period-detail' ? (
              <div className="bg-[#f8fafc] min-h-full flex flex-col items-center py-6 px-4 pb-24 animate-in fade-in duration-300 relative">
                <div className="w-full flex justify-start max-w-[900px] mb-4">
@@ -3442,7 +3476,7 @@ const App: React.FC = () => {
                }}
             />
           ) : currentView === 'ticket-content-detail' ? (
-            <TicketContentDetailView 
+            <TicketContentDetailView stores={stores} 
                ticketId={selectedTicketContentId} 
                onBack={() => setCurrentView('ticket-content-list')}
             />
@@ -4534,6 +4568,8 @@ const App: React.FC = () => {
                   </div>
                 )}
              </div>
+          ) : currentView === 'vehicle-settings' ? (
+             <VehicleSettingsView />
           ) : currentView === 'store-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                <div className="flex items-center justify-between border-b px-4 py-3 relative z-20">
