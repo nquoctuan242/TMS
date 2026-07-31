@@ -1,5 +1,7 @@
+import { CostAndFuelView } from './src/CostAndFuelView';
 import { VehicleDocumentsView } from './src/VehicleDocumentsView';
 import { VehicleMaintenanceView } from './src/VehicleMaintenanceView';
+import { OperationView } from './src/OperationView';
 import { DeliverySLAListView } from './src/DeliverySLAListView';
 import { DeliverySLADetailView } from './src/DeliverySLADetailView';
 import { TicketContentListView } from './src/TicketContentListView';
@@ -1369,29 +1371,11 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-car-side" 
             label="Fleet" 
-            active={currentView === 'vehicle-list' || currentView === 'vehicle-detail' || currentView === 'vehicle-documents' || currentView === 'vehicle-maintenance' || currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
+            active={currentView === 'vehicle-list' || currentView === 'vehicle-detail' || currentView === 'vehicle-documents' || currentView === 'vehicle-maintenance' || currentView === 'operation' || currentView === 'cost-and-fuel' || currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
             hasSubItems
             onClick={() => {}}
           >
              <div className="ml-8 mt-2 space-y-2">
-                <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-list' || currentView === 'vehicle-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('vehicle-list')}
-                >
-                  Vehicle
-                </div>
-                <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-documents' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('vehicle-documents')}
-                >
-                  Vehicle Documents
-                </div>
-                <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-maintenance' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('vehicle-maintenance')}
-                >
-                  Maintenance
-                </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipper-list' || currentView === 'shipper-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
                   onClick={() => setCurrentView('shipper-list')}
@@ -1415,6 +1399,36 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('shift-control-list')}
                 >
                   Shift Control
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-list' || currentView === 'vehicle-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-list')}
+                >
+                  Vehicle
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-documents' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-documents')}
+                >
+                  Vehicle Documents
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-maintenance' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-maintenance')}
+                >
+                  Maintenance
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'operation' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('operation')}
+                >
+                  Operation
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'cost-and-fuel' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('cost-and-fuel')}
+                >
+                  Cost and Fuel
                 </div>
              </div>
           </SidebarItem>
@@ -1603,6 +1617,9 @@ const App: React.FC = () => {
                  currentView === 'shift-control-detail' ? 'Shift Control Detail' :
                  currentView === 'vehicle-documents' ? 'Vehicle Documents' :
                  currentView === 'vehicle-maintenance' ? 'Maintenance' :
+                 currentView === 'operation' ? 'Operation' :
+                 currentView === 'cost-and-fuel' ? 'Cost and Fuel' :
+                 currentView === 'cost-and-fuel' ? 'Cost and Fuel' :
                  currentView === 'vehicle-list' ? 'Vehicle Management' :
                  currentView === 'vehicle-detail' ? 'Vehicle Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
@@ -2450,6 +2467,12 @@ const App: React.FC = () => {
              <VehicleDocumentsView />
           ) : currentView === 'vehicle-maintenance' ? (
              <VehicleMaintenanceView />
+          ) : currentView === 'cost-and-fuel' ? (
+             <CostAndFuelView />
+          ) : currentView === 'operation' ? (
+             <OperationView />
+          ) : currentView === 'cost-and-fuel' ? (
+             <CostAndFuelView />
           ) : currentView === 'vehicle-list' ? (
             <VehicleListView
                onRowClick={(id) => {
@@ -4183,6 +4206,10 @@ const App: React.FC = () => {
              <VehicleDocumentsView />
           ) : currentView === 'vehicle-maintenance' ? (
              <div className="p-8"><h2 className="text-xl font-bold">Maintenance (Coming soon)</h2></div>
+          ) : currentView === 'operation' ? (
+             <OperationView />
+          ) : currentView === 'cost-and-fuel' ? (
+             <CostAndFuelView />
           ) : currentView === 'vehicle-list' ? (
             <VehicleListView
                onRowClick={(id) => {
