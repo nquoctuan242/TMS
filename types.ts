@@ -91,12 +91,24 @@ export interface CarrierDetail {
   shipperName: string;
 }
 
-export interface ServiceDeliveryConfig {
+export interface DeliverySLALocationOverride {
   id: string;
-  orderType: string;
-  serviceType: string;
-  lateDeliveryAlertTime: number; // in minutes
-  isActive?: boolean;
+  country: string;
+  stateProvince?: string;
+  storeId?: string;
+  effectiveFrom: string;
+}
+
+export interface DeliverySLAConfig {
+  id: string;
+  serviceName: string;
+  cutoffTime: string;
+  beforeCutoffDeliverTime: string;
+  beforeCutoffDaysAdd: number;
+  afterCutoffDeliverTime: string;
+  afterCutoffDaysAdd: number;
+  lateAlertMinutes: number;
+  locationOverrides: DeliverySLALocationOverride[];
 }
 
 export interface ShipperSearchRadiusConfig {
@@ -153,6 +165,7 @@ export interface InternalTransfer {
   customerOrderCode?: string;
   customer: string;
   carrier: string;
+  vendor?: string;
   shipper: string;
   status: string;
   priority: string;
@@ -345,6 +358,7 @@ export interface OnlineOrder {
   customerOrderCode: string;
   customer: string;
   carrier: string;
+  vendor?: string;
   trackingNumber: string;
   status: string;
   createdAt: string;
@@ -357,6 +371,7 @@ export interface OnlineOrder {
 export interface DropOffPoint {
   id: string;
   carrier: string;
+  vendor?: string;
   address: string;
   cutoffTime?: string;
   country?: string;
@@ -385,6 +400,15 @@ export interface StoreCarrierConfig {
   dropOffPoints?: DropOffPoint[];
 }
 
+export interface ShiftBreakConfig {
+  id: string;
+  startTime: string;
+  endTime: string;
+  warnBeforeMinutes: number;
+  isActive: boolean;
+  turnOffApp: boolean;
+}
+
 export interface ShiftControlConfig {
   id: string;
   storeId?: string;
@@ -392,8 +416,10 @@ export interface ShiftControlConfig {
   country: string;
   warnBeforeShiftEndEnabled?: boolean;
   warnBeforeShiftEndMinutes: number;
-  blockDeliveryActionsAtEnd: boolean;
+    blockDeliveryActionsAtEnd: boolean;
   allowReturnAllAtEnd: boolean;
+  restBreaks?: ShiftBreakConfig[];
+  mealBreaks?: ShiftBreakConfig[];
   createdAt: string;
 }
 
@@ -410,6 +436,7 @@ export interface LandingCostConfig {
 }
 
 export interface VehicleDocument {
+  issueDate?: string;
   id: string;
   type: string;
   expirationDate: string;
@@ -425,6 +452,9 @@ export interface VehicleDriver {
 }
 
 export interface Vehicle {
+  maintenanceRecords?: VehicleMaintenance[];
+  costs?: VehicleCosts;
+  fuelQuota?: string;
   id: string;
   licensePlate: string;
   makeModel: string;
@@ -461,4 +491,21 @@ export interface DocumentTypeThreshold {
   reminder2Days: number;
   escalateDays: number;
   blockDays: number;
+}
+
+export interface VehicleMaintenance {
+  id: string;
+  date: string;
+  type: 'periodic' | 'repair';
+  content: string;
+  mileage: number;
+  cost: number;
+}
+
+export interface VehicleCosts {
+  fuelCost: number;
+  maintenanceCost: number;
+  fines: number;
+  costPerKm: number;
+  month: number;
 }

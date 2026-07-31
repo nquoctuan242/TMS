@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const code = `import React, { useState, useEffect } from 'react';
 import { ShiftControlConfig, ShiftBreakConfig } from '../types';
 import { MOCK_SHIFT_CONTROL_CONFIGS } from '../constants';
 
@@ -36,7 +38,7 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
           <div className="bg-gray-50/80 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <i className={`fa-solid ${icon} text-[#4d9e5f]`}></i>
+              <i className={\`fa-solid \${icon} text-[#4d9e5f]\`}></i>
               <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">{title}</h3>
             </div>
             <button 
@@ -67,9 +69,9 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                                 newBreaks[index] = { ...b, isActive: !b.isActive };
                                 setFormData({ ...formData, [type]: newBreaks });
                               }}
-                              className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${b.isActive ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                              className={\`relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none \${b.isActive ? 'bg-[#4d9e5f]' : 'bg-gray-300'}\`}
                             >
-                              <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${b.isActive ? 'translate-x-3' : 'translate-x-0'}`} />
+                              <span className={\`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out \${b.isActive ? 'translate-x-3' : 'translate-x-0'}\`} />
                             </button>
                          </div>
                          <button 
@@ -131,9 +133,9 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                                 newBreaks[index] = { ...b, turnOffApp: !b.turnOffApp };
                                 setFormData({ ...formData, [type]: newBreaks });
                               }}
-                              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${b.turnOffApp ? 'bg-red-500' : 'bg-gray-300'}`}
+                              className={\`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none \${b.turnOffApp ? 'bg-red-500' : 'bg-gray-300'}\`}
                             >
-                              <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${b.turnOffApp ? 'translate-x-4' : 'translate-x-0'}`} />
+                              <span className={\`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out \${b.turnOffApp ? 'translate-x-4' : 'translate-x-0'}\`} />
                             </button>
                             <span className="ml-2 text-[10px] font-medium text-gray-600">{b.turnOffApp ? 'Yes' : 'No'}</span>
                           </div>
@@ -260,18 +262,18 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                     type="number"
                     min="0"
                     disabled={!formData.warnBeforeShiftEndEnabled}
-                    className={`w-20 border rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f] text-center font-bold ${formData.warnBeforeShiftEndEnabled !== false ? 'border-gray-300' : 'border-gray-200 bg-gray-50 text-gray-400'}`}
+                    className={\`w-20 border rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f] text-center font-bold \${formData.warnBeforeShiftEndEnabled !== false ? 'border-gray-300' : 'border-gray-200 bg-gray-50 text-gray-400'}\`}
                     value={formData.warnBeforeShiftEndMinutes}
                     onChange={(e) => setFormData({...formData, warnBeforeShiftEndMinutes: parseInt(e.target.value) || 0})}
                   />
-                  <span className={`text-xs font-medium ${formData.warnBeforeShiftEndEnabled !== false ? 'text-gray-600' : 'text-gray-400'}`}>minutes</span>
+                  <span className={\`text-xs font-medium \${formData.warnBeforeShiftEndEnabled !== false ? 'text-gray-600' : 'text-gray-400'}\`}>minutes</span>
                 </div>
                 <div className="h-6 w-px bg-gray-200"></div>
                 <button 
                   onClick={() => setFormData({...formData, warnBeforeShiftEndEnabled: formData.warnBeforeShiftEndEnabled === false ? true : false})}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.warnBeforeShiftEndEnabled !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                  className={\`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none \${formData.warnBeforeShiftEndEnabled !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}\`}
                 >
-                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.warnBeforeShiftEndEnabled !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                  <span className={\`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out \${formData.warnBeforeShiftEndEnabled !== false ? 'translate-x-5' : 'translate-x-0'}\`} />
                 </button>
               </div>
             </div>
@@ -284,9 +286,9 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
               </div>
               <button 
                 onClick={() => setFormData({...formData, blockDeliveryActionsAtEnd: !formData.blockDeliveryActionsAtEnd})}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.blockDeliveryActionsAtEnd ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                className={\`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none \${formData.blockDeliveryActionsAtEnd ? 'bg-[#4d9e5f]' : 'bg-gray-300'}\`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.blockDeliveryActionsAtEnd ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className={\`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out \${formData.blockDeliveryActionsAtEnd ? 'translate-x-5' : 'translate-x-0'}\`} />
               </button>
             </div>
             
@@ -298,9 +300,9 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
               </div>
               <button 
                 onClick={() => setFormData({...formData, allowReturnAllAtEnd: !formData.allowReturnAllAtEnd})}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.allowReturnAllAtEnd ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                className={\`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none \${formData.allowReturnAllAtEnd ? 'bg-[#4d9e5f]' : 'bg-gray-300'}\`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.allowReturnAllAtEnd ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className={\`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out \${formData.allowReturnAllAtEnd ? 'translate-x-5' : 'translate-x-0'}\`} />
               </button>
             </div>
           </div>
@@ -313,3 +315,7 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/ShiftControlDetailView.tsx', code);
+console.log('Done');

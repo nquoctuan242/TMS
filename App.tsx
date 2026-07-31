@@ -1,3 +1,7 @@
+import { VehicleDocumentsView } from './src/VehicleDocumentsView';
+import { VehicleMaintenanceView } from './src/VehicleMaintenanceView';
+import { DeliverySLAListView } from './src/DeliverySLAListView';
+import { DeliverySLADetailView } from './src/DeliverySLADetailView';
 import { TicketContentListView } from './src/TicketContentListView';
 import { ShiftControlListView } from './src/ShiftControlListView';
 import { ShiftControlDetailView } from './src/ShiftControlDetailView';
@@ -23,7 +27,7 @@ import { MOCK_ONLINE_ORDERS } from './constants';
 import { Carrier, LandingCostConfig } from './types';
 import { MOCK_CARRIERS } from './constants';
 import { MOCK_SHIPMENT, MOCK_LANDING_COST_CONFIGS, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ServiceDeliveryConfig, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
 
 const REJECT_REASONS = [
   "Delivery drivers have no valid reason for missing orders.",
@@ -413,7 +417,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'service-delivery-config' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
   const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -456,6 +460,7 @@ const App: React.FC = () => {
   const [editingTicket, setEditingTicket] = useState<Partial<Ticket>>({});
   const [selectedTicketContentId, setSelectedTicketContentId] = useState<string | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [selectedDeliverySLAId, setSelectedDeliverySLAId] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReasonType, setRejectReasonType] = useState<string>('');
   const [rejectNote, setRejectNote] = useState<string>('');
@@ -472,12 +477,7 @@ const App: React.FC = () => {
   const [specificStoreSearch, setSpecificStoreSearch] = useState('');
   const [assignedStoreSearch, setAssignedStoreSearch] = useState<Record<string, string>>({});
   const [editingRole, setEditingRole] = useState<Partial<Role>>({});
-  const [serviceDeliveryConfigs, setServiceDeliveryConfigs] = useState<ServiceDeliveryConfig[]>([
-    { id: '1', orderType: 'Online', serviceType: 'Express', lateDeliveryAlertTime: 30, isActive: true },
-    { id: '2', orderType: 'IT', serviceType: 'Standard', lateDeliveryAlertTime: 60, isActive: true },
-  ]);
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [editingConfig, setEditingConfig] = useState<Partial<ServiceDeliveryConfig>>({});
+      const [editingConfig, setEditingConfig] = useState<Partial<any>>({});
   const [showAddRadiusConfigPopup, setShowAddRadiusConfigPopup] = useState(false);
   const [editingRadiusConfig, setEditingRadiusConfig] = useState<Partial<ShipperSearchRadiusConfig>>({});
   const [dropOffShipments, setDropOffShipments] = useState<DropOffShipment[]>(MOCK_DROP_OFF_SHIPMENTS);
@@ -1369,7 +1369,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-car-side" 
             label="Fleet" 
-            active={currentView === 'vehicle-list' || currentView === 'vehicle-detail' || currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
+            active={currentView === 'vehicle-list' || currentView === 'vehicle-detail' || currentView === 'vehicle-documents' || currentView === 'vehicle-maintenance' || currentView === 'shipper-list' || currentView === 'shipper-detail' || currentView === 'scan-time-list' || currentView === 'scan-time-detail' || currentView === 'payroll-period-list' || currentView === 'payroll-period-detail' || currentView === 'shift-control-list' || currentView === 'shift-control-detail'} 
             hasSubItems
             onClick={() => {}}
           >
@@ -1379,6 +1379,18 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('vehicle-list')}
                 >
                   Vehicle
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-documents' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-documents')}
+                >
+                  Vehicle Documents
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'vehicle-maintenance' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('vehicle-maintenance')}
+                >
+                  Maintenance
                 </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipper-list' || currentView === 'shipper-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -1493,7 +1505,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-gear" 
             label="Configs" 
-            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'service-delivery-config' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
+            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1517,10 +1529,10 @@ const App: React.FC = () => {
                   IT Route
                 </div>
                 <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'service-delivery-config' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('service-delivery-config')}
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('delivery-sla-list')}
                 >
-                  Service Delivery
+                  Delivery SLA
                 </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'user-store-access-list' || currentView === 'user-store-access-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -1589,6 +1601,8 @@ const App: React.FC = () => {
                  currentView === 'payroll-period-detail' ? 'Payroll Period Detail' :
                  currentView === 'shift-control-list' ? 'Shift Control' :
                  currentView === 'shift-control-detail' ? 'Shift Control Detail' :
+                 currentView === 'vehicle-documents' ? 'Vehicle Documents' :
+                 currentView === 'vehicle-maintenance' ? 'Maintenance' :
                  currentView === 'vehicle-list' ? 'Vehicle Management' :
                  currentView === 'vehicle-detail' ? 'Vehicle Detail' :
                  currentView === 'it-route-list' ? 'IT Route List' :
@@ -1597,7 +1611,8 @@ const App: React.FC = () => {
                  currentView === 'order-po' ? 'Purchase Order' :
                  currentView === 'order-po-detail' ? 'PO Detail' :
                  currentView === 'contract-list' ? 'Contract Management' : 
-                 currentView === 'service-delivery-config' ? 'Service Delivery Configuration' : 
+                 currentView === 'delivery-sla-list' ? 'Delivery SLA Management' :
+                 currentView === 'delivery-sla-detail' ? 'Delivery SLA Detail' : 
                  currentView === 'shipment-online' ? 'Online Shipment' :
                   currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
                   currentView === 'shipment-drop-off-detail' ? 'Drop-off Detail' :
@@ -2431,6 +2446,10 @@ const App: React.FC = () => {
                configId={selectedShiftControlId}
                onBack={() => setCurrentView('shift-control-list')}
              />
+          ) : currentView === 'vehicle-documents' ? (
+             <VehicleDocumentsView />
+          ) : currentView === 'vehicle-maintenance' ? (
+             <VehicleMaintenanceView />
           ) : currentView === 'vehicle-list' ? (
             <VehicleListView
                onRowClick={(id) => {
@@ -3862,66 +3881,669 @@ const App: React.FC = () => {
                  setCurrentView('user-store-access-list');
                }}
              />
-          ) : currentView === 'service-delivery-config' ? (
-             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300 relative">
-                <div className="flex items-center justify-between border-b px-4 py-3">
-                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Service Delivery Configuration</h2>
-                  <button 
-                    onClick={() => {
-                        setEditingConfig({ orderType: 'Online', serviceType: 'Standard', lateDeliveryAlertTime: 60, isActive: true });
-                        setShowConfigModal(true);
-                    }}
-                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
-                  >
-                    <i className="fa-solid fa-plus"></i> Add Configuration
+          ) : currentView === 'delivery-sla-list' ? (
+             <DeliverySLAListView 
+               onEdit={(id) => {
+                 setSelectedDeliverySLAId(id);
+                 setCurrentView('delivery-sla-detail');
+               }}
+               onCreate={() => {
+                 setSelectedDeliverySLAId(null);
+                 setCurrentView('delivery-sla-detail');
+               }}
+             />
+          ) : currentView === 'delivery-sla-detail' ? (
+             <DeliverySLADetailView
+               configId={selectedDeliverySLAId}
+               stores={stores}
+               onBack={() => setCurrentView('delivery-sla-list')}
+             />
+          ) : currentView === 'scan-time-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-4 py-3">
+                 <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Scan Time Configs</h2>
+                 <button 
+                   onClick={() => { setEditingScanTimeConfig({ country: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh' }); setCurrentView('scan-time-detail'); }}
+                   className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                 >
+                   <i className="fa-solid fa-plus"></i> Add Config
+                 </button>
+               </div>
+               <div className="p-4">
+                 <div className="border border-gray-100 rounded overflow-hidden">
+                   <table className="w-full text-left text-xs bg-white">
+                     <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                       <tr>
+                         <th className="px-4 py-3 border-r w-[20%]">Store Name</th>
+                         <th className="px-4 py-3 border-r w-[15%]">Ward/City</th>
+                         <th className="px-4 py-3 border-r w-[15%]">State/Province</th>
+                         <th className="px-4 py-3 border-r w-[15%]">Country</th>
+                         <th className="px-4 py-3 border-r w-[15%] text-center">Time</th>
+                         <th className="px-4 py-3 border-r w-[10%] text-center">Timezone</th>
+                         <th className="px-4 py-3 text-center w-[10%]">Actions</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
+                       {scanTimeConfigs.map((config, index) => (
+                         <tr key={config.id || index} className="hover:bg-gray-50 transition-colors">
+                           <td className="px-4 py-3 border-r">{config.storeName || '-'}</td>
+                           <td className="px-4 py-3 border-r">{config.wardCity || '-'}</td>
+                           <td className="px-4 py-3 border-r">{config.stateProvince || '-'}</td>
+                           <td className="px-4 py-3 border-r">
+                             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                               {config.country}
+                             </span>
+                           </td>
+                           <td className="px-4 py-3 border-r text-center">
+                             <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{config.startTime}</span>
+                             <span className="mx-1 text-gray-400">-</span>
+                             <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{config.endTime}</span>
+                           </td>
+                           <td className="px-4 py-3 border-r text-center">{config.timezone}</td>
+                           <td className="px-4 py-3 text-center space-x-3">
+                             <button 
+                               onClick={() => { setEditingScanTimeConfig(config); setCurrentView('scan-time-detail'); }}
+                               className="text-blue-500 hover:text-blue-700 transition-colors"
+                             >
+                               <i className="fa-solid fa-pen-to-square"></i>
+                             </button>
+                             <button
+                               onClick={() => confirmAction('Delete Config', 'Are you sure you want to delete this config?', () => setScanTimeConfigs(prev => prev.filter(c => c.id !== config.id)))}
+                               className="text-red-500 hover:text-red-700 transition-colors"
+                             >
+                               <i className="fa-solid fa-trash-can"></i>
+                             </button>
+                           </td>
+                         </tr>
+                       ))}
+                       {scanTimeConfigs.length === 0 && (
+                         <tr>
+                           <td colSpan={7} className="px-4 py-8 text-center text-gray-400">No configs found</td>
+                         </tr>
+                       )}
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
+             </div>
+          ) : currentView === 'scan-time-detail' ? (
+             <div className="bg-[#f8fafc] min-h-full flex flex-col animate-in fade-in duration-300">
+               <div className="flex items-center justify-between border-b px-6 py-4 bg-white sticky top-0 z-10 shadow-sm">
+                 <div className="flex items-center gap-4">
+                   <button onClick={() => setCurrentView('scan-time-list')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+                     <i className="fa-solid fa-arrow-left"></i>
+                   </button>
+                   <div>
+                     <h2 className="text-[#1b4d3e] font-bold text-lg">{editingScanTimeConfig.id ? 'Edit Scan Time Config' : 'Create Scan Time Config'}</h2>
+                     <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1 mt-0.5"><i className="fa-solid fa-clock-rotate-left"></i> Last updated: {editingScanTimeConfig.updatedAt || new Date().toLocaleString()}</p>
+                   </div>
+                 </div>
+                 <div className="flex gap-3">
+                   <button 
+                     onClick={() => setCurrentView('scan-time-list')}
+                     className="px-6 py-2 border border-gray-300 text-gray-700 font-bold rounded-lg text-xs hover:bg-gray-50 transition-colors bg-white shadow-sm"
+                   >
+                     Cancel
+                   </button>
+                   <button 
+                     onClick={() => {
+                       if (editingScanTimeConfig.id) {
+                         setScanTimeConfigs(prev => prev.map(c => c.id === editingScanTimeConfig.id ? { ...c, ...editingScanTimeConfig, updatedAt: new Date().toLocaleString() } as ScanTimeConfig : c));
+                       } else {
+                         setScanTimeConfigs([{ ...editingScanTimeConfig, id: Date.now().toString(), updatedAt: new Date().toLocaleString() } as ScanTimeConfig, ...scanTimeConfigs]);
+                       }
+                       setCurrentView('scan-time-list');
+                     }}
+                     className="bg-[#1b4d3e] text-white px-8 py-2 rounded-lg text-xs font-bold hover:bg-[#153a2f] transition-all shadow-md flex items-center gap-2"
+                   >
+                     <i className="fa-solid fa-floppy-disk"></i> Save Config
+                   </button>
+                 </div>
+               </div>
+               
+               <div className="p-6 max-w-4xl mx-auto w-full">
+                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                   <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                     <h3 className="font-bold text-[#1b4d3e] flex items-center gap-2">
+                       <i className="fa-solid fa-map-location-dot"></i> Region & Time Settings
+                     </h3>
+                     <p className="text-xs text-gray-500 mt-1">Configure scan time restrictions for specific regions. Hierarchy: Store &gt; Ward &gt; State &gt; Country.</p>
+                   </div>
+                   
+                   <div className="p-6 grid grid-cols-2 gap-x-8 gap-y-6">
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Store Name</label>
+                       <select 
+                         value={editingScanTimeConfig.storeId || ''}
+                         onChange={e => {
+                            const store = stores.find(s => s.id === e.target.value);
+                            setEditingScanTimeConfig({...editingScanTimeConfig, storeId: e.target.value, storeName: store?.name || ''});
+                         }}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] bg-white transition-all shadow-sm"
+                       >
+                         <option value="">-- Apply to all / Specific higher level --</option>
+                         {stores.map(store => (
+                           <option key={store.id} value={store.id}>{store.name}</option>
+                         ))}
+                       </select>
+                       <p className="text-[10px] text-gray-500 mt-1"><i className="fa-solid fa-circle-info mr-1"></i>Leave blank to apply to entire Ward/City or State.</p>
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Ward / City</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.wardCity || ''}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, wardCity: e.target.value})}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                         placeholder="e.g. Ward 5"
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">State / Province</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.stateProvince || ''}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, stateProvince: e.target.value})}
+                         className="w-full border border-[#e5e7eb] rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                         placeholder="e.g. Ho Chi Minh"
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 md:col-span-1 space-y-1">
+                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Country</label>
+                       <input 
+                         type="text"
+                         value={editingScanTimeConfig.country || 'Vietnam'}
+                         onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, country: e.target.value})}
+                         className="w-full border border-gray-200 rounded-[8px] px-3 py-2.5 text-[12px] text-gray-700 outline-none bg-gray-50 shadow-sm"
+                         readOnly
+                       />
+                     </div>
+                     
+                     <div className="col-span-2 border-t border-gray-100 pt-6 mt-2 grid grid-cols-3 gap-6">
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Start Time</label>
+                         <div className="relative">
+                           <input 
+                             type="time"
+                             value={editingScanTimeConfig.startTime || ''}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, startTime: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-3 py-2 text-[13px] font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                           />
+                           <i className="fa-regular fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                         </div>
+                       </div>
+                       
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">End Time</label>
+                         <div className="relative">
+                           <input 
+                             type="time"
+                             value={editingScanTimeConfig.endTime || ''}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, endTime: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-3 py-2 text-[13px] font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] transition-all shadow-sm"
+                           />
+                           <i className="fa-solid fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                         </div>
+                       </div>
+                       
+                       <div className="space-y-1">
+                         <label className="text-[11px] font-bold text-gray-700 tracking-tight block uppercase">Timezone</label>
+                         <div className="relative">
+                           <select 
+                             value={editingScanTimeConfig.timezone || 'Asia/Ho_Chi_Minh'}
+                             onChange={e => setEditingScanTimeConfig({...editingScanTimeConfig, timezone: e.target.value})}
+                             className="w-full border border-[#e5e7eb] rounded-[8px] pl-9 pr-8 py-2 text-[12px] text-gray-700 outline-none focus:ring-2 focus:ring-[#4d9e5f]/20 focus:border-[#4d9e5f] bg-white transition-all shadow-sm appearance-none"
+                           >
+                             <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (UTC+7)</option>
+                             <option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option>
+                             <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                             <option value="UTC">UTC</option>
+                           </select>
+                           <i className="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                           <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+          ) : currentView === 'payroll-period-list' ? (
+             <div className="bg-[#f2f6f4] min-h-full flex flex-col p-4 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-[#1b4d3e] font-bold text-lg">Payroll Period</h2>
+                    <p className="text-gray-500 text-xs mt-1">Manage commission payroll periods</p>
+                  </div>
+                  <button onClick={() => setCurrentView('payroll-period-detail')} className="bg-[#1b4d3e] text-white px-4 py-2 rounded-md text-xs font-bold hover:bg-[#153a2f] shadow-sm flex items-center gap-2 transition-colors">
+                    <i className="fa-solid fa-plus"></i> Create Period
                   </button>
                 </div>
-                <div className="p-4 flex-1">
+                
+                <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="relative w-1/3 min-w-[250px]">
+                      <input type="text" placeholder="Search periods..." className="w-full border border-gray-200 rounded-md pl-9 pr-3 py-2 text-xs outline-none focus:border-[#4d9e5f] focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all" />
+                      <i className="fa-solid fa-magnifying-glass absolute left-3 top-[10px] text-gray-400"></i>
+                    </div>
+                  </div>
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#f8fafc] text-gray-700 font-bold border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-3 w-[25%] hover:bg-gray-100 transition-colors">Version Name</th>
+                        <th className="px-6 py-3 w-[20%] hover:bg-gray-100 transition-colors">Cycle</th>
+                        <th className="px-6 py-3 w-[25%] hover:bg-gray-100 transition-colors">Effective Time</th>
+                        <th className="px-6 py-3 w-[20%] hover:bg-gray-100 transition-colors">Applied Location</th>
+                        <th className="px-6 py-3 w-[10%] text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-600">
+                      {payrollPeriods.map((period) => (
+                        <tr key={period.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-gray-800">{period.versionName}</td>
+                          <td className="px-6 py-4 font-medium">{period.cycle}</td>
+                          <td className="px-6 py-4 font-medium">{period.effectiveTime}</td>
+                          <td className="px-6 py-4 whitespace-pre-wrap leading-relaxed">{period.appliedLocation}</td>
+                          <td className="px-6 py-4 text-right space-x-3 text-gray-400">
+                            <button onClick={() => setCurrentView('payroll-period-detail')} className="hover:text-blue-500 transition-colors"><i className="fa-regular fa-pen-to-square"></i></button>
+                            <button className="hover:text-red-500 transition-colors"><i className="fa-regular fa-trash-can"></i></button>
+                          </td>
+                        </tr>
+                      ))}
+                      {payrollPeriods.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-400">No payroll periods found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+             </div>
+           ) : currentView === 'shift-control-list' ? (
+             <ShiftControlListView 
+               onRowClick={(id) => {
+                 setSelectedShiftControlId(id);
+                 setCurrentView('shift-control-detail');
+               }}
+               onCreateClick={() => {
+                 setSelectedShiftControlId(null);
+                 setCurrentView('shift-control-detail');
+               }}
+             />
+          ) : currentView === 'shift-control-detail' ? (
+             <ShiftControlDetailView
+               stores={stores}
+               configId={selectedShiftControlId}
+               onBack={() => setCurrentView('shift-control-list')}
+             />
+          ) : currentView === 'vehicle-documents' ? (
+             <VehicleDocumentsView />
+          ) : currentView === 'vehicle-maintenance' ? (
+             <div className="p-8"><h2 className="text-xl font-bold">Maintenance (Coming soon)</h2></div>
+          ) : currentView === 'vehicle-list' ? (
+            <VehicleListView
+               onRowClick={(id) => {
+                 setSelectedVehicleId(id);
+                 setCurrentView('vehicle-detail');
+               }}
+               onCreateClick={() => {
+                 setSelectedVehicleId(null);
+                 setCurrentView('vehicle-detail');
+               }}
+            />
+          ) : currentView === 'vehicle-detail' ? (
+            <VehicleDetailView
+               vehicleId={selectedVehicleId}
+               onBack={() => setCurrentView('vehicle-list')}
+            />
+          ) : currentView === 'payroll-period-detail' ? (
+             <div className="bg-[#f8fafc] min-h-full flex flex-col items-center py-6 px-4 pb-24 animate-in fade-in duration-300 relative">
+               <div className="w-full flex justify-start max-w-[900px] mb-4">
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-bold flex items-center gap-2">
+                   <i className="fa-solid fa-arrow-left"></i> Back to Periods
+                 </button>
+               </div>
+               <div className="w-full max-w-[900px] space-y-6">
+                 
+                 <button className="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center gap-2 transition-colors">
+                   <i className="fa-regular fa-eye"></i> Review KPI Summary
+                 </button>
+
+                 <div>
+                   <div className="flex items-center justify-end mb-4">
+                     <button onClick={() => setKpiRules([...kpiRules, { id: Date.now(), name: `KPI ${kpiRules.length + 1}` }])} className="border border-gray-300 bg-white text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center gap-2 transition-colors">
+                       <i className="fa-solid fa-plus"></i> Add KPI
+                     </button>
+                   </div>
+                   
+                   <div className="space-y-6">
+                   {kpiRules.map((rule, index) => (
+                   <div key={rule.id} className={`border border-red-200 bg-white rounded-xl shadow-sm overflow-hidden`}>
+                     <div className={`bg-red-50/70 border-red-100 px-4 py-3 flex items-center justify-between border-b`}>
+                       <div className="flex items-center gap-3 flex-1 max-w-sm">
+                         <input 
+                           type="text" 
+                           value={rule.name}
+                           onChange={(e) => {
+                             const newRules = [...kpiRules];
+                             newRules[index].name = e.target.value;
+                             setKpiRules(newRules);
+                           }}
+                           className="font-bold text-gray-900 text-sm bg-white border border-gray-300 rounded px-2 py-1 w-full focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                           placeholder="Enter KPI name"
+                         />
+                         <span className={`bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider whitespace-nowrap`}>
+                           Deduction (Penalty)
+                         </span>
+                       </div>
+                       <button onClick={() => setKpiRules(kpiRules.filter(r => r.id !== rule.id))} className={`text-gray-400 hover:text-red-600 transition-colors`}><i className="fa-regular fa-trash-can"></i></button>
+                     </div>
+                     <div className="p-5 space-y-6">
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                         <div>
+                           <label className="text-sm text-gray-800 font-bold mb-3 block tracking-wide">Applied Order Types (Select at least 1) <span className="text-red-500">*</span></label>
+                           <div className="flex items-center gap-6 text-sm text-gray-600">
+                             <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors select-none"><input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-blue-500 h-4 w-4" /> <span className="font-medium">Online Orders</span></label>
+                             <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors select-none"><input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-blue-500 h-4 w-4" /> <span className="font-medium">Internal Transfer Orders</span></label>
+                           </div>
+                         </div>
+                         <div>
+                           <label className="text-sm text-gray-800 font-bold mb-3 block tracking-wide">Type reference <span className="text-red-500">*</span></label>
+                           <div className="relative">
+                             <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all h-[38px]">
+                               <option>Shipment late</option>
+                               <option>Shipment invalid POD</option>
+                               <option>First Attempt Delivery</option>
+                             </select>
+                             <i className="fa-solid fa-chevron-down absolute right-3 top-[13px] text-xs text-gray-500 pointer-events-none"></i>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div>
+                         <label className="text-sm text-gray-800 font-bold mb-4 block tracking-wide">Service Level</label>
+                         <div className="space-y-5 pl-2">
+                           <div>
+                             <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2.5">ONLINE SERVICES</div>
+                             <div className="flex flex-wrap gap-2.5">
+                               {['2 Hours', 'Sameday', 'Nextday', 'Express', 'Standard'].map(svc => (
+                                 <label key={svc} className="flex items-center gap-2 border border-[#1b4d3e] text-[#1b4d3e] bg-green-50/30 px-3.5 py-1.5 rounded-md text-[13px] cursor-pointer font-bold hover:bg-green-50 transition-colors shadow-sm select-none">
+                                   <input type="checkbox" defaultChecked className="rounded text-[#1b4d3e] focus:ring-[#1b4d3e] border-[#1b4d3e] bg-white h-3.5 w-3.5" />
+                                   {svc}
+                                 </label>
+                               ))}
+                             </div>
+                           </div>
+                           <div>
+                             <div className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2.5">IT SERVICES</div>
+                             <div className="flex flex-wrap gap-2.5">
+                               {['Sameday', '48 Hours'].map(svc => (
+                                 <label key={svc} className="flex items-center gap-2 border border-[#1b4d3e] text-[#1b4d3e] bg-green-50/30 px-3.5 py-1.5 rounded-md text-[13px] cursor-pointer font-bold hover:bg-green-50 transition-colors shadow-sm select-none">
+                                   <input type="checkbox" defaultChecked className="rounded text-[#1b4d3e] focus:ring-[#1b4d3e] border-[#1b4d3e] bg-white h-3.5 w-3.5" />
+                                   {svc}
+                                 </label>
+                               ))}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-2 border-t border-gray-100">
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">Rule Incentive Model</label>
+                           <div className="relative">
+                             <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all">
+                               <option>Use main model (Deduction)</option>
+                               <option>Performance Bonus</option>
+                             </select>
+                             <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-xs text-gray-500 pointer-events-none"></i>
+                           </div>
+                           <p className="text-[11px] text-gray-500 leading-snug">Override the main period setting for this specific rule.</p>
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">Target Threshold</label>
+                           <div className="relative border border-gray-300 rounded-lg overflow-hidden flex shadow-sm bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                             <div className="bg-gray-50 border-r border-gray-200 px-3 py-2 text-gray-500 flex items-center justify-center font-bold">&ge;</div>
+                             <input type="text" defaultValue="97" className="w-full px-3 py-2 text-sm outline-none font-bold text-gray-800" />
+                             <div className="px-3 py-2 text-gray-500 flex items-center justify-center text-sm bg-gray-50 border-l border-gray-200 font-bold">%</div>
+                           </div>
+                           <p className="text-[11px] text-gray-500 leading-snug">Minimum KPI the shipper must achieve.</p>
+                         </div>
+                         <div className="space-y-2">
+                           <label className="text-[13px] font-bold text-gray-800 tracking-wide">If target missed, apply penalty:</label>
+                           <div className="flex flex-col xl:flex-row gap-2 items-start">
+                             <div className="relative w-full xl:w-auto xl:flex-1">
+                               <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none bg-white font-medium shadow-sm transition-all">
+                                 <option>Per late/invalid ticket</option>
+                               </select>
+                               <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-xs text-gray-500 pointer-events-none"></i>
+                             </div>
+                             <div className="bg-gray-50 border border-gray-200 rounded p-2 text-[10px] text-gray-600 leading-snug w-full xl:w-[150px] shadow-sm">
+                               Penalty amount is derived from finalized violation tickets (Set in OPS System).
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                     </div>
+                   </div>
+                   ))}
+                   {kpiRules.length === 0 && (
+                     <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                       <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                         <i className="fa-solid fa-chart-line text-gray-400 text-xl"></i>
+                       </div>
+                       <h3 className="text-sm font-bold text-gray-900 mb-1">No KPIs defined</h3>
+                       <p className="text-xs text-gray-500 max-w-[250px] mx-auto mb-4">Create KPI rules to evaluate shipper performance and calculate incentives.</p>
+                       <button onClick={() => setKpiRules([{ id: Date.now(), name: 'KPI 1' }])} className="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 shadow-sm transition-colors mx-auto flex items-center gap-2">
+                         <i className="fa-solid fa-plus"></i> Add First KPI
+                       </button>
+                     </div>
+                   )}
+                   </div>
+                 </div>
+
+               </div>
+               
+               <div className="fixed bottom-0 left-[240px] right-0 bg-white border-t border-gray-200 p-4 px-6 flex justify-between items-center z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="px-6 py-2 border border-gray-300 font-bold rounded-lg text-[13px] text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">Cancel</button>
+                 <button onClick={() => setCurrentView('payroll-period-list')} className="bg-[#1b4d3e] text-white px-8 py-2 rounded-lg text-[13px] font-bold hover:bg-[#153a2f] shadow-md transition-all flex items-center gap-2">
+                   <i className="fa-solid fa-floppy-disk"></i> Save Period
+                 </button>
+               </div>
+             </div>
+           ) : currentView === 'ticket-list' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Management</h2>
+                  <button 
+                    onClick={startCreateTicket}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Create Ticket
+                  </button>
+                </div>
+
+                {/* Filter Bar */}
+                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ticket Type</label>
+                      <select 
+                        value={ticketFilters.ticketType}
+                        onChange={e => setTicketFilters({...ticketFilters, ticketType: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      >
+                        <option value="">All Types</option>
+                        {ticketTypes.map(tt => (
+                          <option key={tt.id} value={tt.name}>{tt.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Shipper (Name/ID)</label>
+                      <input 
+                        type="text"
+                        value={ticketFilters.shipper}
+                        onChange={e => setTicketFilters({...ticketFilters, shipper: e.target.value})}
+                        placeholder="Search shipper..."
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Order Code</label>
+                      <input 
+                        type="text"
+                        value={ticketFilters.orderCode}
+                        onChange={e => setTicketFilters({...ticketFilters, orderCode: e.target.value})}
+                        placeholder="Search order..."
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">From Date</label>
+                      <input 
+                        type="date"
+                        value={ticketFilters.fromDate}
+                        onChange={e => setTicketFilters({...ticketFilters, fromDate: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                      <select 
+                        value={ticketFilters.status}
+                        onChange={e => setTicketFilters({...ticketFilters, status: e.target.value})}
+                        className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="Waiting Clarification">Waiting Clarification</option>
+                        <option value="Explained">Explained</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">To Date</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="date"
+                          value={ticketFilters.toDate}
+                          onChange={e => setTicketFilters({...ticketFilters, toDate: e.target.value})}
+                          className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white"
+                        />
+                        <button 
+                          onClick={() => setTicketFilters({ ticketType: '', shipper: '', orderCode: '', fromDate: '', toDate: '', status: '' })}
+                          className="bg-gray-200 text-gray-600 px-2 py-1.5 rounded text-[10px] font-bold hover:bg-gray-300 transition-colors"
+                          title="Clear Filters"
+                        >
+                          <i className="fa-solid fa-rotate-left"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
                   <div className="border border-gray-100 rounded overflow-hidden">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                         <tr>
-                          <th className="px-4 py-3 w-1/5">Order type</th>
-                          <th className="px-4 py-3 w-1/5">Service Type</th>
-                          <th className="px-4 py-3 w-1/5">Late Alert Time (Minute)</th>
-                          <th className="px-4 py-3 w-1/5 text-center">Status</th>
-                          <th className="px-4 py-3 text-center w-24">Actions</th>
+                          <th className="px-4 py-3 border-r">Ticket Code</th>
+                          <th className="px-4 py-3 border-r">Explanation</th>
+                          <th className="px-4 py-3 border-r">Ticket Type</th>
+                          <th className="px-4 py-3 border-r">Shipper ID</th>
+                          <th className="px-4 py-3 border-r">Shipper Name</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Incident Date</th>
+                          <th className="px-4 py-3 border-r">Order Code</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Created Date</th>
+                          <th className="px-4 py-3 border-r text-nowrap">Created By</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y text-gray-600 font-medium bg-white">
-                        {serviceDeliveryConfigs.map((config) => (
-                          <tr key={config.id} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-4 py-3">{config.orderType}</td>
-                            <td className="px-4 py-3">{config.serviceType}</td>
-                            <td className="px-4 py-3">{config.lateDeliveryAlertTime}</td>
-                            <td className="px-4 py-3 text-center">
-                              <button 
-                                onClick={() => {
-                                  setServiceDeliveryConfigs(prev => prev.map(c => c.id === config.id ? { ...c, isActive: !c.isActive } : c));
-                                }}
-                                className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${config.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
-                              >
-                                <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${config.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
-                              </button>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {tickets.filter(ticket => {
+                          const matchType = !ticketFilters.ticketType || ticket.ticketType === ticketFilters.ticketType;
+                          const matchShipper = !ticketFilters.shipper || 
+                            ticket.shipperName?.toLowerCase().includes(ticketFilters.shipper.toLowerCase()) ||
+                            ticket.shipperId?.toLowerCase().includes(ticketFilters.shipper.toLowerCase());
+                          const matchOrder = !ticketFilters.orderCode || ticket.orderCode?.toLowerCase().includes(ticketFilters.orderCode.toLowerCase());
+                          const matchStatus = !ticketFilters.status || ticket.status === ticketFilters.status;
+                          
+                          let matchDate = true;
+                          if (ticketFilters.fromDate || ticketFilters.toDate) {
+                            // Parse DD/MM/YYYY
+                            const dateStr = ticket.createdAt.split(' ')[0];
+                            const [day, month, year] = dateStr.split('/').map(Number);
+                            const ticketDate = new Date(year, month - 1, day);
+                            
+                            if (ticketFilters.fromDate) {
+                              const from = new Date(ticketFilters.fromDate);
+                              from.setHours(0, 0, 0, 0);
+                              if (ticketDate < from) matchDate = false;
+                            }
+                            if (ticketFilters.toDate) {
+                              const to = new Date(ticketFilters.toDate);
+                              to.setHours(23, 59, 59, 999);
+                              if (ticketDate > to) matchDate = false;
+                            }
+                          }
+                          
+                          return matchType && matchShipper && matchOrder && matchDate && matchStatus;
+                        }).map(ticket => (
+                          <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{ticket.ticketCode}</td>
+                            <td className="px-4 py-3 border-r max-w-[150px] truncate" title={ticket.explanationContent}>{ticket.explanationContent}</td>
+                            <td className="px-4 py-3 border-r">
+                              {ticket.ticketType}
+                              {ticketTypes.find(tt => tt.id === ticket.ticketTypeId)?.country && (
+                                <span className="ml-1 text-[9px] text-gray-400">
+                                  ({ticketTypes.find(tt => tt.id === ticket.ticketTypeId)?.country})
+                                </span>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="px-4 py-3 border-r font-mono text-[10px]">{ticket.shipperId}</td>
+                            <td className="px-4 py-3 border-r">{ticket.shipperName}</td>
+                            <td className="px-4 py-3 border-r">{ticket.incidentReportDate}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span 
+                                className="text-blue-600 hover:text-blue-800 cursor-pointer hover:underline font-bold"
+                                onClick={() => setCurrentView('shipment-detail')}
+                                title="View Order Detail"
+                              >
+                                {ticket.orderCode}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 border-r text-nowrap">{ticket.createdAt}</td>
+                            <td className="px-4 py-3 border-r">{ticket.createdBy}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                ticket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                                ticket.status === 'Waiting Clarification' ? 'bg-purple-100 text-purple-700' :
+                                ticket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
+                                ticket.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                                ticket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {ticket.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
                               <button 
-                                onClick={() => {
-                                    setEditingConfig(config);
-                                    setShowConfigModal(true);
-                                }}
-                                className="text-gray-400 hover:text-[#4d9e5f] transition-colors mx-1"
+                                onClick={() => startEditTicket(ticket)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
                                 title="Edit"
                               >
                                 <i className="fa-solid fa-pen-to-square"></i>
                               </button>
                               <button 
-                                onClick={() => {
-                                    if (window.confirm('Delete this configuration?')) {
-                                        setServiceDeliveryConfigs(prev => prev.filter(c => c.id !== config.id));
-                                    }
-                                }}
-                                className="text-gray-400 hover:text-red-500 transition-colors mx-1"
+                                onClick={() => handleDeleteTicket(ticket.id)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
                                 title="Delete"
                               >
                                 <i className="fa-solid fa-trash"></i>
@@ -3933,88 +4555,1065 @@ const App: React.FC = () => {
                     </table>
                   </div>
                 </div>
-
-                {showConfigModal && (
-                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-[100] px-4 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white border rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                        <h3 className="font-bold text-[#1b4d3e]">{editingConfig.id ? 'Edit Configuration' : 'Add Configuration'}</h3>
-                        <button onClick={() => setShowConfigModal(false)} className="text-gray-400 hover:text-gray-600">
-                          <i className="fa-solid fa-xmark"></i>
-                        </button>
-                      </div>
-                      <div className="p-6 space-y-4">
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Order type</label>
-                          <select 
-                            value={editingConfig.orderType || ''}
-                            onChange={(e) => setEditingConfig({...editingConfig, orderType: e.target.value})}
-                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
-                          >
-                            <option value="Online">Online</option>
-                            <option value="IT">IT</option>
-                            <option value="FWD">FWD</option>
-                          </select>
+             </div>
+          ) : currentView === 'ticket-detail' ? (
+             <div className="bg-[#f8fafc] min-h-full flex flex-col animate-in slide-in-from-right duration-300">
+                {/* Modern Header */}
+                <div className="bg-white border-b px-6 py-4 sticky top-0 z-10 shadow-sm">
+                  <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => setCurrentView('ticket-list')}
+                        className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-[#1b4d3e] transition-all"
+                      >
+                        <i className="fa-solid fa-arrow-left"></i>
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-3 mb-0.5">
+                          <h2 className="text-[#1b4d3e] font-bold text-lg tracking-tight">
+                            {editingTicket.id ? editingTicket.ticketCode : 'New Ticket'}
+                          </h2>
+                          {editingTicket.status && (
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              editingTicket.status === 'Open' ? 'bg-blue-100 text-blue-700' :
+                              editingTicket.status === 'Waiting Clarification' ? 'bg-purple-100 text-purple-700' :
+                              editingTicket.status === 'Explained' ? 'bg-yellow-100 text-yellow-700' :
+                              editingTicket.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                              editingTicket.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {editingTicket.status}
+                            </span>
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Service Type</label>
-                          <select 
-                            value={editingConfig.serviceType || ''}
-                            onChange={(e) => setEditingConfig({...editingConfig, serviceType: e.target.value})}
-                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
-                          >
-                            <option value="Express">Express</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Same Day">Same Day</option>
-                            <option value="Next Day">Next Day</option>
-                            <option value="Economy">Economy</option>
-                          </select>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Late Delivery Alert Time (Minute)</label>
-                          <input 
-                            type="number"
-                            value={editingConfig.lateDeliveryAlertTime || ''}
-                            onChange={(e) => setEditingConfig({...editingConfig, lateDeliveryAlertTime: parseInt(e.target.value) || 0})}
-                            className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
-                            placeholder="e.g. 60"
-                          />
-                        </div>
-                        <div className="flex items-center justify-between pt-2">
-                          <label className="text-[11px] font-bold text-gray-700 tracking-tight">Status (Active)</label>
-                          <button 
-                            onClick={() => setEditingConfig({...editingConfig, isActive: editingConfig.isActive === false ? true : false})}
-                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingConfig.isActive !== false ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
-                          >
-                            <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingConfig.isActive !== false ? 'translate-x-4' : 'translate-x-0'}`} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-                        <button 
-                          onClick={() => setShowConfigModal(false)}
-                          className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold text-gray-500 hover:bg-gray-100 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          onClick={() => {
-                              if (editingConfig.id) {
-                                  setServiceDeliveryConfigs(prev => prev.map(c => c.id === editingConfig.id ? (editingConfig as ServiceDeliveryConfig) : c));
-                              } else {
-                                  setServiceDeliveryConfigs(prev => [...prev, { ...editingConfig, id: Math.random().toString(36).substr(2, 9) } as ServiceDeliveryConfig]);
-                              }
-                              setShowConfigModal(false);
-                          }}
-                          className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
-                        >
-                          Save
-                        </button>
+                        <p className="text-gray-500 text-xs font-medium">
+                          {editingTicket.id ? `Last updated: ${editingTicket.updatedAt || editingTicket.createdAt}` : 'Fill in the details to create a new ticket'}
+                        </p>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {editingTicket.id && (
+                        <div className="flex items-center bg-gray-100 p-1 rounded-lg gap-1 mr-2">
+                          {editingTicket.status === 'Open' && (
+                            <button 
+                              onClick={() => confirmAction('Request Clarification', 'Are you sure you want to request clarification for this ticket?', handleClarifyTicket)}
+                              className="px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 text-gray-500 hover:text-purple-600 hover:bg-white/50"
+                            >
+                              <i className="fa-solid fa-user-tag"></i> Request Clarification
+                            </button>
+                          )}
+                          {editingTicket.status === 'Explained' && (
+                            <button 
+                              onClick={() => confirmAction('Request Clarification (2nd time)', 'Are you sure you want to request a second clarification for this ticket?', handleClarifyTicket)}
+                              className="px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 text-gray-500 hover:text-purple-600 hover:bg-white/50"
+                            >
+                              <i className="fa-solid fa-user-tag"></i> Clarify (2nd)
+                            </button>
+                          )}
+                          {(editingTicket.status === 'Explained' || editingTicket.status === 'Approved' || editingTicket.status === 'Rejected') && (
+                            <>
+                              <button 
+                                onClick={() => confirmAction('Approve Ticket', 'Are you sure you want to approve this ticket?', handleApproveTicket)}
+                                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                  editingTicket.status === 'Approved' 
+                                  ? 'bg-white text-green-600 shadow-sm' 
+                                  : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
+                                }`}
+                              >
+                                <i className="fa-solid fa-check"></i> Approve
+                              </button>
+                              <button 
+                                onClick={() => setShowRejectModal(true)}
+                                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                  editingTicket.status === 'Rejected' 
+                                  ? 'bg-white text-red-600 shadow-sm' 
+                                  : 'text-gray-500 hover:text-red-600 hover:bg-white/50'
+                                }`}
+                              >
+                                <i className="fa-solid fa-xmark"></i> Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => confirmAction('Save Changes', 'Are you sure you want to save these changes?', handleSaveTicket)}
+                        className="bg-[#1b4d3e] text-white px-6 py-2 rounded-lg text-xs font-bold hover:bg-[#153a2f] transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                      >
+                        <i className="fa-solid fa-floppy-disk"></i> Save Changes
+                      </button>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                <div className="p-6 overflow-y-auto">
+                  <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      
+                      {/* Left Column: Main Info */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {/* Ticket Overview Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-circle-info text-blue-500"></i> Ticket Overview
+                            </h3>
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">General Details</span>
+                          </div>
+                          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticket Type</label>
+                              <div className="flex gap-2">
+                                <select 
+                                  value={editingTicket.ticketTypeId || ''}
+                                  onChange={e => {
+                                    const selectedTypeId = e.target.value;
+                                    const selectedType = ticketTypes.find(tt => tt.id === selectedTypeId);
+                                    if (selectedType) {
+                                      setEditingTicket({
+                                        ...editingTicket,
+                                        ticketTypeId: selectedTypeId,
+                                        ticketType: selectedType.name,
+                                        ticketRecord: `${selectedType.violationPenaltyAmount} ${selectedType.currency || 'USD'}`
+                                      });
+                                    } else {
+                                      setEditingTicket({
+                                        ...editingTicket,
+                                        ticketTypeId: '',
+                                        ticketType: '',
+                                        ticketRecord: ''
+                                      });
+                                    }
+                                  }}
+                                  className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                >
+                                  <option value="">Select Type</option>
+                                  {ticketTypes.map(tt => (
+                                    <option key={tt.id} value={tt.id}>
+                                      {tt.name} ({tt.country || 'Global'})
+                                    </option>
+                                  ))}
+                                </select>
+                                {editingTicket.ticketTypeId && (
+                                  <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-xs font-bold flex items-center border border-blue-100">
+                                    {ticketTypes.find(tt => tt.id === editingTicket.ticketTypeId)?.country || 'Global'}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Priority</label>
+                              <select 
+                                value={editingTicket.priority || 'Medium'}
+                                onChange={e => setEditingTicket({...editingTicket, priority: e.target.value as any})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              >
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order Code</label>
+                                {editingTicket.orderCode && (
+                                  <button 
+                                    onClick={() => setCurrentView('shipment-detail')}
+                                    className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                                  >
+                                    <i className="fa-solid fa-up-right-from-square"></i> View Detail
+                                  </button>
+                                )}
+                              </div>
+                              <input 
+                                type="text" 
+                                value={editingTicket.orderCode || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, orderCode: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Enter order code"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticket Code (Auto)</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.ticketCode || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, ticketCode: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Generated on save"
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Subject</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.subject || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, subject: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="Short summary of the issue"
+                              />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Description</label>
+                              <textarea 
+                                value={editingTicket.description || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, description: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px]"
+                                placeholder="Provide detailed information about the incident..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Explanation Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-comment-dots text-purple-500"></i> Explanation Information
+                            </h3>
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">Response Details</span>
+                          </div>
+                          <div className="p-6 space-y-8">
+                            {/* Mobile Feedback Section */}
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-inner ${
+                                  editingTicket.understandingStatus === 'Understood' 
+                                  ? 'bg-green-100 text-green-600 border border-green-200' 
+                                  : editingTicket.understandingStatus === 'Not Understood'
+                                  ? 'bg-orange-100 text-orange-600 border border-orange-200'
+                                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+                                }`}>
+                                  <i className={`fa-solid fa-2xl ${
+                                    editingTicket.understandingStatus === 'Understood' 
+                                    ? 'fa-circle-check' 
+                                    : editingTicket.understandingStatus === 'Not Understood'
+                                    ? 'fa-circle-exclamation'
+                                    : 'fa-mobile-screen-button'
+                                  }`}></i>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Shipper Understanding (Mobile)</p>
+                                  <div className="flex items-center gap-2">
+                                    <select 
+                                      value={editingTicket.understandingStatus || ''}
+                                      onChange={e => setEditingTicket({...editingTicket, understandingStatus: e.target.value as any})}
+                                      className={`text-sm font-black uppercase tracking-tight bg-transparent border-none p-0 focus:ring-0 cursor-pointer ${
+                                        editingTicket.understandingStatus === 'Understood' 
+                                        ? 'text-green-600' 
+                                        : editingTicket.understandingStatus === 'Not Understood'
+                                        ? 'text-orange-600'
+                                        : 'text-gray-400'
+                                      }`}
+                                    >
+                                      <option value="">Pending Feedback</option>
+                                      <option value="Understood">Understood</option>
+                                      <option value="Not Understood">Not Understood</option>
+                                    </select>
+                                    <i className="fa-solid fa-chevron-down text-[10px] text-gray-300"></i>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-sm ${
+                                  editingTicket.understandingStatus === 'Understood' 
+                                  ? 'bg-green-500 text-white' 
+                                  : editingTicket.understandingStatus === 'Not Understood'
+                                  ? 'bg-orange-500 text-white'
+                                  : 'bg-gray-200 text-gray-500'
+                                }`}>
+                                  {editingTicket.understandingStatus === 'Understood' ? 'Confirmed' : editingTicket.understandingStatus === 'Not Understood' ? 'Action Required' : 'Waiting'}
+                                </span>
+                                <p className="text-[9px] text-gray-400 font-medium italic">Last sync: Just now</p>
+                              </div>
+                            </div>
+
+                            {/* First Explanation Section */}
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                                <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] font-bold">1</span>
+                                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-tight">First Explanation</h4>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Code</label>
+                                  <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                    {editingTicket.explanationCode || 'Auto-generated'}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Date</label>
+                                  <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                    {editingTicket.explanationDate || 'Auto-recorded'}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Clarification Deadline</label>
+                                  <div className={`border rounded-lg px-3 py-2 text-sm font-bold ${
+                                    editingTicket.clarificationDeadline 
+                                    ? 'bg-orange-50 border-orange-200 text-orange-700' 
+                                    : 'bg-gray-100 border-gray-200 text-gray-500 italic'
+                                  }`}>
+                                    {editingTicket.clarificationDeadline || 'Calculated on request'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
+                                <input 
+                                  type="text" 
+                                  value={editingTicket.explanationReason || ''} 
+                                  onChange={e => setEditingTicket({...editingTicket, explanationReason: e.target.value})}
+                                  disabled={!!editingTicket.explanationContent2}
+                                  className={`w-full border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all ${
+                                    editingTicket.explanationContent2 ? 'bg-gray-50 text-gray-400 italic' : 'bg-gray-50'
+                                  }`}
+                                  placeholder="Reason for first explanation"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Explanation Content</label>
+                                <textarea 
+                                  value={editingTicket.explanationContent || ''} 
+                                  onChange={e => setEditingTicket({...editingTicket, explanationContent: e.target.value})}
+                                  disabled={!!editingTicket.explanationContent2}
+                                  className={`w-full border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px] ${
+                                    editingTicket.explanationContent2 ? 'bg-gray-50 text-gray-400 italic' : 'bg-gray-50'
+                                  }`}
+                                  placeholder="Enter the detailed first explanation content here..."
+                                />
+                              </div>
+                            </div>
+
+                            {/* Second Explanation Section - Only show if first one exists or if we are in 2nd clarification mode */}
+                            {(editingTicket.explanationContent || editingTicket.status === 'Waiting Clarification') && (
+                              <div className="space-y-4 pt-4 border-t border-dashed border-gray-200">
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">2</span>
+                                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-tight">Second Explanation (Follow-up)</h4>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Date</label>
+                                    <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-500 italic">
+                                      {editingTicket.explanationDate2 || 'Auto-recorded'}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Reason</label>
+                                    <input 
+                                      type="text" 
+                                      value={editingTicket.explanationReason2 || ''} 
+                                      onChange={e => setEditingTicket({...editingTicket, explanationReason2: e.target.value})}
+                                      className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                      placeholder="Reason for second explanation"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Follow-up Content</label>
+                                  <textarea 
+                                    value={editingTicket.explanationContent2 || ''} 
+                                    onChange={e => setEditingTicket({...editingTicket, explanationContent2: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all min-h-[100px]"
+                                    placeholder="Enter the detailed follow-up explanation content here..."
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Evidence & Attachments Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-paperclip text-green-500"></i> Evidence & Attachments
+                            </h3>
+                            <label className="cursor-pointer bg-green-50 text-green-700 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-green-100 transition-all flex items-center gap-2">
+                              <i className="fa-solid fa-plus"></i> Upload File
+                              <input type="file" className="hidden" onChange={handleFileUpload} />
+                            </label>
+                          </div>
+                          <div className="p-6">
+                            {(!editingTicket.attachments || editingTicket.attachments.length === 0) ? (
+                              <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
+                                <i className="fa-solid fa-cloud-arrow-up text-gray-200 text-3xl mb-2"></i>
+                                <p className="text-xs text-gray-400 font-medium">No attachments yet. Upload images or documents as evidence.</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {editingTicket.attachments.map((file) => (
+                                  <div key={file.id} className="group relative bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-3 hover:border-green-200 transition-all">
+                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm">
+                                      {file.type.startsWith('image/') ? (
+                                        <img src={file.url} alt={file.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
+                                      ) : (
+                                        <i className="fa-solid fa-file-lines text-lg"></i>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-bold text-gray-700 truncate">{file.name}</p>
+                                      <p className="text-[10px] text-gray-400">{file.size} • {file.uploadedAt}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <a 
+                                        href={file.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-blue-500 transition-all"
+                                        title="View"
+                                      >
+                                        <i className="fa-solid fa-eye text-xs"></i>
+                                      </a>
+                                      <button 
+                                        onClick={() => removeAttachment(file.id)}
+                                        className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-white hover:text-red-500 transition-all"
+                                        title="Remove"
+                                      >
+                                        <i className="fa-solid fa-trash-can text-xs"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column: Side Info */}
+                      <div className="space-y-6">
+                        {/* Shipper & Incident Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-truck-fast text-orange-500"></i> Shipper & Incident
+                            </h3>
+                          </div>
+                          <div className="p-6 space-y-4">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipper ID</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.shipperId || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, shipperId: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Shipper Name</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.shipperName || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, shipperName: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Incident Date</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.incidentReportDate || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, incidentReportDate: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                                placeholder="DD/MM/YYYY"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Reason</label>
+                              <input 
+                                type="text" 
+                                value={editingTicket.reason || ''} 
+                                onChange={e => setEditingTicket({...editingTicket, reason: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="pt-2">
+                              <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
+                                <label className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1 block">Ticket Record / Penalty</label>
+                                <div className="text-lg font-black text-orange-700">
+                                  {editingTicket.ticketRecord || '0 USD'}
+                                </div>
+                                <p className="text-[10px] text-orange-500 mt-1 italic">Based on selected ticket type</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Audit Trail Card */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                              <i className="fa-solid fa-clock-rotate-left text-gray-500"></i> Audit Trail
+                            </h3>
+                          </div>
+                          <div className="p-6 space-y-4">
+                            <div className="flex justify-between items-start border-b border-gray-50 pb-3">
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Created By</p>
+                                <p className="text-xs font-bold text-gray-700">{editingTicket.createdBy || 'nquoctuan242@gmail.com'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Created Date</p>
+                                <p className="text-xs font-medium text-gray-600 italic">{editingTicket.createdAt || 'New'}</p>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approved/Rejected By</p>
+                                <p className="text-xs font-bold text-gray-700">{editingTicket.approvedBy || '-'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Action Date</p>
+                                <p className="text-xs font-medium text-gray-600 italic">{editingTicket.approvalDate || '-'}</p>
+                              </div>
+                            </div>
+                            {editingTicket.status === 'Rejected' && editingTicket.rejectNote && (
+                              <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+                                <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">Reject Note</p>
+                                <p className="text-xs font-medium text-red-700">{editingTicket.rejectNote}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : currentView === 'daily-commission' ? (
+              <div className="bg-[#f2f6f4] min-h-full flex flex-col p-4 animate-in fade-in duration-300">
+                {/* Header Breadcrumb */}
+                <div className="bg-white rounded mb-4 shadow-sm p-4 overflow-hidden border border-gray-100">
+                  <div className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    <i className="fa-solid fa-house mr-2 text-gray-400"></i> / Report / <span className="text-[#1b4d3e] ml-1">Daily Commission</span>
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white rounded shadow-sm mb-4 p-5 border border-gray-100">
+                  <div className="flex flex-wrap md:flex-nowrap gap-5">
+                    {/* Shipper */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Shipper</label>
+                      <div className="relative">
+                        <input type="text" placeholder="Input to Select shipper" className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-xs outline-none focus:border-[#4d9e5f] transition-all bg-gray-50 focus:bg-white" />
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-[10px]"></i>
+                      </div>
+                    </div>
+                    {/* Store */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Store</label>
+                      <div className="relative">
+                        <input type="text" placeholder="Input to search store" className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-xs outline-none focus:border-[#4d9e5f] transition-all bg-gray-50 focus:bg-white" />
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-[10px]"></i>
+                      </div>
+                    </div>
+                    {/* Date */}
+                    <div className="flex-1 min-w-[250px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Date</label>
+                      <div className="flex items-center border border-gray-200 rounded-md px-3 py-2.5 text-xs bg-gray-50 focus-within:bg-white focus-within:border-[#4d9e5f] transition-all">
+                        <input type="text" placeholder="Start Date" className="outline-none w-full bg-transparent placeholder-gray-400" />
+                        <span className="text-gray-400 mx-2 text-[10px]"><i className="fa-solid fa-arrow-right"></i></span>
+                        <input type="text" placeholder="End Date" className="outline-none w-full bg-transparent placeholder-gray-400" />
+                        <i className="fa-regular fa-calendar ml-2 text-gray-400"></i>
+                      </div>
+                    </div>
+                    {/* Time */}
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="text-[#e2733b] font-bold text-xs mb-2 block tracking-wide">Time</label>
+                      <div className="flex items-center border border-gray-200 rounded-md px-3 py-2.5 text-xs bg-gray-50 focus-within:bg-white focus-within:border-[#4d9e5f] transition-all">
+                        <input type="time" placeholder="Start" className="outline-none w-full bg-transparent text-gray-600" />
+                        <span className="text-gray-400 mx-2 text-[10px]"><i className="fa-solid fa-arrow-right"></i></span>
+                        <input type="time" placeholder="End" className="outline-none w-full bg-transparent text-gray-600" />
+                      </div>
+                    </div>
+                    {/* Buttons */}
+                    <div className="flex items-end gap-3 shrink-0 mt-3 md:mt-0">
+                      <button className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-md font-bold text-xs hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                        <i className="fa-solid fa-rotate-right"></i> Reset
+                      </button>
+                      <button className="px-8 py-2.5 bg-[#1b4d3e] text-white rounded-md font-bold text-xs hover:bg-[#153a2f] shadow-sm hover:shadow flex items-center gap-2 transition-all">
+                        <i className="fa-solid fa-magnifying-glass"></i> Search
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table Area */}
+                <div className="bg-white rounded shadow-sm flex flex-col flex-1 border border-gray-100">
+                  <div className="flex justify-end p-4 border-b border-gray-100 bg-gray-50/50">
+                    <button className="bg-[#4d9e5f] text-white px-5 py-2.5 rounded-md text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2 shadow-sm">
+                      <i className="fa-solid fa-download"></i> Export Data
+                    </button>
+                  </div>
+                  <div className="p-4 overflow-x-auto">
+                    <table className="w-full text-left text-[12px] bg-white border border-gray-200 whitespace-nowrap">
+                      <thead className="bg-[#d5ded9] text-[#1b4d3e] font-bold border-b-2 border-gray-300">
+                        <tr>
+                          <th className="px-4 py-3 border-r border-gray-300">Date</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Payroll Period</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Store</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Shipper</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Delivered Online Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Delivered IT Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Commission</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Late Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Invalid POD Orders</th>
+                          <th className="px-4 py-3 border-r border-gray-300">Start Time</th>
+                          <th className="px-4 py-3 border-r border-gray-300">End Time</th>
+                          <th className="px-4 py-3 text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-gray-600">
+                        {dailyCommissions.map(comm => (
+                           <tr key={comm.id} className="border-b border-gray-100 hover:bg-[#f8fafc] transition-colors">
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.date}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium text-gray-500">{comm.payrollPeriod}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.store}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-medium">{comm.shipper}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold ${comm.deliveredOnlineOrders > 0 ? 'text-[#4d9e5f]' : 'text-blue-500'}`}>{comm.deliveredOnlineOrders}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-blue-500`}>{comm.deliveredITOrders}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-bold text-gray-700">${comm.commission}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-red-500`}>{comm.lateOrders}</td>
+                             <td className={`px-4 py-2.5 border-r border-gray-100 font-bold text-red-500`}>{comm.invalidPODOrders}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-mono text-[11px] text-gray-500">{comm.startTime}</td>
+                             <td className="px-4 py-2.5 border-r border-gray-100 font-mono text-[11px] text-gray-500">{comm.endTime}</td>
+                             <td className="px-4 py-2.5 text-blue-500 cursor-pointer hover:text-blue-700 text-center transition-colors">
+                               <i className="fa-regular fa-eye bg-blue-50 p-1.5 rounded-full hover:bg-blue-100 transition-colors"></i>
+                             </td>
+                           </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {/* Pagination */}
+                    <div className="mt-5 flex items-center justify-end text-xs text-gray-600 gap-4">
+                      <span className="font-bold text-gray-700 tracking-wide uppercase">Total: {dailyCommissions.length}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors bg-white"><i className="fa-solid fa-angle-left"></i></button>
+                        <button className="w-7 h-7 border border-[#4d9e5f] text-[#1b4d3e] font-bold rounded flex items-center justify-center bg-[#f0fdf4]">1</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">2</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">3</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">4</button>
+                        <button className="w-7 h-7 border border-transparent rounded flex items-center justify-center hover:bg-gray-100 font-medium transition-colors">5</button>
+                        <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors bg-white"><i className="fa-solid fa-angle-right"></i></button>
+                      </div>
+                      <select className="border border-gray-200 rounded-md px-3 py-1.5 outline-none font-medium bg-white hover:border-gray-300 transition-colors cursor-pointer text-gray-600 shadow-sm">
+                         <option>20 / page</option>
+                         <option>50 / page</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : currentView === 'ticket-content-list' ? (
+            <TicketContentListView 
+               onRowClick={(id) => {
+                  setSelectedTicketContentId(id);
+                  setCurrentView('ticket-content-detail');
+               }}
+               onCreateClick={() => {
+                  setSelectedTicketContentId(null);
+                  setCurrentView('ticket-content-detail');
+               }}
+            />
+          ) : currentView === 'ticket-content-detail' ? (
+            <TicketContentDetailView stores={stores} 
+               ticketId={selectedTicketContentId} 
+               onBack={() => setCurrentView('ticket-content-list')}
+            />
+          ) : currentView === 'ticket-type-list' ? (
+              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Ticket Type</h2>
+                  <button 
+                    onClick={startCreateTicketType}
+                    className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-plus"></i> Create Ticket Type
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="border border-gray-100 rounded overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 border-r">Name</th>
+                          <th className="px-4 py-3 border-r">Region</th>
+                          <th className="px-4 py-3 border-r">Code</th>
+                          <th className="px-4 py-3 border-r">Description</th>
+                          <th className="px-4 py-3 border-r text-center">Deadline (Days)</th>
+                          <th className="px-4 py-3 border-r text-center">Max Explanations</th>
+                          <th className="px-4 py-3 border-r text-center">Penalty Amount</th>
+                          <th className="px-4 py-3 border-r">Status</th>
+                          <th className="px-4 py-3 border-r">Created At</th>
+                          <th className="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y text-gray-600 font-medium">
+                        {ticketTypes.map(tt => (
+                          <tr key={tt.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 border-r font-bold text-[#1b4d3e]">{tt.name}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold whitespace-nowrap">
+                                {tt.country || 'Global'} {tt.stateProvince ? `- ${tt.stateProvince}` : ''}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 border-r">{tt.code}</td>
+                            <td className="px-4 py-3 border-r">{tt.description}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold">{tt.explanationDeadlineDays || 0}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold">{tt.maxExplanationCount || 0}</td>
+                            <td className="px-4 py-3 border-r text-center font-bold text-red-600">-{tt.violationPenaltyAmount || 0} {tt.currency || 'USD'}</td>
+                            <td className="px-4 py-3 border-r">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                tt.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {tt.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 border-r">{tt.createdAt}</td>
+                            <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                              <button 
+                                onClick={() => startEditTicketType(tt)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="Edit"
+                              >
+                                <i className="fa-solid fa-pen-to-square"></i>
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteTicketType(tt.id)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
              </div>
+          ) : currentView === 'ticket-type-detail' ? (
+             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in slide-in-from-right duration-300">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setCurrentView('ticket-type-list')}
+                      className="text-gray-400 hover:text-[#1b4d3e] transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-left text-sm"></i>
+                    </button>
+                    <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">
+                      {editingTicketType.id ? `Edit Ticket Type: ${editingTicketType.name}` : 'Create New Ticket Type'}
+                    </h2>
+                  </div>
+                  <button 
+                    onClick={handleSaveTicketType}
+                    className="bg-[#4d9e5f] text-white px-6 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm"
+                  >
+                    Save Ticket Type
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <FormInputDetail
+                      label="Name"
+                      value={editingTicketType.name}
+                      onChange={val => setEditingTicketType({...editingTicketType, name: val})}
+                      placeholder="e.g. Delivery Issue"
+                    />
+                    <FormInputDetail
+                      label="Code"
+                      value={editingTicketType.code}
+                      onChange={val => setEditingTicketType({...editingTicketType, code: val})}
+                      placeholder="e.g. DELIVERY"
+                    />
+                    <div className="md:col-span-2">
+                      <FormInputDetail
+                        label="Description"
+                        value={editingTicketType.description}
+                        onChange={val => setEditingTicketType({...editingTicketType, description: val})}
+                        placeholder="Detailed explanation of this ticket type"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Type Reference</label>
+                      <div className="relative">
+                        <select
+                          value={editingTicketType.typeReference || ''}
+                          onChange={e => {
+                            const newTypeRef = e.target.value;
+                            const isPodScan = newTypeRef === 'POD scan compliance';
+                            setEditingTicketType({
+                              ...editingTicketType, 
+                              typeReference: newTypeRef,
+                              ...(isPodScan ? {
+                                podGpsAccuracyDistance: 200
+                              } : {})
+                            });
+                          }}
+                          className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] appearance-none bg-white font-medium transition-all h-[34px]"
+                        >
+                          <option value="">Select type reference...</option>
+                          <option value="First-attempt delivery">First-attempt delivery</option>
+                          <option value="Misdelivery rate">Misdelivery rate</option>
+                          <option value="Damage rate">Damage rate</option>
+                          <option value="Customer complaint rate">Customer complaint rate</option>
+                          <option value="Safety compliance">Safety compliance</option>
+                          <option value="Vehicle inspection completion">Vehicle inspection completion</option>
+                          <option value="POD scan compliance">POD scan compliance</option>
+                          <option value="Delivery kate">Delivery kate</option>
+                        </select>
+                        <i className="fa-solid fa-chevron-down absolute right-3 top-[10px] text-[10px] text-gray-500 pointer-events-none"></i>
+                      </div>
+                    </div>
+                    {editingTicketType.typeReference === 'POD scan compliance' && (
+                      <div className="md:col-span-2 bg-[#f8fafc] border border-gray-100 rounded-lg p-5 mt-2 animate-in fade-in duration-300">
+                        <h4 className="text-[12px] font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <i className="fa-solid fa-clipboard-check text-[#4d9e5f]"></i> POD Scan compliance Configuration
+                        </h4>
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 p-4 rounded-md shadow-sm w-fit">
+                          <span className="text-[12px] font-bold text-gray-700">GPS Accuracy &lt;=</span>
+                          <div className="relative w-28">
+                            <input
+                              type="number"
+                              value={editingTicketType.podGpsAccuracyDistance || ''}
+                              onChange={e => setEditingTicketType({ ...editingTicketType, podGpsAccuracyDistance: parseInt(e.target.value) || 0 })}
+                              className="w-full border border-[#e5e7eb] rounded-[4px] pl-3 pr-8 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] transition-all h-[34px]"
+                              placeholder="e.g. 200"
+                            />
+                            <span className="absolute right-3 top-[9px] text-[12px] text-gray-500 font-medium">m</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Deadline (Days)</label>
+                      <input 
+                        type="number"
+                        value={editingTicketType.explanationDeadlineDays || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, explanationDeadlineDays: parseInt(e.target.value) || 0})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. 1"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Count (Max)</label>
+                      <input 
+                        type="number"
+                        value={editingTicketType.maxExplanationCount || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, maxExplanationCount: parseInt(e.target.value) || 0})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. 3"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Violation Penalty</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="number"
+                          value={editingTicketType.violationPenaltyAmount || ''}
+                          onChange={e => setEditingTicketType({...editingTicketType, violationPenaltyAmount: parseInt(e.target.value) || 0})}
+                          className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          placeholder="e.g. 5"
+                        />
+                        <select 
+                          value={editingTicketType.currency || 'USD'}
+                          onChange={e => setEditingTicketType({...editingTicketType, currency: e.target.value})}
+                          className="w-24 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        >
+                          {CURRENCIES.map(curr => (
+                            <option key={curr} value={curr}>{curr}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Show Penalty Amount on App</label>
+                      <button 
+                        onClick={() => setEditingTicketType({...editingTicketType, showPenaltyAmountOnApp: editingTicketType.showPenaltyAmountOnApp === false ? true : false})}
+                        disabled={!editingTicketType.violationPenaltyAmount || editingTicketType.violationPenaltyAmount === 0}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingTicketType.showPenaltyAmountOnApp !== false && editingTicketType.violationPenaltyAmount && editingTicketType.violationPenaltyAmount > 0 ? 'bg-[#4d9e5f]' : 'bg-gray-300'} ${(!editingTicketType.violationPenaltyAmount || editingTicketType.violationPenaltyAmount === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingTicketType.showPenaltyAmountOnApp !== false && editingTicketType.violationPenaltyAmount && editingTicketType.violationPenaltyAmount > 0 ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight">Auto Create Ticket</label>
+                      <button 
+                        onClick={() => setEditingTicketType({...editingTicketType, autoCreateTicket: !editingTicketType.autoCreateTicket})}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingTicketType.autoCreateTicket ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${editingTicketType.autoCreateTicket ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Country</label>
+                      <select 
+                        value={editingTicketType.country || 'Global'}
+                        onChange={e => setEditingTicketType({...editingTicketType, country: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                      >
+                        {COUNTRIES.map(country => (
+                          <option key={country} value={country}>{country}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">State / Province</label>
+                      <input 
+                        type="text"
+                        value={editingTicketType.stateProvince || ''}
+                        onChange={e => setEditingTicketType({...editingTicketType, stateProvince: e.target.value})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                        placeholder="e.g. Ho Chi Minh"
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Apply to Order Types</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {(editingTicketType.applyOrderTypes || []).map(type => (
+                          <span key={type} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 border border-[#cbe1d4]">
+                            {type}
+                            <button onClick={() => setEditingTicketType({...editingTicketType, applyOrderTypes: (editingTicketType.applyOrderTypes || []).filter(t => t !== type)})} className="hover:text-red-500 opacity-70 hover:opacity-100 transition-opacity"><i className="fa-solid fa-xmark"></i></button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            list="order-type-options"
+                            placeholder="Type or select to add..."
+                            id="order-type-input"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val && !(editingTicketType.applyOrderTypes || []).includes(val)) {
+                                   setEditingTicketType({...editingTicketType, applyOrderTypes: [...(editingTicketType.applyOrderTypes || []), val]});
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                            className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <button 
+                             onClick={() => {
+                                 const input = document.getElementById('order-type-input') as HTMLInputElement;
+                                 if (input) {
+                                     const val = input.value.trim();
+                                     if (val && !(editingTicketType.applyOrderTypes || []).includes(val)) {
+                                         setEditingTicketType({...editingTicketType, applyOrderTypes: [...(editingTicketType.applyOrderTypes || []), val]});
+                                     }
+                                     input.value = '';
+                                 }
+                             }}
+                             className="bg-[#4d9e5f] hover:bg-[#3d7d4c] text-white px-3 rounded-[4px] text-xs font-bold transition-colors h-[34px]"
+                          >
+                             Add
+                          </button>
+                      </div>
+                      <datalist id="order-type-options">
+                        <option value="Online" />
+                        <option value="IT" />
+                      </datalist>
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Apply to Service Types</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {(editingTicketType.applyServiceTypes || []).map(type => (
+                          <span key={type} className="bg-[#e9f2ee] text-[#1b4d3e] px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 border border-[#cbe1d4]">
+                            {type}
+                            <button onClick={() => setEditingTicketType({...editingTicketType, applyServiceTypes: (editingTicketType.applyServiceTypes || []).filter(t => t !== type)})} className="hover:text-red-500 opacity-70 hover:opacity-100 transition-opacity"><i className="fa-solid fa-xmark"></i></button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            list="service-type-options"
+                            placeholder="Type or select to add..."
+                            id="service-type-input"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (val && !(editingTicketType.applyServiceTypes || []).includes(val)) {
+                                   setEditingTicketType({...editingTicketType, applyServiceTypes: [...(editingTicketType.applyServiceTypes || []), val]});
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                            className="flex-1 border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                          />
+                          <button 
+                             onClick={() => {
+                                 const input = document.getElementById('service-type-input') as HTMLInputElement;
+                                 if (input) {
+                                     const val = input.value.trim();
+                                     if (val && !(editingTicketType.applyServiceTypes || []).includes(val)) {
+                                         setEditingTicketType({...editingTicketType, applyServiceTypes: [...(editingTicketType.applyServiceTypes || []), val]});
+                                     }
+                                     input.value = '';
+                                 }
+                             }}
+                             className="bg-[#4d9e5f] hover:bg-[#3d7d4c] text-white px-3 rounded-[4px] text-xs font-bold transition-colors h-[34px]"
+                          >
+                             Add
+                          </button>
+                      </div>
+                      <datalist id="service-type-options">
+                        <option value="Standard" />
+                        <option value="Same day" />
+                        <option value="2h" />
+                        <option value="4h" />
+                      </datalist>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Status</label>
+                      <select 
+                        value={editingTicketType.status || 'Active'}
+                        onChange={e => setEditingTicketType({...editingTicketType, status: e.target.value as any})}
+                        className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-2 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all h-[34px]"
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+             </div>
+          ) : currentView === 'user-store-access-list' ? (
+             <UserStoreAccessListView
+               users={users}
+               roles={MOCK_ROLES}
+               onRowClick={(user) => {
+                 setEditingUser(user);
+                 setCurrentView('user-store-access-detail');
+               }}
+             />
+          ) : currentView === 'user-store-access-detail' ? (
+             <UserStoreAccessDetailView
+               user={editingUser}
+               stores={stores}
+               onBack={() => setCurrentView('user-store-access-list')}
+               onSave={(updatedUser) => {
+                 setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+                 setCurrentView('user-store-access-list');
+               }}
+             />
           ) : currentView === 'user-list' ? (
              <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b px-4 py-3">
@@ -4798,7 +6397,7 @@ const App: React.FC = () => {
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-truck-ramp-box text-[#4d9e5f]"></i>
-                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Carrier Config</h3>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Shipping Carrier Group Config</h3>
                   </div>
                   <button 
                     onClick={() => {
@@ -4809,13 +6408,13 @@ const App: React.FC = () => {
                     }}
                     className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
                   >
-                    <i className="fa-solid fa-plus-circle"></i> Add Carrier Config
+                    <i className="fa-solid fa-plus-circle"></i> Add Shipping Carrier Group Config
                   </button>
                 </div>
                 <div className="p-4">
                   {(!editingStore.carrierConfigs || editingStore.carrierConfigs.length === 0) ? (
                     <div className="text-center py-8 text-gray-400 italic text-xs">
-                      No carrier configurations for this store.
+                      No shipping carrier group configurations for this store.
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -4857,7 +6456,7 @@ const App: React.FC = () => {
                                       }}
                                       className="w-1/2 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
                                   >
-                                      <option value="">Select Carrier...</option>
+                                      <option value="">Select Shipping Carrier Group...</option>
                                       {MOCK_CARRIERS.map(c => <option key={c.id} value={c.id}>{c.carrierName} ({c.carrierCode})</option>)}
                                   </select>
                               </div>
@@ -4874,7 +6473,7 @@ const App: React.FC = () => {
                                {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.integrationType === 'Shipping Aggregator' ? (
                                    <div className="space-y-4">
                                        <div className="flex justify-between items-center mb-2">
-                                           <h4 className="text-xs font-bold text-[#1b4d3e] uppercase tracking-wider">Configured Vendors</h4>
+                                           <h4 className="text-xs font-bold text-[#1b4d3e] uppercase tracking-wider">Shipping Carrier Group</h4>
                                            <select
                                                value=""
                                                onChange={(e) => {
@@ -4902,7 +6501,7 @@ const App: React.FC = () => {
                                                }}
                                                className="w-48 border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#4d9e5f] bg-white font-medium"
                                            >
-                                               <option value="">+ Add Vendor...</option>
+                                               <option value="">+ Add Shipping Carrier Group...</option>
                                                {MOCK_CARRIERS.find(c => c.id === config.carrierId)?.shippingVendors?.filter(v => !(config.vendors || []).find(cv => cv.vendorName === v.vendorName)).map(v => <option key={v.vendorName} value={v.vendorName}>{v.vendorName}</option>)}
                                            </select>
                                        </div>
@@ -4937,14 +6536,14 @@ const App: React.FC = () => {
                                            {(!config.vendors || config.vendors.length === 0) && (
                                                <div className="text-xs text-gray-400 italic py-6 px-3 text-center border border-dashed rounded-md bg-gray-50/50">
                                                    <div className="text-gray-300 mb-1"><i className="fa-solid fa-box-open text-xl"></i></div>
-                                                   No vendors added yet. Please select from the dropdown above.
+                                                   No shipping carrier group added yet. Please select from the dropdown above.
                                                </div>
                                            )}
                                        </div>
                                    </div>
                                ) : (
                                    <div>
-                                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Carrier Settings</h4>
+                                       <h4 className="text-xs font-bold text-[#1b4d3e] uppercase tracking-wider mb-4 border-b pb-2">Shipping Carrier Group Settings</h4>
                                        {renderConfigDetails(config, (newConfigData) => {
                                            const newConfigs = [...(editingStore.carrierConfigs || [])];
                                            newConfigs[index] = newConfigData;
@@ -4961,7 +6560,90 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+              {/* Location Dropoff Points Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-map-location-dot text-[#4d9e5f]"></i>
+                    <h3 className="font-bold text-[#1b4d3e] text-sm uppercase tracking-wider">Location Dropoff Points</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                       const currentPoints = editingStore.dropOffPoints || [];
+                       setEditingStore({ ...editingStore, dropOffPoints: [...currentPoints, { id: Math.random().toString(36).substr(2, 9), carrier: '', vendor: '', address: '' }] });
+                    }}
+                    className="text-[#4d9e5f] hover:text-[#1b4d3e] text-xs font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <i className="fa-solid fa-plus-circle"></i> Add Location
+                  </button>
+                </div>
+                <div className="p-4">
+                  {(!editingStore.dropOffPoints || editingStore.dropOffPoints.length === 0) ? (
+                    <div className="text-center py-8 text-gray-400 italic text-xs">
+                      No location drop-off points configured.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {editingStore.dropOffPoints.map((point, pIndex) => {
+                         const carrier = MOCK_CARRIERS.find(c => c.carrierName === point.carrier);
+                         const isAggregator = carrier?.integrationType === 'Shipping Aggregator';
+                         return (
+                           <div key={point.id} className="flex flex-wrap gap-4 items-end border border-gray-100 p-3 rounded-lg bg-gray-50/50">
+                             <div className="flex-1 min-w-[200px] space-y-1">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">Shipping Carrier Group</label>
+                                <select 
+                                  value={point.carrier}
+                                  onChange={(e) => {
+                                      const newPoints = [...editingStore.dropOffPoints];
+                                      newPoints[pIndex] = { ...newPoints[pIndex], carrier: e.target.value, vendor: '' };
+                                      setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                                  }}
+                                  className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-1.5 text-[12px] text-gray-600 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white h-[34px]"
+                                >
+                                  <option value="">Select Shipping Carrier Group</option>
+                                  {MOCK_CARRIERS.map(c => <option key={c.id} value={c.carrierName}>{c.carrierName}</option>)}
+                                </select>
+                             </div>
+                             <div className="flex-[2] min-w-[300px] space-y-1">
+                                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">Drop-off Address</label>
+                                <input 
+                                  type="text" 
+                                  value={point.address}
+                                  onChange={(e) => {
+                                      const newPoints = [...editingStore.dropOffPoints];
+                                      newPoints[pIndex] = { ...newPoints[pIndex], address: e.target.value };
+                                      setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                                  }}
+                                  placeholder="Enter full address for drop-off"
+                                  className="w-full border border-[#e5e7eb] rounded-[4px] px-3 py-1.5 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white h-[34px]"
+                                />
+                             </div>
+                             <div className="flex items-center gap-1">
+                               <button 
+                                 onClick={() => setConfiguringDropOffPoint({ index: pIndex, point })}
+                                 className="h-[34px] w-10 flex items-center justify-center text-gray-400 hover:text-[#4d9e5f] hover:bg-green-50 rounded transition-colors"
+                               >
+                                  <i className="fa-solid fa-gear"></i>
+                               </button>
+                               <button 
+                                 onClick={() => {
+                                     const newPoints = editingStore.dropOffPoints.filter((_, i) => i !== pIndex);
+                                     setEditingStore({ ...editingStore, dropOffPoints: newPoints });
+                                 }} 
+                                 className="h-[34px] w-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                               >
+                                  <i className="fa-solid fa-trash-can"></i>
+                               </button>
+                             </div>
+                           </div>
+                         );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div className="px-4 py-3 bg-gray-50 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-radar text-[#4d9e5f]"></i>
@@ -7934,44 +9616,7 @@ export default App;  const renderConfigDetails = (data: any, onChange: (newData:
               </div>
           </div>
       </div>
-       {/* Location Dropoff Points */}
-       {data.dropoff !== false && (
-       <div className="mb-4 bg-gray-50 p-3 rounded border border-gray-100">
-           <div className="flex items-center justify-between mb-3">
-               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Location Dropoff Points</div>
-               <button onClick={() => onChange({ ...data, dropOffPoints: [...(data.dropOffPoints || []), { id: Math.random().toString(36).substr(2, 9), carrier: data.carrierName || data.vendorName, address: '' }] })} className="text-[#4d9e5f] hover:text-[#1b4d3e] text-[10px] font-bold flex items-center gap-1 transition-colors">
-                   <i className="fa-solid fa-plus-circle"></i> Add Location
-               </button>
-           </div>
-           {(!data.dropOffPoints || data.dropOffPoints.length === 0) ? (
-               <div className="text-center py-4 text-gray-400 italic text-[10px]">No location drop-off points configured.</div>
-           ) : (
-               <div className="space-y-2">
-                   {data.dropOffPoints.map((point, pIndex) => (
-                       <div key={point.id} className="flex gap-2">
-                           <input 
-                               type="text" 
-                               value={point.address} 
-                               onChange={e => {
-                                   const newPoints = [...(data.dropOffPoints || [])];
-                                   newPoints[pIndex] = { ...newPoints[pIndex], address: e.target.value };
-                                   onChange({ ...data, dropOffPoints: newPoints });
-                               }} 
-                               placeholder="Enter full address for drop-off"
-                               className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-[11px] font-medium text-gray-700 focus:border-[#4d9e5f] outline-none transition-all"
-                           />
-                           <button onClick={() => {
-                                const newPoints = (data.dropOffPoints || []).filter((_, i) => i !== pIndex);
-                                onChange({ ...data, dropOffPoints: newPoints });
-                           }} className="text-gray-300 hover:text-red-500 w-8 flex items-center justify-center transition-colors">
-                               <i className="fa-solid fa-trash-can text-[10px]"></i>
-                           </button>
-                       </div>
-                   ))}
-               </div>
-           )}
-       </div>
-       )}
+
 
        {/* Service Overrides */}
        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex">

@@ -26,15 +26,23 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
     currentMileage: isCreate ? 0 : 142500,
     remainingValue: isCreate ? 0 : 612000000,
     documents: isCreate ? [] : [
-      { id: '1', type: 'Vehicle Inspection', expirationDate: '10/09/2026', remainingDays: 45, status: 'expiring', hasScan: true },
-      { id: '2', type: 'Civil Liability Insurance', expirationDate: '01/03/2027', remainingDays: 217, status: 'valid', hasScan: true },
-      { id: '3', type: 'Transport Badge', expirationDate: '20/07/2026', remainingDays: -7, status: 'expired', hasScan: false },
-      { id: '4', type: 'Transport Business License', expirationDate: '12/12/2028', remainingDays: 868, status: 'valid', hasScan: true },
+      { id: '1', type: 'Vehicle Inspection', issueDate: '10/09/2025', expirationDate: '10/09/2026', remainingDays: 45, status: 'expiring', hasScan: true },
+      { id: '2', type: 'Civil Liability Insurance', issueDate: '01/03/2026', expirationDate: '01/03/2027', remainingDays: 217, status: 'valid', hasScan: true },
+      { id: '3', type: 'Transport Badge', issueDate: '20/07/2025', expirationDate: '20/07/2026', remainingDays: -7, status: 'expired', hasScan: false },
+      { id: '4', type: 'Transport Business License', issueDate: '12/12/2027', expirationDate: '12/12/2028', remainingDays: 868, status: 'valid', hasScan: true },
     ],
     drivers: isCreate ? [] : [
       { id: '1', name: 'Trần Văn Bình', role: 'Main driver' },
       { id: '2', name: 'Lê Hoàng Nam', role: 'Relief driver' }
-    ]
+    ],
+    maintenanceRecords: isCreate ? [] : [
+      { id: '1', date: '20/06/2026', type: 'periodic', content: 'Thay dầu máy, lọc gió', mileage: 142500, cost: 2500000 },
+      { id: '2', date: '15/03/2026', type: 'periodic', content: 'Bảo dưỡng cấp 2', mileage: 128000, cost: 4100000 },
+      { id: '3', date: '02/02/2026', type: 'repair', content: 'Thay má phanh trước', mileage: 121300, cost: 1800000 }
+    ],
+    costs: isCreate ? { fuelCost: 0, maintenanceCost: 0, fines: 0, costPerKm: 0, month: 7 } : {
+      fuelCost: 8400000, maintenanceCost: 2500000, fines: 0, costPerKm: 6480, month: 7
+    }
   });
 
   const [activeTab, setActiveTab] = useState('documents');
@@ -42,6 +50,9 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
   const [showManageDrivers, setShowManageDrivers] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [showCostsModal, setShowCostsModal] = useState(false);
+  const [editingMaintenance, setEditingMaintenance] = useState<any>(null);
 
   const getStatusBadge = (status: VehicleDocument['status']) => {
     switch (status) {
@@ -62,7 +73,7 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
 
   return (
     <div className="bg-[#f0f2f5] min-h-full flex flex-col animate-in fade-in duration-300">
-      {/* Document Modal */}
+            {/* Document Modal */}
       {showDocModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -87,6 +98,15 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                   <option value="Transport Business License">Transport Business License</option>
                   <option value="Physical Damage Insurance">Physical Damage Insurance</option>
                 </select>
+              </div>
+                            <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Issue Date</label>
+                <input 
+                  type="date"
+                  defaultValue={editingDoc?.issueDate ? editingDoc.issueDate.split('/').reverse().join('-') : ''}
+                  id="docIssueInput"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" 
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Expiration Date</label>
@@ -201,10 +221,132 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                 <label className="text-xs font-bold text-gray-700">In-service Date</label>
                 <input value={formData.inServiceDate} onChange={e => setFormData({...formData, inServiceDate: e.target.value})} placeholder="DD/MM/YYYY" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
               </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Fuel Quota</label>
+                <input value={formData.fuelQuota || ''} onChange={e => setFormData({...formData, fuelQuota: e.target.value})} placeholder="e.g. 15L / 100km" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Current Mileage (km)</label>
+                <input type="number" value={formData.currentMileage} onChange={e => setFormData({...formData, currentMileage: parseInt(e.target.value) || 0})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Remaining Value (VND)</label>
+                <input type="number" value={formData.remainingValue} onChange={e => setFormData({...formData, remainingValue: parseInt(e.target.value) || 0})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
+              </div>
             </div>
             <div className="border-t p-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
               <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100">Cancel</button>
               <button onClick={() => setShowEditModal(false)} className="px-4 py-2 bg-[#2563eb] text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Maintenance Modal */}
+      {showMaintenanceModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <h3 className="text-lg font-bold text-gray-900">{editingMaintenance ? 'Update Maintenance' : 'Add Maintenance'}</h3>
+              <button onClick={() => setShowMaintenanceModal(false)} className="text-gray-400 hover:text-gray-600">
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Date</label>
+                <input type="date" defaultValue={editingMaintenance?.date ? editingMaintenance.date.split('/').reverse().join('-') : ''} id="maintDateInput" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Type</label>
+                <select defaultValue={editingMaintenance?.type || 'periodic'} id="maintTypeInput" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]">
+                  <option value="periodic">Periodic</option>
+                  <option value="repair">Repair</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Description</label>
+                <input type="text" defaultValue={editingMaintenance?.content || ''} id="maintContentInput" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Mileage (km)</label>
+                <input type="number" defaultValue={editingMaintenance?.mileage || 0} id="maintMileageInput" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Cost (VND)</label>
+                <input type="number" defaultValue={editingMaintenance?.cost || 0} id="maintCostInput" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+            </div>
+            <div className="border-t p-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
+              <button onClick={() => setShowMaintenanceModal(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100">Cancel</button>
+              <button onClick={() => {
+                 const dateInput = document.getElementById('maintDateInput') as HTMLInputElement;
+                 const typeInput = document.getElementById('maintTypeInput') as HTMLSelectElement;
+                 const contentInput = document.getElementById('maintContentInput') as HTMLInputElement;
+                 const mileageInput = document.getElementById('maintMileageInput') as HTMLInputElement;
+                 const costInput = document.getElementById('maintCostInput') as HTMLInputElement;
+                 
+                 const dateParts = dateInput.value.split('-');
+                 const dateStr = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : dateInput.value;
+                 
+                 const newRecord = {
+                    id: editingMaintenance?.id || Date.now().toString(),
+                    date: dateStr,
+                    type: typeInput.value as any,
+                    content: contentInput.value,
+                    mileage: parseInt(mileageInput.value) || 0,
+                    cost: parseInt(costInput.value) || 0
+                 };
+                 
+                 let newRecords = [...(formData.maintenanceRecords || [])];
+                 if (editingMaintenance) {
+                    newRecords = newRecords.map(r => r.id === editingMaintenance.id ? newRecord : r);
+                 } else {
+                    newRecords.unshift(newRecord);
+                 }
+                 setFormData({...formData, maintenanceRecords: newRecords});
+                 setShowMaintenanceModal(false);
+              }} className="px-4 py-2 bg-[#2563eb] text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Record</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Costs Modal */}
+      {showCostsModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <h3 className="text-lg font-bold text-gray-900">Edit Costs</h3>
+              <button onClick={() => setShowCostsModal(false)} className="text-gray-400 hover:text-gray-600">
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Month</label>
+                <input type="number" value={formData.costs?.month || 7} onChange={e => setFormData({...formData, costs: {...(formData.costs as any), month: parseInt(e.target.value) || 1}})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Fuel Cost (VND)</label>
+                <input type="number" value={formData.costs?.fuelCost || 0} onChange={e => setFormData({...formData, costs: {...(formData.costs as any), fuelCost: parseInt(e.target.value) || 0}})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Maintenance Cost (VND)</label>
+                <input type="number" value={formData.costs?.maintenanceCost || 0} onChange={e => setFormData({...formData, costs: {...(formData.costs as any), maintenanceCost: parseInt(e.target.value) || 0}})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Fines (VND)</label>
+                <input type="number" value={formData.costs?.fines || 0} onChange={e => setFormData({...formData, costs: {...(formData.costs as any), fines: parseInt(e.target.value) || 0}})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Cost / km (VND)</label>
+                <input type="number" value={formData.costs?.costPerKm || 0} onChange={e => setFormData({...formData, costs: {...(formData.costs as any), costPerKm: parseInt(e.target.value) || 0}})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#2563eb]" />
+              </div>
+            </div>
+            <div className="border-t p-4 flex justify-end gap-3 bg-gray-50 rounded-b-xl">
+              <button onClick={() => setShowCostsModal(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100">Cancel</button>
+              <button onClick={() => setShowCostsModal(false)} className="px-4 py-2 bg-[#2563eb] text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Costs</button>
             </div>
           </div>
         </div>
@@ -333,6 +475,10 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                   <span className="text-[13px] text-gray-500">Manufacture Year</span>
                   <span className="text-[13px] font-bold text-gray-900">{formData.manufactureYear}</span>
                 </div>
+                                <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                  <span className="text-[13px] text-gray-500">Fuel Quota</span>
+                  <span className="text-[13px] font-bold text-gray-900">{formData.fuelQuota || '15L / 100km'}</span>
+                </div>
                 <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
                   <span className="text-[13px] text-gray-500">Ownership</span>
                   <span className="text-[13px] font-bold text-gray-900">{formData.source}</span>
@@ -360,12 +506,6 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                   Maintenance <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full text-[10px]">6</span>
                 </button>
                 <button 
-                  className={`px-4 py-3 text-[13px] font-bold border-b-2 flex items-center gap-2 ${activeTab === 'operations' ? 'border-[#2563eb] text-[#2563eb]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  onClick={() => setActiveTab('operations')}
-                >
-                  Operations <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full text-[10px]">128</span>
-                </button>
-                <button 
                   className={`px-4 py-3 text-[13px] font-bold border-b-2 flex items-center gap-2 ${activeTab === 'costs' ? 'border-[#2563eb] text-[#2563eb]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                   onClick={() => setActiveTab('costs')}
                 >
@@ -385,6 +525,7 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                     <thead className="text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100">
                       <tr>
                         <th className="px-6 py-4 font-bold">Document Type</th>
+                        <th className="px-6 py-4 font-bold">Issue Date</th>
                         <th className="px-6 py-4 font-bold">Expiration Date</th>
                         <th className="px-6 py-4 font-bold">Remaining</th>
                         <th className="px-6 py-4 font-bold">Status</th>
@@ -396,6 +537,7 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                       {formData.documents.map((doc, idx) => (
                         <tr key={idx} className="hover:bg-gray-50/50 group">
                           <td className="px-6 py-4 font-medium text-gray-800">{doc.type}</td>
+                          <td className="px-6 py-4 text-gray-600">{doc.issueDate || 'N/A'}</td>
                           <td className="px-6 py-4 text-gray-600">{doc.expirationDate}</td>
                           <td className="px-6 py-4 text-gray-600">{doc.remainingDays} days</td>
                           <td className="px-6 py-4">
@@ -421,6 +563,95 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                   </table>
                 </div>
               )}
+
+              {activeTab === 'maintenance' && (
+                <div className="p-0 overflow-x-auto">
+                  <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50/50">
+                     <span className="text-xs text-gray-500"><i className="fa-solid fa-circle-info mr-1"></i> Changes will be automatically logged.</span>
+                     <button onClick={() => { setEditingMaintenance(null); setShowMaintenanceModal(true); }} className="text-xs font-bold text-[#2563eb] hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                        <i className="fa-solid fa-plus"></i> Add Record
+                     </button>
+                  </div>
+                  <table className="w-full text-left text-[13px]">
+                    <thead className="text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 font-bold">Date</th>
+                        <th className="px-6 py-4 font-bold">Type</th>
+                        <th className="px-6 py-4 font-bold">Description</th>
+                        <th className="px-6 py-4 font-bold">Mileage at Service</th>
+                        <th className="px-6 py-4 font-bold">Cost</th>
+                        <th className="px-6 py-4 font-bold w-[60px]"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {formData.maintenanceRecords?.map((record: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-gray-50/50 group">
+                          <td className="px-6 py-4 text-gray-800">{record.date}</td>
+                          <td className="px-6 py-4">
+                             {record.type === 'periodic' ? (
+                               <span className="px-3 py-1 rounded-full text-[12px] bg-gray-100 text-gray-700 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span> Periodic</span>
+                             ) : (
+                               <span className="px-3 py-1 rounded-full text-[12px] bg-red-50 text-red-700 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Repair</span>
+                             )}
+                          </td>
+                          <td className="px-6 py-4 text-gray-600">{record.content}</td>
+                          <td className="px-6 py-4 text-gray-600">{record.mileage.toLocaleString()}</td>
+                          <td className="px-6 py-4 text-gray-600">{record.cost.toLocaleString()}₫</td>
+                          <td className="px-6 py-4 text-center">
+                            <button onClick={() => { setEditingMaintenance(record); setShowMaintenanceModal(true); }} className="text-gray-400 hover:text-[#2563eb] transition-colors opacity-0 group-hover:opacity-100">
+                               <i className="fa-solid fa-pen-to-square"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="px-6 py-4 bg-gray-50/50 text-sm text-gray-500 border-t border-gray-100">
+                     Next: Level 1 maintenance at <strong className="text-[#d97706]">150,000 km</strong> (remaining ~7,500 km).
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'costs' && (
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-900">Costs</h4>
+                        <select 
+                          className="border border-gray-200 bg-gray-50 text-gray-700 rounded-md px-2 py-1 text-sm font-medium outline-none focus:border-[#2563eb] cursor-pointer"
+                          value={formData.costs?.month || 7}
+                          onChange={(e) => setFormData({...formData, costs: {...(formData.costs as any), month: parseInt(e.target.value)}})}
+                        >
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                            <option key={m} value={m}>Month {m}</option>
+                          ))}
+                        </select>
+                     </div>
+                     <button onClick={() => setShowCostsModal(true)} className="text-xs font-bold text-[#2563eb] hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                        <i className="fa-solid fa-pen-to-square"></i> Edit Costs
+                     </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-6">
+                     <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                        <span className="text-[13px] text-gray-500">Fuel Cost</span>
+                        <span className="text-[14px] font-bold text-gray-900">{formData.costs?.fuelCost.toLocaleString()}₫</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                        <span className="text-[13px] text-gray-500">Maintenance Cost</span>
+                        <span className="text-[14px] font-bold text-gray-900">{formData.costs?.maintenanceCost.toLocaleString()}₫</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                        <span className="text-[13px] text-gray-500">Fines</span>
+                        <span className="text-[14px] font-bold text-gray-900">{formData.costs?.fines.toLocaleString()}₫</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                        <span className="text-[13px] text-gray-500">Cost / km</span>
+                        <span className="text-[14px] font-bold text-gray-900">{formData.costs?.costPerKm.toLocaleString()}₫</span>
+                     </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center"><p className="text-[14px] font-bold text-gray-900">Total Cost</p><p className="text-[18px] font-bold text-[#2563eb]">{((formData.costs?.fuelCost || 0) + (formData.costs?.maintenanceCost || 0) + (formData.costs?.fines || 0)).toLocaleString()}₫</p></div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -429,7 +660,10 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
             
             {/* Vehicle Status */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="font-bold text-gray-900 mb-6">Vehicle Status</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-gray-900">Vehicle Status</h3>
+                
+              </div>
               
               {formData.status === 'blocked' && (
                 <div className="flex flex-col items-center text-center border-b border-gray-100 pb-6 mb-6">
