@@ -407,6 +407,7 @@ export interface ShiftBreakConfig {
   warnBeforeMinutes: number;
   isActive: boolean;
   turnOffApp: boolean;
+  minDeviationMinutes?: number;
 }
 
 export interface ShiftControlConfig {
@@ -418,6 +419,7 @@ export interface ShiftControlConfig {
   warnBeforeShiftEndMinutes: number;
     blockDeliveryActionsAtEnd: boolean;
   allowReturnAllAtEnd: boolean;
+  minBreakDeviationMinutes?: number;
   restBreaks?: ShiftBreakConfig[];
   mealBreaks?: ShiftBreakConfig[];
   createdAt: string;

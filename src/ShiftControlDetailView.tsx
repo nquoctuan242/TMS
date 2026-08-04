@@ -82,7 +82,7 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                            <i className="fa-solid fa-trash-can text-[10px]"></i>
                          </button>
                      </div>
-                     <div className="p-4 pt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                     <div className="p-4 pt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Start Time</label>
                           <input 
@@ -121,6 +121,21 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                             }}
                             className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f]"
                           />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight" title="Minimum Deviation Time to Skip Break">Min Deviation (Mins)</label>
+                          <input 
+                            type="number" 
+                            min="0"
+                            value={b.minDeviationMinutes || 0} 
+                            onChange={(e) => {
+                               const newBreaks = [...breaks];
+                               newBreaks[index] = { ...b, minDeviationMinutes: parseInt(e.target.value) || 0 };
+                               setFormData({ ...formData, [type]: newBreaks });
+                            }}
+                            className="w-full border border-gray-200 rounded px-3 py-1.5 text-xs outline-none focus:border-[#4d9e5f]"
+                          />
+                          <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">Minimum deviation time allowed not applying break.</p>
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Turn off App during break</label>
@@ -181,7 +196,7 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
         </div>
       </div>
 
-      <div className="p-6 max-w-4xl mx-auto w-full">
+      <div className="p-6 max-w-7xl mx-auto w-full">
         {/* Location Scope */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
           <div className="bg-gray-50/80 px-4 py-3 border-b border-gray-100 flex items-center gap-2">
@@ -305,7 +320,6 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
             </div>
           </div>
         </div>
-
         {renderBreakList('Rest Break', 'restBreaks', 'fa-mug-hot')}
         {renderBreakList('Meal Break', 'mealBreaks', 'fa-utensils')}
 

@@ -1,0 +1,7 @@
+const fs = require('fs');
+let content = fs.readFileSync('types.ts', 'utf-8');
+content = content.replace(
+  '  turnOffApp: boolean;',
+  '  turnOffApp: boolean;\n  minDeviationMinutes?: number;'
+);
+fs.writeFileSync('types.ts', content);

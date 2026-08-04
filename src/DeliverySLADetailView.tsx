@@ -76,29 +76,6 @@ export function DeliverySLADetailView({ configId, stores, onBack }: DeliverySLAD
         
         {/* Main Config Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-           {/* Visual Timeline - Only show if cutoff rule is enabled */}
-           {enableCutoffRule && (
-             <div className="p-4 border-b border-gray-100 bg-gray-50">
-                <div className="flex h-16 rounded overflow-hidden text-white text-[11px] font-bold">
-                   <div className="bg-[#059669] px-4 py-2 flex flex-col justify-center w-3/5">
-                      <div className="uppercase tracking-wider opacity-90 mb-1">Before Cutoff → End of Day</div>
-                      <div className="text-sm">deliver {formData.beforeCutoffDeliverTime} · {formatDaysAdd(formData.beforeCutoffDaysAdd)}</div>
-                   </div>
-                   <div className="bg-[#d97706] px-4 py-2 flex flex-col justify-center w-2/5">
-                      <div className="uppercase tracking-wider opacity-90 mb-1">From Cutoff Onward</div>
-                      <div className="text-sm">deliver {formData.afterCutoffDeliverTime} · {formatDaysAdd(formData.afterCutoffDaysAdd)}</div>
-                   </div>
-                </div>
-                <div className="flex text-[10px] text-gray-400 font-bold mt-2 px-1 relative">
-                   <div className="w-full flex justify-between absolute border-t border-dashed border-gray-300 top-2 -z-10 left-0 right-0"></div>
-                   <span className="bg-gray-50 pr-2 z-10">00:00</span>
-                   <span className="bg-gray-50 px-2 z-10 ml-[25%]">06:00</span>
-                   <span className="bg-gray-50 px-2 z-10 ml-[25%]">12:00</span>
-                   <span className="bg-gray-50 px-2 z-10 ml-[25%]">18:00</span>
-                   <span className="bg-gray-50 pl-2 z-10 ml-auto">24:00</span>
-                </div>
-             </div>
-           )}
            
            <div className="p-6">
               {/* Service Details */}
@@ -200,10 +177,43 @@ export function DeliverySLADetailView({ configId, stores, onBack }: DeliverySLAD
                   </div>
                </div>
 
+                              {/* Example Section */}
+               <div className="bg-blue-50/50 p-5 border-t border-b border-blue-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-[#3b5998]">
+                     <i className="fa-solid fa-circle-info"></i>
+                     <h3 className="font-bold text-sm">Example Config auto-run</h3>
+                  </div>
+                  <p className="text-xs text-gray-600">If an order is created today (<span className="font-bold">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>):</p>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                     <div className="bg-white border border-gray-200 rounded p-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-[#059669]"></div>
+                        <div className="text-[11px] font-bold text-[#059669] mb-1">Created BEFORE {formData.cutoffTime || '14:00'}</div>
+                        <div className="text-xs text-gray-700">
+                           <span className="text-gray-500 block mb-1">Expected Delivery SLA:</span>
+                           <span className="font-bold text-sm">
+                             {new Date(Date.now() + (formData.beforeCutoffDaysAdd || 0) * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} by {formData.beforeCutoffDeliverTime || '12:00'}
+                           </span>
+                        </div>
+                     </div>
+                     
+                     <div className="bg-white border border-gray-200 rounded p-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-[#d97706]"></div>
+                        <div className="text-[11px] font-bold text-[#d97706] mb-1">Created AFTER {formData.cutoffTime || '14:00'}</div>
+                        <div className="text-xs text-gray-700">
+                           <span className="text-gray-500 block mb-1">Expected Delivery SLA:</span>
+                           <span className="font-bold text-sm">
+                             {new Date(Date.now() + (formData.afterCutoffDaysAdd || 0) * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} by {formData.afterCutoffDeliverTime || '12:00'}
+                           </span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
                <div className="p-5 border-t border-b border-gray-100 flex items-center justify-between bg-gray-50">
                   <div>
-                    <h3 className="font-bold text-[#111827] text-sm">Location overrides</h3>
-                    <p className="text-xs text-gray-500 mt-1">{formData.locationOverrides?.length || 0} locations override the default for this service</p>
+                    <h3 className="font-bold text-[#111827] text-sm">Applied Locations</h3>
+                    <p className="text-xs text-gray-500 mt-1">{formData.locationOverrides?.length || 0} locations applying this config</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -218,7 +228,7 @@ export function DeliverySLADetailView({ configId, stores, onBack }: DeliverySLAD
                     }}
                     className="border border-[#3b5998] text-[#3b5998] px-4 py-1.5 rounded text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 bg-white"
                   >
-                    <i className="fa-solid fa-plus"></i> Add override
+                    <i className="fa-solid fa-plus"></i> Add location
                   </button>
                </div>
                
