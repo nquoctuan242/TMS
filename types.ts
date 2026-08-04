@@ -466,7 +466,7 @@ export interface Vehicle {
   engineNumber: string;
   manufactureYear: number;
   inServiceDate: string;
-  department: string;
+  storeDefault?: string;
   status: 'active' | 'blocked' | 'maintenance';
   statusReason?: string;
   currentMileage: number;

@@ -18,7 +18,7 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
       engineNumber: 'D4GA-9911',
       manufactureYear: 2022,
       inServiceDate: '15/03/2022',
-      department: 'Logistics miền Nam',
+      storeDefault: 'Store 123',
       status: 'blocked',
       statusReason: 'Phù hiệu đã hết hạn 7 ngày. Chặn giao chuyến mới; chuyến đang chạy vẫn hoàn thành.',
       currentMileage: 142500,
@@ -55,7 +55,7 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
               <th className="px-4 py-3 border-r border-gray-200">License Plate</th>
               <th className="px-4 py-3 border-r border-gray-200">Make / Model</th>
               <th className="px-4 py-3 border-r border-gray-200">Type</th>
-              <th className="px-4 py-3 border-r border-gray-200">Department</th>
+              <th className="px-4 py-3 border-r border-gray-200">Store Default</th>
               <th className="px-4 py-3 border-r border-gray-200 text-center">Status</th>
               <th className="px-4 py-3 text-center w-28">Action</th>
             </tr>
@@ -66,7 +66,7 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
                 <td className="px-4 py-3 border-r border-gray-100 font-bold text-[#1b4d3e]">{v.licensePlate}</td>
                 <td className="px-4 py-3 border-r border-gray-100">{v.makeModel}</td>
                 <td className="px-4 py-3 border-r border-gray-100">{v.vehicleType}</td>
-                <td className="px-4 py-3 border-r border-gray-100">{v.department}</td>
+                <td className="px-4 py-3 border-r border-gray-100">{v.storeDefault || "None"}</td>
                 <td className="px-4 py-3 border-r border-gray-100 text-center">
                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                     v.status === 'active' ? 'bg-green-100 text-green-700' :

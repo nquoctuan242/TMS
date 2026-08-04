@@ -6,8 +6,8 @@ export function VehicleMaintenanceView() {
   const [editingTicket, setEditingTicket] = useState<any>(null);
 
   const [tickets, setTickets] = useState([
-    { id: '1', ticketNo: 'MT-2408-001', licensePlate: '51C-812.44', type: 'Periodic', description: 'Thay nhớt, lọc nhớt 10,000km', scheduledDate: '15/08/2026', status: 'Pending', cost: 0 },
-    { id: '2', ticketNo: 'MT-2408-002', licensePlate: '60A-337.19', type: 'Repair', description: 'Thay má phanh trước', scheduledDate: '12/08/2026', status: 'In Progress', cost: 1200000 },
+    { id: '1', ticketNo: 'MT-2408-001', licensePlate: '51C-812.44', type: 'Periodic', description: 'Thay nhớt, lọc nhớt 10,000km', scheduledDate: '15/08/2026', status: 'Pending', cost: 0, alertTask: 'TSK-1029', alertTaskStatus: 'In Progress' },
+    { id: '2', ticketNo: 'MT-2408-002', licensePlate: '60A-337.19', type: 'Repair', description: 'Thay má phanh trước', scheduledDate: '12/08/2026', status: 'In Progress', cost: 1200000, alertTask: 'TSK-1031', alertTaskStatus: 'Finished' },
     { id: '3', ticketNo: 'MT-2407-015', licensePlate: '51C-812.44', type: 'Periodic', description: 'Bảo dưỡng cấp lớn 40,000km', scheduledDate: '25/07/2026', status: 'Completed', cost: 4500000 },
     { id: '4', ticketNo: 'MT-2407-010', licensePlate: '29H-551.02', type: 'Inspection', description: 'Kiểm tra hệ thống lạnh', scheduledDate: '10/07/2026', status: 'Completed', cost: 350000 }
   ]);
@@ -99,6 +99,7 @@ export function VehicleMaintenanceView() {
                   <th className="px-6 py-4 font-bold">Scheduled Date</th>
                   <th className="px-6 py-4 font-bold">Cost</th>
                   <th className="px-6 py-4 font-bold">Status</th>
+                  <th className="px-6 py-4 font-bold">Alert Task</th>
                   <th className="px-6 py-4 font-bold text-center">Action</th>
                 </tr>
               </thead>
@@ -112,6 +113,16 @@ export function VehicleMaintenanceView() {
                     <td className="px-6 py-4 text-gray-600">{ticket.scheduledDate}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">{ticket.cost > 0 ? `${ticket.cost.toLocaleString()}₫` : '-'}</td>
                     <td className="px-6 py-4">{getStatusBadge(ticket.status)}</td>
+                    <td className="px-6 py-4">
+                      {ticket.alertTask ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[#2563eb] hover:underline cursor-pointer font-medium text-[12px]">{ticket.alertTask}</span>
+                          <span className={`text-[10px] uppercase font-bold ${ticket.alertTaskStatus === 'In Progress' ? 'text-blue-600' : ticket.alertTaskStatus === 'Finished' ? 'text-green-600' : 'text-gray-500'}`}>{ticket.alertTaskStatus}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-[12px]">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <button 
                         onClick={() => { setEditingTicket(ticket); setShowModal(true); }}

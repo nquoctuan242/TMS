@@ -4,9 +4,9 @@ export function VehicleDocumentsView() {
   const [activeTab, setActiveTab] = useState('All');
 
   const [docs, setDocs] = useState<any[]>([
-    { id: '1', licensePlate: '51C-812.44', type: 'Transport Badge', docNo: 'PH-2024-0912', issueDate: '20/07/2025', expiration: '20/07/2026', remaining: -7, status: 'Expired', hasScan: false },
-    { id: '2', licensePlate: '60A-337.19', type: 'Vehicle Inspection', docNo: 'DK-8841122', issueDate: '22/01/2026', expiration: '22/07/2026', remaining: -5, status: 'Expired', hasScan: true },
-    { id: '3', licensePlate: '51C-812.44', type: 'Vehicle Inspection', docNo: 'DK-7712095', issueDate: '10/03/2026', expiration: '10/09/2026', remaining: 45, status: 'Expiring soon', hasScan: true },
+    { id: '1', licensePlate: '51C-812.44', type: 'Transport Badge', docNo: 'PH-2024-0912', issueDate: '20/07/2025', expiration: '20/07/2026', remaining: -7, status: 'Expired', hasScan: false, alertTask: 'TSK-1029', alertTaskStatus: 'In Progress' },
+    { id: '2', licensePlate: '60A-337.19', type: 'Vehicle Inspection', docNo: 'DK-8841122', issueDate: '22/01/2026', expiration: '22/07/2026', remaining: -5, status: 'Expired', hasScan: true, alertTask: 'TSK-1031', alertTaskStatus: 'In Progress' },
+    { id: '3', licensePlate: '51C-812.44', type: 'Vehicle Inspection', docNo: 'DK-7712095', issueDate: '10/03/2026', expiration: '10/09/2026', remaining: 45, status: 'Expiring soon', hasScan: true, alertTask: 'TSK-1102', alertTaskStatus: 'Finished' },
     { id: '4', licensePlate: '29H-551.02', type: 'Civil Liability Insurance', docNo: 'BH-KD-33410', issueDate: '28/08/2025', expiration: '28/08/2026', remaining: 32, status: 'Expiring soon', hasScan: true },
     { id: '5', licensePlate: '51C-812.44', type: 'Civil Liability Insurance', docNo: 'BH-KD-90183', issueDate: '01/03/2026', expiration: '01/03/2027', remaining: 217, status: 'Valid', hasScan: true },
     { id: '6', licensePlate: '72B-118.76', type: 'Transport Business License', docNo: 'GP-VT-2211', issueDate: '12/12/2023', expiration: '12/12/2028', remaining: 868, status: 'Valid', hasScan: true }
@@ -108,6 +108,7 @@ export function VehicleDocumentsView() {
                 <th className="px-6 py-4 font-bold">Remaining</th>
                 <th className="px-6 py-4 font-bold">Urgency Level</th>
                 <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">Alert Task</th>
                 <th className="px-6 py-4 font-bold">Certificate</th>
                 <th className="px-6 py-4 font-bold text-center">Action</th>
               </tr>
@@ -123,6 +124,16 @@ export function VehicleDocumentsView() {
                   <td className="px-6 py-4 text-gray-600">{doc.remaining} days</td>
                   <td className="px-6 py-4">{getUrgencyBar(doc.status)}</td>
                   <td className="px-6 py-4">{getStatusBadge(doc.status)}</td>
+                  <td className="px-6 py-4">
+                    {doc.alertTask ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[#2563eb] hover:underline cursor-pointer font-medium text-[12px]">{doc.alertTask}</span>
+                        <span className={`text-[10px] uppercase font-bold ${doc.alertTaskStatus === 'In Progress' ? 'text-blue-600' : doc.alertTaskStatus === 'Finished' ? 'text-green-600' : 'text-gray-500'}`}>{doc.alertTaskStatus}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-[12px]">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     {doc.hasScan ? (
                       <button className="text-[#2563eb] hover:text-blue-800 font-medium text-[12px] transition-colors">

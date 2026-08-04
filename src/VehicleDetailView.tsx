@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Vehicle, VehicleDocument } from '../types';
+import { MOCK_STORES } from '../constants';
 
 interface VehicleDetailViewProps {
   vehicleId: string | null;
@@ -209,6 +210,15 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Manufacture Year</label>
                 <input type="number" value={formData.manufactureYear} onChange={e => setFormData({...formData, manufactureYear: parseInt(e.target.value)})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Store Default</label>
+                <select value={formData.storeDefault || ''} onChange={e => setFormData({...formData, storeDefault: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]">
+                  <option value="">-- Select Store --</option>
+                  {MOCK_STORES.map(store => (
+                    <option key={store.id} value={store.name}>{store.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Ownership</label>
@@ -478,6 +488,10 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                                 <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
                   <span className="text-[13px] text-gray-500">Fuel Quota</span>
                   <span className="text-[13px] font-bold text-gray-900">{formData.fuelQuota || '15L / 100km'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                  <span className="text-[13px] text-gray-500">Store Default</span>
+                  <span className="text-[13px] font-bold text-gray-900">{formData.storeDefault || 'None'}</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
                   <span className="text-[13px] text-gray-500">Ownership</span>
