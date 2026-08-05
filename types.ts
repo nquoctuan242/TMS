@@ -467,6 +467,7 @@ export interface Vehicle {
   manufactureYear: number;
   inServiceDate: string;
   storeDefault?: string;
+  vehiclePurpose?: string;
   status: 'active' | 'blocked' | 'maintenance';
   statusReason?: string;
   currentMileage: number;
@@ -475,6 +476,13 @@ export interface Vehicle {
   drivers: VehicleDriver[];
 }
 
+
+export interface VehiclePurposeConfig {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+}
 export interface VehicleTypeConfig {
   id: string;
   code: string;

@@ -36,7 +36,7 @@ export function VehicleMaintenanceView() {
         <div className="grid grid-cols-4 gap-4 mb-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 border-l-4 border-l-blue-500">
             <div className="text-2xl font-bold text-gray-900">{tickets.length}</div>
-            <div className="text-[13px] text-gray-500 mt-1">Total Tickets</div>
+            <div className="text-[13px] text-gray-500 mt-1">Total Tasks</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 border-l-4 border-l-yellow-500">
             <div className="text-2xl font-bold text-gray-900">{tickets.filter(t => t.status === 'Pending').length}</div>
@@ -58,7 +58,7 @@ export function VehicleMaintenanceView() {
             <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             <input 
               type="text" 
-              placeholder="Search by ticket no, license plate..." 
+              placeholder="Search by task no, license plate..." 
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#2563eb]"
             />
           </div>
@@ -78,7 +78,7 @@ export function VehicleMaintenanceView() {
               onClick={() => { setEditingTicket(null); setShowModal(true); }}
               className="px-4 py-2 bg-[#2563eb] text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
             >
-              <i className="fa-solid fa-plus"></i> Create Ticket
+              <i className="fa-solid fa-plus"></i> Create Maintenance Request
             </button>
           </div>
         </div>
@@ -86,13 +86,13 @@ export function VehicleMaintenanceView() {
         {/* Main Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-            <h2 className="font-bold text-gray-900">Maintenance Tickets</h2>
+            <h2 className="font-bold text-gray-900">Maintenance Tasks</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
               <thead className="text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50">
                 <tr>
-                  <th className="px-6 py-4 font-bold">Ticket No</th>
+                  <th className="px-6 py-4 font-bold">Task No</th>
                   <th className="px-6 py-4 font-bold">License Plate</th>
                   <th className="px-6 py-4 font-bold">Type</th>
                   <th className="px-6 py-4 font-bold">Description</th>
@@ -136,7 +136,7 @@ export function VehicleMaintenanceView() {
                 {filteredTickets.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                      No maintenance tickets found.
+                      No maintenance tasks found.
                     </td>
                   </tr>
                 )}
@@ -150,7 +150,7 @@ export function VehicleMaintenanceView() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b px-6 py-4">
-                <h3 className="text-lg font-bold text-gray-900">{editingTicket ? 'Edit Maintenance Ticket' : 'Create Maintenance Ticket'}</h3>
+                <h3 className="text-lg font-bold text-gray-900">{editingTicket ? 'Edit Maintenance Task' : 'Create Maintenance Task'}</h3>
                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                   <i className="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -229,7 +229,7 @@ export function VehicleMaintenanceView() {
                    }
                    setTickets(newTickets);
                    setShowModal(false);
-                }} className="px-4 py-2 bg-[#2563eb] text-white rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm">Save Ticket</button>
+                }} className="px-4 py-2 bg-[#2563eb] text-white rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm">Save Task</button>
               </div>
             </div>
           </div>

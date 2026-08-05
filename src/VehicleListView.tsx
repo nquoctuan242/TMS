@@ -7,6 +7,7 @@ interface VehicleListViewProps {
 }
 
 export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewProps) {
+  const [searchQuery, setSearchQuery] = useState('');
   const [vehicles] = useState<Vehicle[]>([
     {
       id: '1',
@@ -19,6 +20,7 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
       manufactureYear: 2022,
       inServiceDate: '15/03/2022',
       storeDefault: 'Store 123',
+      vehiclePurpose: 'Delivery',
       status: 'blocked',
       statusReason: 'Phù hiệu đã hết hạn 7 ngày. Chặn giao chuyến mới; chuyến đang chạy vẫn hoàn thành.',
       currentMileage: 142500,
@@ -36,6 +38,12 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
     }
   ]);
 
+  const filteredVehicles = vehicles.filter(v => 
+    v.licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    v.makeModel.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (v.vehiclePurpose && v.vehiclePurpose.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
       <div className="flex items-center justify-between border-b px-4 py-3">
@@ -47,6 +55,19 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
           <i className="fa-solid fa-plus"></i> Add Vehicle
         </button>
       </div>
+      
+      <div className="px-4 pt-3 flex gap-4">
+        <div className="relative flex-1 max-w-md">
+          <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input 
+            type="text" 
+            placeholder="Search by license plate, make/model, purpose..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-[#4d9e5f]"
+          />
+        </div>
+      </div>
 
       <div className="p-4 overflow-x-auto flex-1">
         <table className="w-full text-left text-[12px] bg-white border border-gray-200">
@@ -55,20 +76,22 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
               <th className="px-4 py-3 border-r border-gray-200">License Plate</th>
               <th className="px-4 py-3 border-r border-gray-200">Make / Model</th>
               <th className="px-4 py-3 border-r border-gray-200">Type</th>
+              <th className="px-4 py-3 border-r border-gray-200">Purpose</th>
               <th className="px-4 py-3 border-r border-gray-200">Store Default</th>
               <th className="px-4 py-3 border-r border-gray-200 text-center">Status</th>
               <th className="px-4 py-3 text-center w-28">Action</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 divide-y divide-gray-100">
-            {vehicles.map(v => (
+            {filteredVehicles.map(v => (
               <tr key={v.id} className="hover:bg-blue-50/50 transition-colors cursor-pointer group" onClick={() => onRowClick(v.id)}>
                 <td className="px-4 py-3 border-r border-gray-100 font-bold text-[#1b4d3e]">{v.licensePlate}</td>
                 <td className="px-4 py-3 border-r border-gray-100">{v.makeModel}</td>
                 <td className="px-4 py-3 border-r border-gray-100">{v.vehicleType}</td>
+                <td className="px-4 py-3 border-r border-gray-100 font-medium text-gray-900">{v.vehiclePurpose || '-'}</td>
                 <td className="px-4 py-3 border-r border-gray-100">{v.storeDefault || "None"}</td>
                 <td className="px-4 py-3 border-r border-gray-100 text-center">
-                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold \${
                     v.status === 'active' ? 'bg-green-100 text-green-700' :
                     v.status === 'blocked' ? 'bg-red-100 text-red-700' :
                     'bg-yellow-100 text-yellow-700'
@@ -83,6 +106,13 @@ export function VehicleListView({ onRowClick, onCreateClick }: VehicleListViewPr
                 </td>
               </tr>
             ))}
+            {filteredVehicles.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                  No vehicles found matching your search.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

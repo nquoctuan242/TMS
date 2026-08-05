@@ -696,3 +696,10 @@ export const MOCK_STORES = [
   { id: '4', name: 'Store 999 (Binh Thanh)' },
   { id: '5', name: 'Store 888 (Phu Nhuan)' }
 ];
+
+
+export const MOCK_VEHICLE_PURPOSES = [
+  { id: '1', code: 'VP-DELIVERY', name: 'Delivery', description: 'Used for regular delivery operations' },
+  { id: '2', code: 'VP-TRANSFER', name: 'Transfer', description: 'Used for internal transfer between stores' },
+  { id: '3', code: 'VP-MAINTENANCE', name: 'Maintenance', description: 'Used for maintenance service' }
+];

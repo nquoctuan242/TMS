@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Vehicle, VehicleDocument } from '../types';
-import { MOCK_STORES } from '../constants';
+import { MOCK_STORES, MOCK_VEHICLE_PURPOSES } from '../constants';
 
 interface VehicleDetailViewProps {
   vehicleId: string | null;
@@ -22,6 +22,7 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
     manufactureYear: isCreate ? new Date().getFullYear() : 2022,
     inServiceDate: isCreate ? '' : '15/03/2022',
     department: isCreate ? '' : 'Logistics South',
+    vehiclePurpose: isCreate ? '' : 'Delivery',
     status: isCreate ? 'active' : 'blocked',
     statusReason: isCreate ? '' : 'Badge expired 7 days ago. Blocked new dispatch; ongoing transfers still complete.',
     currentMileage: isCreate ? 0 : 142500,
@@ -210,6 +211,15 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Manufacture Year</label>
                 <input type="number" value={formData.manufactureYear} onChange={e => setFormData({...formData, manufactureYear: parseInt(e.target.value)})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Vehicle Purpose</label>
+                <select value={formData.vehiclePurpose || ''} onChange={e => setFormData({...formData, vehiclePurpose: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#4d9e5f]">
+                  <option value="">-- Select Purpose --</option>
+                  {MOCK_VEHICLE_PURPOSES.map(p => (
+                    <option key={p.id} value={p.name}>{p.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Store Default</label>
@@ -488,6 +498,10 @@ export function VehicleDetailView({ vehicleId, onBack }: VehicleDetailViewProps)
                                 <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
                   <span className="text-[13px] text-gray-500">Fuel Quota</span>
                   <span className="text-[13px] font-bold text-gray-900">{formData.fuelQuota || '15L / 100km'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                  <span className="text-[13px] text-gray-500">Vehicle Purpose</span>
+                  <span className="text-[13px] font-bold text-gray-900">{formData.vehiclePurpose || 'None'}</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
                   <span className="text-[13px] text-gray-500">Store Default</span>
