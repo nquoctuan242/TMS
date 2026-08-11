@@ -129,7 +129,222 @@ export function ServicePricingDetailView({ pricingId, onBack, onSave }: ServiceP
           <button onClick={() => setActiveTab('Extra fees')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeTab === 'Extra fees' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>Extra fees</button>
         </div>
         <div className="p-6 bg-gray-50/30">
-           {activeTab === 'Remote Area Surcharges' ? (
+           {activeTab === 'List of Charges' ? (
+
+              <div className="space-y-6">
+                 {formData?.dynamicPricingSchema === 'ZONE_BASED' ? (
+                  <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
+                     <div className="flex justify-end p-4 border-b">
+                        <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1.5 rounded flex items-center gap-2 text-[11px] font-bold hover:bg-gray-50 transition-all shadow-sm">
+                           <i className="fa-solid fa-plus"></i> Add Row
+                        </button>
+                     </div>
+                     <div className="overflow-x-auto relative z-10">
+                        <table className="w-full text-left text-[11px] border-collapse">
+                           <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                              <tr>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Service Type</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Category</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculate Fee Type</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculation Condition</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Base Price</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight From ({'>'})</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight To ({'≤'})</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Carrier Zone</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Dest Class</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">First Weight</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Step Size</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Step Fee</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Min Fee</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap bg-indigo-50 text-indigo-700">Max Fee</th>
+                                 <th className="px-3 py-2 text-center bg-gray-50">Actions</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y text-gray-600 font-medium">
+                              <tr className="hover:bg-gray-50/50 transition-colors">
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>Express 1H</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>Document</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>TIER_STEP</option>
+                                       <option>Fixed</option>
+                                       <option>Percentage</option>
+                                       <option>+ PER_KG</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>Weight (kg)</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <input type="number" defaultValue="20000" className="w-20 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <input type="number" defaultValue="0" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <input type="number" defaultValue="5" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <select className="w-full bg-transparent outline-none text-indigo-700 font-bold">
+                                       <option>Zone A (Inner)</option>
+                                       <option>Zone B (Outer)</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option value="">--</option>
+                                       <option>PHUONG</option>
+                                       <option>XA</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <input type="number" defaultValue="0.5" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <input type="number" defaultValue="0.5" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <input type="number" defaultValue="5000" className="w-20 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <input type="number" placeholder="--" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 bg-indigo-50/30">
+                                    <input type="number" placeholder="--" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 bg-gray-50">
+                                    <div className="flex items-center justify-center gap-3">
+                                       <i className="fa-regular fa-copy text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"></i>
+                                       <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                                    </div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+                 ) : (
+                   <div className="text-gray-500 py-10 text-center">List of Charges Content (Not Zone Based)</div>
+                 )}
+              </div>
+
+           ) : activeTab === 'Extra fees' ? (
+
+              <div className="space-y-6">
+                  <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
+                     <div className="flex justify-end p-4 border-b">
+                        <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1.5 rounded flex items-center gap-2 text-[11px] font-bold hover:bg-gray-50 transition-all shadow-sm">
+                           <i className="fa-solid fa-plus"></i> Add Row
+                        </button>
+                     </div>
+                     <div className="overflow-x-auto relative z-10">
+                        <table className="w-full text-left text-[11px] border-collapse">
+                           <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                              <tr>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Surcharge Code</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Surcharge Name</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calc Type</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Base Field</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Rate Value</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Unit</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Free Threshold</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Min Amount</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Max Amount</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Apply Scope</th>
+                                 <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Condition Expr</th>
+                                 <th className="px-3 py-2 text-center bg-gray-50">Actions</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y text-gray-600 font-medium">
+                              <tr className="hover:bg-gray-50/50 transition-colors">
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>COD_TRANSFER</option>
+                                       <option>DECLARED_VALUE</option>
+                                       <option>RETURN</option>
+                                       <option>REMOTE_AREA</option>
+                                       <option>FRAGILE</option>
+                                       <option>REINFORCE</option>
+                                       <option>ADDRESS_CHANGE</option>
+                                       <option>STORAGE</option>
+                                       <option>FUEL</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <input type="text" defaultValue="Phí thu hộ" className="w-24 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>PERCENT</option>
+                                       <option>FIXED</option>
+                                       <option>PERCENT_OF_FREIGHT</option>
+                                       <option>PER_UNIT</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>DECLARED_VALUE</option>
+                                       <option>FREIGHT</option>
+                                       <option>WEIGHT</option>
+                                       <option>ORDER</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <input type="number" defaultValue="1" className="w-16 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option value="">--</option>
+                                       <option>PER_TRANSACTION</option>
+                                       <option>PER_ORDER</option>
+                                       <option>PER_KG</option>
+                                       <option>PER_DAY</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">
+                                    <input type="number" placeholder="--" className="w-20 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">
+                                    <input type="number" placeholder="--" className="w-20 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">
+                                    <input type="number" placeholder="--" className="w-20 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100">
+                                    <select className="w-full bg-transparent outline-none">
+                                       <option>ALL</option>
+                                       <option>SAME_PROVINCE</option>
+                                       <option>CROSS_PROVINCE</option>
+                                       <option>REMOTE</option>
+                                    </select>
+                                 </td>
+                                 <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">
+                                    <input type="text" placeholder="--" className="w-24 bg-transparent outline-none" />
+                                 </td>
+                                 <td className="px-3 py-2.5 bg-gray-50">
+                                    <div className="flex items-center justify-center gap-3">
+                                       <i className="fa-regular fa-copy text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"></i>
+                                       <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
+                                    </div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+              </div>
+
+           ) : activeTab === 'Remote Area Surcharges' ? (
               
               <div className="space-y-6">
                   <h2 className="text-[#4d9e5f] font-bold text-sm">International (VN - US)</h2>
@@ -200,11 +415,9 @@ export function ServicePricingDetailView({ pricingId, onBack, onSave }: ServiceP
                                     <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Category</th>
                                     <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculate Fee Type</th>
                                     <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculation Condition</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Fee</th>
+                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Base Price</th>
                                     <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight From ({'>'})</th>
                                     <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight To ({'≤'})</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance From</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance To</th>
                                     <th className="px-3 py-2 text-center">Actions</th>
                                  </tr>
                               </thead>
@@ -217,8 +430,6 @@ export function ServicePricingDetailView({ pricingId, onBack, onSave }: ServiceP
                                     <td className="px-3 py-2.5 border-r border-gray-100">0</td>
                                     <td className="px-3 py-2.5 border-r border-gray-100">0</td>
                                     <td className="px-3 py-2.5 border-r border-gray-100">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
                                     <td className="px-3 py-2.5">
                                        <div className="flex items-center justify-center gap-3">
                                           <i className="fa-regular fa-copy text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"></i>
