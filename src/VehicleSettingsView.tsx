@@ -272,8 +272,8 @@ export function VehicleSettingsView() {
                     </div>
                     
                     <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end gap-3">
-                      <button onClick={() => setShowPurposeForm(false)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
-                        Cancel
+                      <button onClick={() => setEditingPurpose({})} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-[13px] font-bold hover:bg-gray-50 transition-colors">
+                        Clear Form
                       </button>
                       <button 
                         onClick={() => {

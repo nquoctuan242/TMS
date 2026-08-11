@@ -1,3 +1,8 @@
+import { ZoneRuleListView } from "./src/ZoneRuleListView";
+import { ZoneRuleDetailView } from "./src/ZoneRuleDetailView";
+import { ZoneMatrixListView } from "./src/ZoneMatrixListView";
+import { ZoneMatrixDetailView } from "./src/ZoneMatrixDetailView";
+import { ServicePricingListView } from "./src/ServicePricingListView";
 import { CostAndFuelView } from './src/CostAndFuelView';
 import { VehicleDocumentsView } from './src/VehicleDocumentsView';
 import { VehicleMaintenanceView } from './src/VehicleMaintenanceView';
@@ -419,8 +424,8 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
-  const [activeContractTab, setActiveContractTab] = useState('Remote Area Surcharges');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-matrix-list' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
@@ -463,6 +468,8 @@ const App: React.FC = () => {
   const [selectedTicketContentId, setSelectedTicketContentId] = useState<string | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [selectedDeliverySLAId, setSelectedDeliverySLAId] = useState<string | null>(null);
+  const [selectedZoneRuleId, setSelectedZoneRuleId] = useState<string | null>(null);
+  const [selectedZoneMatrixId, setSelectedZoneMatrixId] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReasonType, setRejectReasonType] = useState<string>('');
   const [rejectNote, setRejectNote] = useState<string>('');
@@ -1519,7 +1526,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-gear" 
             label="Configs" 
-            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
+            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' || currentView === 'zone-rule-list' || currentView === 'zone-rule-detail' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1547,6 +1554,18 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('delivery-sla-list')}
                 >
                   Delivery SLA
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'zone-rule-list' || currentView === 'zone-rule-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('zone-rule-list')}
+                >
+                  Zone Rule
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'zone-matrix-list' || currentView === 'zone-matrix-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('zone-matrix-list')}
+                >
+                  Zone Matrix
                 </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'user-store-access-list' || currentView === 'user-store-access-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -1630,6 +1649,10 @@ const App: React.FC = () => {
                  currentView === 'contract-list' ? 'Contract Management' : 
                  currentView === 'delivery-sla-list' ? 'Delivery SLA Management' :
                  currentView === 'delivery-sla-detail' ? 'Delivery SLA Detail' : 
+                 currentView === 'zone-rule-list' ? 'Zone Rule Management' :
+                 currentView === 'zone-rule-detail' ? 'Zone Rule Detail' :
+                 currentView === 'zone-matrix-list' ? 'Zone Matrix Management' :
+                 currentView === 'zone-matrix-detail' ? 'Zone Matrix Detail' :
                  currentView === 'shipment-online' ? 'Online Shipment' :
                   currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
                   currentView === 'shipment-drop-off-detail' ? 'Drop-off Detail' :
@@ -3903,6 +3926,38 @@ const App: React.FC = () => {
                  setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
                  setCurrentView('user-store-access-list');
                }}
+             />
+          ) : currentView === 'zone-matrix-list' ? (
+             <ZoneMatrixListView
+               onEdit={(id) => {
+                 setSelectedZoneMatrixId(id);
+                 setCurrentView('zone-matrix-detail');
+               }}
+               onCreate={() => {
+                 setSelectedZoneMatrixId(null);
+                 setCurrentView('zone-matrix-detail');
+               }}
+             />
+          ) : currentView === 'zone-matrix-detail' ? (
+             <ZoneMatrixDetailView
+               configId={selectedZoneMatrixId}
+               onBack={() => setCurrentView('zone-matrix-list')}
+             />
+          ) : currentView === 'zone-rule-list' ? (
+             <ZoneRuleListView
+               onEdit={(id) => {
+                 setSelectedZoneRuleId(id);
+                 setCurrentView('zone-rule-detail');
+               }}
+               onCreate={() => {
+                 setSelectedZoneRuleId(null);
+                 setCurrentView('zone-rule-detail');
+               }}
+             />
+          ) : currentView === 'zone-rule-detail' ? (
+             <ZoneRuleDetailView
+               configId={selectedZoneRuleId}
+               onBack={() => setCurrentView('zone-rule-list')}
              />
           ) : currentView === 'delivery-sla-list' ? (
              <DeliverySLAListView 
@@ -7238,123 +7293,11 @@ const App: React.FC = () => {
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
                <div className="flex items-center justify-between border-b px-4 py-2">
                   <div className="flex gap-6">
-                    <button onClick={() => setActiveContractTab('List of Charges')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'List of Charges' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>List of Charges</button>
-                    <button onClick={() => setActiveContractTab('Remote Area Surcharges')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'Remote Area Surcharges' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>Remote Area Surcharges</button>
-                    <button onClick={() => setActiveContractTab('Extra Fees')} className={`text-xs font-bold pb-2 transition-all border-b-2 ${activeContractTab === 'Extra Fees' ? 'text-[#1b4d3e] border-[#4d9e5f]' : 'text-gray-400 border-transparent hover:text-gray-600'}`}>Extra Fees</button>
+                    <button className="text-xs font-bold pb-2 transition-all border-b-2 text-[#1b4d3e] border-[#4d9e5f]">List of service price</button>
                   </div>
-                  <button className="bg-[#4d9e5f] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#3d7d4c] transition-colors shadow-sm">Save All Changes</button>
                </div>
-
-               <div className="p-4 space-y-6">
-                  <h2 className="text-[#4d9e5f] font-bold text-sm">International (VN - US)</h2>
-                  <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-full p-2 px-6 flex items-center gap-10 shadow-sm">
-                    <div className="flex items-center gap-2">
-                       <i className="fa-solid fa-earth-americas text-[#4d9e5f]"></i>
-                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Route:</span>
-                       <span className="text-xs font-bold text-gray-700">Vietnam</span>
-                       <i className="fa-solid fa-arrow-right-long text-gray-300"></i>
-                       <span className="text-xs font-bold text-gray-700">United States</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">VAT:</span>
-                       <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full text-[10px] font-bold">0%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight">Currency:</span>
-                       <span className="bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">USD</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                     <button className="border border-[#4d9e5f] text-[#4d9e5f] px-3 py-1.5 rounded flex items-center gap-2 text-[12px] font-bold hover:bg-green-50 transition-colors">
-                        <i className="fa-solid fa-plus"></i> Add Remote Area Surcharges
-                     </button>
-                  </div>
-
-                  <div className="border border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white relative">
-                     <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden select-none flex flex-wrap gap-20 p-20">
-                        {Array(10).fill(0).map((_, i) => <span key={i} className="text-4xl font-bold -rotate-45 text-black">QC</span>)}
-                     </div>
-
-                     <div className="p-4 flex items-center justify-between border-b">
-                        <div className="bg-blue-600 text-white px-3 py-1 text-[11px] font-bold rounded shadow-sm uppercase tracking-wide">Surcharge Remote Zone</div>
-                        <button className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 transition-colors">
-                           <i className="fa-solid fa-trash-can"></i> Remove
-                        </button>
-                     </div>
-
-                     <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                           <div className="space-y-2">
-                              <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
-                                 Define Remote Regions <span className="text-red-500">*</span>
-                              </label>
-                              <div className="relative">
-                                 <select className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-400 focus:ring-1 focus:ring-[#4d9e5f] outline-none bg-white appearance-none cursor-pointer h-10 shadow-sm">
-                                    <option>Select state/province</option>
-                                 </select>
-                                 <i className="fa-solid fa-chevron-down absolute right-3 top-[13px] text-[10px] text-gray-400 pointer-events-none"></i>
-                              </div>
-                           </div>
-
-                           <div className="space-y-2">
-                              <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1 tracking-tight">
-                                 Leadtime (h)
-                              </label>
-                              <div className="relative">
-                                 <input type="text" defaultValue="2" className="w-full border border-[#e5e7eb] rounded-[6px] px-3 py-2 text-[12px] text-gray-800 outline-none focus:ring-1 focus:ring-[#4d9e5f] bg-white transition-all shadow-sm h-10" />
-                              </div>
-                           </div>
-                        </div>
-
-                        <div className="flex justify-end relative z-10">
-                           <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1 rounded flex items-center gap-2 text-[11px] font-bold hover:bg-gray-50 transition-all shadow-sm">
-                              <i className="fa-solid fa-plus"></i> Add Row
-                           </button>
-                        </div>
-
-                        <div className="border border-gray-100 rounded overflow-hidden relative z-10">
-                           <table className="w-full text-left text-[11px] border-collapse">
-                              <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
-                                 <tr>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Service Type</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Category</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculate Fee Type</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Calculation Condition</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Fee</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight From ({'>'})</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Weight To ({'≤'})</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance From</th>
-                                    <th className="px-3 py-2 border-r border-gray-200 whitespace-nowrap">Distance To</th>
-                                    <th className="px-3 py-2 text-center">Actions</th>
-                                 </tr>
-                              </thead>
-                              <tbody className="divide-y text-gray-600 font-medium">
-                                 <tr className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-3 py-2.5 border-r border-gray-100">Express 1H</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">Document</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">Percentage</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">Weight (kg)</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
-                                    <td className="px-3 py-2.5 border-r border-gray-100 text-gray-300 italic">0</td>
-                                    <td className="px-3 py-2.5">
-                                       <div className="flex items-center justify-center gap-3">
-                                          <i className="fa-regular fa-copy text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"></i>
-                                          <i className="fa-solid fa-trash-can text-red-300 cursor-pointer hover:text-red-500 transition-colors"></i>
-                                       </div>
-                                    </td>
-                                 </tr>
-                              </tbody>
-                           </table>
-                           <div className="bg-gray-100 h-1.5 w-full mt-auto relative overflow-hidden">
-                              <div className="absolute left-0 top-0 h-full w-1/4 bg-gray-300 rounded-full"></div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+               <div className="p-4 space-y-6 flex-1">
+                  <ServicePricingListView />
                </div>
             </div>
           ) : currentView === 'order-online' ? (

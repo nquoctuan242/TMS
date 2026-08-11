@@ -99,6 +99,18 @@ export interface DeliverySLALocationOverride {
   effectiveFrom: string;
 }
 
+
+export interface ServiceLevelConfig {
+  id: string;
+  partner: string;
+  volumetricDivisor: number;
+  weightRoundStep: number;
+  weightRoundMethod: string;
+  minChargeableWeight: number;
+  maxWeight: number;
+  isActive: boolean;
+}
+
 export interface DeliverySLAConfig {
   id: string;
   serviceName: string;
@@ -109,6 +121,7 @@ export interface DeliverySLAConfig {
   afterCutoffDaysAdd: number;
   lateAlertMinutes: number;
   locationOverrides: DeliverySLALocationOverride[];
+  serviceLevelConfigs?: ServiceLevelConfig[];
 }
 
 export interface ShipperSearchRadiusConfig {
@@ -518,4 +531,38 @@ export interface VehicleCosts {
   fines: number;
   costPerKm: number;
   month: number;
+}
+
+
+export interface ZoneRuleConfig {
+  id: string;
+  partner: string;
+  matchType: string;
+  isRemote: boolean;
+  destScopeId: string;
+  zoneId: string;
+  priority: number;
+  note: string;
+}
+
+
+export interface ZoneMatrixConfig {
+  id: string;
+  carrierId: string;
+  fromRegion: string;
+  toRegion: string;
+  zoneName: string;
+  note: string;
+}
+
+
+export interface ServicePricing {
+  id: string;
+  code: string;
+  versionName: string;
+  effectiveDate: string;
+  expiredDate: string;
+  status: 'Effective' | 'Not Yet Started' | 'Expired';
+  note: string;
+  dynamicPricingSchema: 'ZONE_BASED' | 'DISTANCE_BASED';
 }
