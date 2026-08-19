@@ -3,11 +3,12 @@ import { MOCK_ZONE_MATRIX } from '../constants';
 import { ZoneMatrixConfig } from '../types';
 
 interface ZoneMatrixListViewProps {
+  isEmbedded?: boolean;
   onEdit: (id: string) => void;
   onCreate: () => void;
 }
 
-export function ZoneMatrixListView({ onEdit, onCreate }: ZoneMatrixListViewProps) {
+export function ZoneMatrixListView({ onEdit, onCreate, isEmbedded }: ZoneMatrixListViewProps) {
   const [configs, setConfigs] = useState<ZoneMatrixConfig[]>(MOCK_ZONE_MATRIX);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -18,8 +19,8 @@ export function ZoneMatrixListView({ onEdit, onCreate }: ZoneMatrixListViewProps
   );
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8f9fa] animate-in fade-in duration-300">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm z-10">
+    <div className={`flex flex-col min-h-full ${isEmbedded ? "" : "bg-[#f8f9fa] animate-in fade-in duration-300"}`}>
+      {!isEmbedded && (<div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm z-10">
         <h2 className="text-[#1b4d3e] font-bold text-sm uppercase tracking-wider">Zone Matrix Management</h2>
         <button 
           onClick={onCreate}
@@ -28,10 +29,10 @@ export function ZoneMatrixListView({ onEdit, onCreate }: ZoneMatrixListViewProps
           <i className="fa-solid fa-plus"></i>
           New Matrix
         </button>
-      </div>
+      </div>)}
 
-      <div className="flex-1 p-6 overflow-hidden flex flex-col">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+      <div className={`flex-1 overflow-hidden flex flex-col ${isEmbedded ? "" : "p-6"}`}>
+        <div className={`flex flex-col h-full overflow-hidden ${isEmbedded ? "" : "bg-white rounded-xl shadow-sm border border-gray-100"}`}>
           <div className="p-4 border-b border-gray-100 bg-gray-50/50">
             <div className="relative max-w-md">
               <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>

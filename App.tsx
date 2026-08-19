@@ -1,6 +1,7 @@
 import { ZoneRuleListView } from "./src/ZoneRuleListView";
 import { ZoneRuleDetailView } from "./src/ZoneRuleDetailView";
 import { ZoneMatrixListView } from "./src/ZoneMatrixListView";
+import { ZoneMapView } from "./src/ZoneMapView";
 import { ZoneMatrixDetailView } from "./src/ZoneMatrixDetailView";
 import { ServicePricingListView } from "./src/ServicePricingListView";
 import { CostAndFuelView } from './src/CostAndFuelView';
@@ -424,7 +425,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-matrix-list' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-map-list' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
 
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -1562,10 +1563,10 @@ const App: React.FC = () => {
                   Zone Rule
                 </div>
                 <div 
-                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'zone-matrix-list' || currentView === 'zone-matrix-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
-                  onClick={() => setCurrentView('zone-matrix-list')}
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'zone-map-list' || currentView === 'zone-matrix-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('zone-map-list')}
                 >
-                  Zone Matrix
+                  Zone Map
                 </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'user-store-access-list' || currentView === 'user-store-access-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
@@ -1651,7 +1652,7 @@ const App: React.FC = () => {
                  currentView === 'delivery-sla-detail' ? 'Delivery SLA Detail' : 
                  currentView === 'zone-rule-list' ? 'Zone Rule Management' :
                  currentView === 'zone-rule-detail' ? 'Zone Rule Detail' :
-                 currentView === 'zone-matrix-list' ? 'Zone Matrix Management' :
+                 currentView === 'zone-map-list' ? 'Zone Map' :
                  currentView === 'zone-matrix-detail' ? 'Zone Matrix Detail' :
                  currentView === 'shipment-online' ? 'Online Shipment' :
                   currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
@@ -3927,13 +3928,13 @@ const App: React.FC = () => {
                  setCurrentView('user-store-access-list');
                }}
              />
-          ) : currentView === 'zone-matrix-list' ? (
-             <ZoneMatrixListView
-               onEdit={(id) => {
+          ) : currentView === 'zone-map-list' ? (
+             <ZoneMapView
+               onEditRegional={(id) => {
                  setSelectedZoneMatrixId(id);
                  setCurrentView('zone-matrix-detail');
                }}
-               onCreate={() => {
+               onCreateRegional={() => {
                  setSelectedZoneMatrixId(null);
                  setCurrentView('zone-matrix-detail');
                }}
@@ -3941,7 +3942,7 @@ const App: React.FC = () => {
           ) : currentView === 'zone-matrix-detail' ? (
              <ZoneMatrixDetailView
                configId={selectedZoneMatrixId}
-               onBack={() => setCurrentView('zone-matrix-list')}
+               onBack={() => setCurrentView('zone-map-list')}
              />
           ) : currentView === 'zone-rule-list' ? (
              <ZoneRuleListView

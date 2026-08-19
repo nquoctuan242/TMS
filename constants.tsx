@@ -748,3 +748,23 @@ export const MOCK_SERVICE_PRICING: import('./types').ServicePricing[] = [
   { id: '3', code: 'PRC783102', versionName: 'HSK-v1', effectiveDate: '07/03/2026 (UTC+7)', expiredDate: '31/03/2026 (UTC+7)', status: 'Expired', note: '', dynamicPricingSchema: 'ZONE_BASED' },
   { id: '4', code: 'PRC496074', versionName: 'Service Pricing for SF260519FWBZ', effectiveDate: '29/05/2026 (UTC+7)', expiredDate: '30/06/2026 (UTC+7)', status: 'Expired', note: '123', dynamicPricingSchema: 'DISTANCE_BASED' }
 ];
+
+export const MOCK_POSTAL_ZONES: any[] = [
+  { id: '1', originZip: '039', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 51', 'Zone HCM Vietnam - USA 1', 'Zone 1'], status: 'Active' },
+  { id: '2', originZip: '17050', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 7'], status: 'Active' },
+  { id: '3', originZip: '32619', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '4', originZip: '333321', fromCountry: 'VN', toCountry: 'US', destinationRanges: [], status: 'Active' },
+  { id: '5', originZip: '34201', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '6', originZip: '34203', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 4', 'Zone 3', 'Zone 1', 'Zone 8', 'Zone 6', 'Zone 7', 'Zone 2', 'Zone 9', 'Zone 5'], status: 'Active' },
+  { id: '7', originZip: '36955', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '8', originZip: '700', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 5'], status: 'Active' },
+  { id: '9', originZip: '70000', fromCountry: 'US', toCountry: 'US', destinationRanges: ['UPS - Zone 2', 'UPS - Zone 3', 'UPS - Zone 4'], status: 'Active' },
+  { id: '10', originZip: '700000', fromCountry: 'VN', toCountry: 'US', destinationRanges: ['vnus1', 'vnus2', 'vnus3', 'vnus4'], status: 'Active' },
+  { id: '11', originZip: '712010', fromCountry: 'VN', toCountry: 'US', destinationRanges: ['vnus1', 'vnus2'], status: 'Active' },
+  { id: '12', originZip: '850', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '13', originZip: '85007', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '14', originZip: '853', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 1'], status: 'Active' },
+  { id: '15', originZip: '87031', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 8'], status: 'Active' },
+  { id: '16', originZip: '902', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 8', 'Zone 7', 'Zone 5', 'Zone 3', 'Zone 10', 'Zone 1', 'Zone 2', 'Zone 6', 'Zone 4', 'Zone 9'], status: 'Active' },
+  { id: '17', originZip: '90201', fromCountry: 'US', toCountry: 'US', destinationRanges: ['Zone 5', 'Zone 4', 'Zone 3', 'Zone 1', 'Zone 2', 'Zone 9', 'Zone 8', 'Zone 7', 'Zone 6'], status: 'Active' },
+];

@@ -100,7 +100,10 @@ export function ZoneRuleDetailView({ configId, onBack, onSave }: ZoneRuleDetailV
                   <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Match Type</label>
                   <select 
                     value={formData.matchType}
-                    onChange={e => setFormData({...formData, matchType: e.target.value})}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setFormData({...formData, matchType: val, isRemote: val === 'SPECIAL'});
+                    }}
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#1b4d3e]"
                   >
                     <option value="">Select Match Type</option>
@@ -114,8 +117,8 @@ export function ZoneRuleDetailView({ configId, onBack, onSave }: ZoneRuleDetailV
                   <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Is Remote</label>
                   <select 
                     value={formData.isRemote ? 'TRUE' : 'FALSE'}
-                    onChange={e => setFormData({...formData, isRemote: e.target.value === 'TRUE'})}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#1b4d3e]"
+                    disabled
+                    className="w-full border border-gray-200 bg-gray-50 rounded px-3 py-2 text-sm text-gray-500 outline-none cursor-not-allowed"
                   >
                     <option value="TRUE">TRUE</option>
                     <option value="FALSE">FALSE</option>
@@ -123,7 +126,7 @@ export function ZoneRuleDetailView({ configId, onBack, onSave }: ZoneRuleDetailV
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Dest Scope ID</label>
+                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Dest Scope ID (PX Code)</label>
                   <input 
                     type="text" 
                     value={formData.destScopeId}

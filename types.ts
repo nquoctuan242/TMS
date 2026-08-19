@@ -566,3 +566,12 @@ export interface ServicePricing {
   note: string;
   dynamicPricingSchema: 'ZONE_BASED' | 'DISTANCE_BASED';
 }
+
+export interface PostalZone {
+  id: string;
+  originZip: string;
+  fromCountry: string;
+  toCountry: string;
+  destinationRanges: string[];
+  status: 'Active' | 'Inactive';
+}
