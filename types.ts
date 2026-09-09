@@ -332,6 +332,9 @@ export interface TicketType {
   description: string;
   typeReference?: string;
   podGpsAccuracyDistance?: number;
+  vehicleInspectionShiftCheckin?: boolean;
+  vehicleInspectionVehicleCheckin?: boolean;
+  vehicleInspectionScheduleTasks?: boolean;
   status: 'Active' | 'Inactive';
   country?: string;
   stateProvince?: string;

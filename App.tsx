@@ -3713,6 +3713,43 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    {editingTicketType.typeReference === 'Vehicle inspection completion' && (
+                      <div className="md:col-span-2 bg-[#f8fafc] border border-gray-100 rounded-lg p-5 mt-2 animate-in fade-in duration-300">
+                        <h4 className="text-[12px] font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <i className="fa-solid fa-truck-fast text-[#4d9e5f]"></i> Vehicle Inspection Settings
+                        </h4>
+                        <div className="flex flex-col gap-3 w-fit">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionShiftCheckin} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionShiftCheckin: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Shift check-in/out</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionVehicleCheckin} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionVehicleCheckin: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Vehicle check-in/out</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionScheduleTasks} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionScheduleTasks: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Daily scheduled tasks</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Deadline (Days)</label>
                       <input 
@@ -5482,6 +5519,43 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    {editingTicketType.typeReference === 'Vehicle inspection completion' && (
+                      <div className="md:col-span-2 bg-[#f8fafc] border border-gray-100 rounded-lg p-5 mt-2 animate-in fade-in duration-300">
+                        <h4 className="text-[12px] font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <i className="fa-solid fa-truck-fast text-[#4d9e5f]"></i> Vehicle Inspection Settings
+                        </h4>
+                        <div className="flex flex-col gap-3 w-fit">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionShiftCheckin} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionShiftCheckin: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Shift check-in/out</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionVehicleCheckin} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionVehicleCheckin: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Vehicle check-in/out</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={!!editingTicketType.vehicleInspectionScheduleTasks} 
+                              onChange={(e) => setEditingTicketType({ ...editingTicketType, vehicleInspectionScheduleTasks: e.target.checked })}
+                              className="accent-[#4d9e5f] w-4 h-4 rounded border-gray-300 focus:ring-[#4d9e5f]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Daily scheduled tasks</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-700 tracking-tight block">Explanation Deadline (Days)</label>
                       <input 
