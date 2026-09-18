@@ -590,6 +590,7 @@ export interface Region {
   description: string;
   status: 'Active' | 'Inactive';
   partnerType?: 'All' | 'Customer' | 'Carrier';
+  partnerNames?: string[];
   partnerName?: string;
   states?: string[];
   createdAt: string;

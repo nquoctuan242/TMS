@@ -435,8 +435,8 @@ const App: React.FC = () => {
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
   const [regions, setRegions] = useState<Region[]>([
-    { id: '1', code: 'REG-001', name: 'Northern Region', country: 'Vietnam', description: 'Northern provinces', status: 'Active', partnerType: 'All', states: ['Hanoi', 'Hai Phong'], createdAt: '2026-09-01 10:00:00' },
-    { id: '2', code: 'REG-002', name: 'Southern Region', country: 'Vietnam', description: 'Southern provinces', status: 'Active', partnerType: 'All', states: ['Ho Chi Minh City'], createdAt: '2026-09-02 11:30:00' },
+    { id: '1', code: 'REG-001', name: 'Northern Region', country: 'Vietnam', description: 'Northern provinces and hubs', status: 'Active', partnerType: 'All', partnerNames: [], partnerName: '', states: ['Ha Noi', 'Hai Phong', 'Quang Ninh'], createdAt: '2026-09-01 10:00:00' },
+    { id: '2', code: 'REG-002', name: 'Southern Hub', country: 'Vietnam', description: 'Major southern logistics centers', status: 'Active', partnerType: 'Customer', partnerNames: ['Shopee Vietnam', 'Lazada Vietnam'], partnerName: 'Shopee Vietnam, Lazada Vietnam', states: ['Ho Chi Minh City', 'Binh Duong', 'Dong Nai'], createdAt: '2026-09-02 11:30:00' },
   ]);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
 
