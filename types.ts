@@ -435,6 +435,9 @@ export interface ShiftControlConfig {
   warnBeforeShiftEndMinutes: number;
     blockDeliveryActionsAtEnd: boolean;
   allowReturnAllAtEnd: boolean;
+  shiftCheckinCheckoutEndRule?: boolean;
+  vehicleCheckinCheckoutEndRule?: boolean;
+  dailyInspectionChecklistEndRule?: boolean;
   minBreakDeviationMinutes?: number;
   restBreaks?: ShiftBreakConfig[];
   mealBreaks?: ShiftBreakConfig[];
@@ -578,3 +581,17 @@ export interface PostalZone {
   destinationRanges: string[];
   status: 'Active' | 'Inactive';
 }
+
+export interface Region {
+  id: string;
+  code: string;
+  name: string;
+  country: string;
+  description: string;
+  status: 'Active' | 'Inactive';
+  partnerType?: 'All' | 'Customer' | 'Carrier';
+  partnerName?: string;
+  states?: string[];
+  createdAt: string;
+}
+

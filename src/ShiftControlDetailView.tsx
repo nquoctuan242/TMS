@@ -318,7 +318,49 @@ export function ShiftControlDetailView({ configId, onBack, stores }: ShiftContro
                 <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.allowReturnAllAtEnd ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
+            {/* Shift Checkin Checkout */}
+            <div className="p-5 border-t border-gray-100 flex items-center justify-between bg-[#fcfdfc]">
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-1">Shift check-in/out</h4>
+                <p className="text-[11px] text-gray-500 max-w-lg">Enable check-in and check-out tracking for this shift.</p>
+              </div>
+              <button 
+                onClick={() => setFormData({...formData, shiftCheckinCheckoutEndRule: !formData.shiftCheckinCheckoutEndRule})}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.shiftCheckinCheckoutEndRule ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.shiftCheckinCheckoutEndRule ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+            
+            {/* Vehicle Checkin Checkout */}
+            <div className="p-5 border-t border-gray-100 flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-1">Vehicle check-in/out</h4>
+                <p className="text-[11px] text-gray-500 max-w-lg">Require the shipper to check in and check out their assigned vehicle.</p>
+              </div>
+              <button 
+                onClick={() => setFormData({...formData, vehicleCheckinCheckoutEndRule: !formData.vehicleCheckinCheckoutEndRule})}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.vehicleCheckinCheckoutEndRule ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.vehicleCheckinCheckoutEndRule ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+            
+            {/* Daily Inspection Checklist */}
+            <div className="p-5 border-t border-gray-100 flex items-center justify-between bg-[#fcfdfc]">
+              <div>
+                <h4 className="text-xs font-bold text-gray-800 mb-1">Daily inspection checklist</h4>
+                <p className="text-[11px] text-gray-500 max-w-lg">Require completion of the daily inspection checklist before shift end.</p>
+              </div>
+              <button 
+                onClick={() => setFormData({...formData, dailyInspectionChecklistEndRule: !formData.dailyInspectionChecklistEndRule})}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formData.dailyInspectionChecklistEndRule ? 'bg-[#4d9e5f]' : 'bg-gray-300'}`}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.dailyInspectionChecklistEndRule ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
           </div>
+
         </div>
         {renderBreakList('Rest Break', 'restBreaks', 'fa-mug-hot')}
         {renderBreakList('Meal Break', 'mealBreaks', 'fa-utensils')}
