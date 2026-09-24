@@ -496,6 +496,59 @@ export const MOCK_SHIPPERS: Shipper[] = [
 
 export const MOCK_CARRIERS: import('./types').Carrier[] = [
   {
+    id: '0',
+    carrierCode: 'EASYPOST',
+    carrierName: 'EasyPost (Shipping Aggregator)',
+    phoneNumber: '028 7300 8888',
+    address: '77 Geary St, San Francisco, CA',
+    carrierApiReference: 'EASYPOST',
+    carrierType: 'External',
+    integrationType: 'Shipping Aggregator',
+    status: 'Active',
+    taxCode: 'TAX-EASYPOST-01',
+    email: 'support@easypost.com',
+    country: 'United States (US)',
+    isMasterBill: true,
+    supportsCustomsDeclaration: true,
+    enablePickupService: true,
+    shippingVendors: [
+      {
+        vendorName: 'FedEx Express',
+        pickupFree: true,
+        pickupOnDemand: true,
+        dropoff: true,
+        services: [
+          { code: 'PRIORITY_OVERNIGHT', name: 'FedEx Priority Overnight', internalService: 'Same day', isActive: true },
+          { code: 'STANDARD_OVERNIGHT', name: 'FedEx Standard Overnight', internalService: 'Next day', isActive: true },
+          { code: 'FEDEX_2_DAY', name: 'FedEx 2Day', internalService: 'Express', isActive: true },
+          { code: 'FEDEX_GROUND', name: 'FedEx Ground', internalService: 'Standard', isActive: true }
+        ]
+      },
+      {
+        vendorName: 'UPS Logistics',
+        pickupFree: false,
+        pickupOnDemand: true,
+        dropoff: true,
+        services: [
+          { code: 'UPS_NEXT_DAY_AIR', name: 'UPS Next Day Air', internalService: 'Next day', isActive: true },
+          { code: 'UPS_2ND_DAY_AIR', name: 'UPS 2nd Day Air', internalService: 'Express', isActive: true },
+          { code: 'UPS_GROUND', name: 'UPS Ground', internalService: 'Standard', isActive: true }
+        ]
+      },
+      {
+        vendorName: 'USPS Postal',
+        pickupFree: true,
+        pickupOnDemand: false,
+        dropoff: true,
+        services: [
+          { code: 'PRIORITY_MAIL', name: 'USPS Priority Mail', internalService: 'Express', isActive: true },
+          { code: 'FIRST_CLASS', name: 'USPS First-Class Package', internalService: 'Standard', isActive: true }
+        ]
+      }
+    ],
+    note: 'Master shipping aggregator account integrating FedEx, UPS, and USPS'
+  },
+  {
     id: '1',
     carrierCode: 'UPS',
     carrierName: 'UPS',

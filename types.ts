@@ -1,4 +1,9 @@
-export interface ShippingVendorService {  code: string;  name: string; isActive?: boolean; }
+export interface ShippingVendorService {
+  code: string;
+  name: string;
+  internalService?: string;
+  isActive?: boolean;
+}
 export interface ShippingVendorConfig {  vendorName: string;  services: ShippingVendorService[];  pickupFree?: boolean;  pickupOnDemand?: boolean;  dropoff?: boolean;}
 
 export interface TransitPoint {

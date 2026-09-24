@@ -7355,7 +7355,17 @@ const App: React.FC = () => {
                }
             }} />
           ) : currentView === 'carrier-detail' ? (
-            <CarrierDetailView carrier={selectedCarrier} />
+            <CarrierDetailView 
+              carrier={selectedCarrier} 
+              onBack={() => setCurrentView('carrier-list')}
+              onSave={(updated) => {
+                setSelectedCarrier(updated);
+                const idx = MOCK_CARRIERS.findIndex(c => c.id === updated.id);
+                if (idx !== -1) {
+                  MOCK_CARRIERS[idx] = updated;
+                }
+              }}
+            />
           ) : currentView === 'company-detail' ? (
             <div className="bg-white rounded shadow-sm min-h-full flex flex-col animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b px-4 py-3">
