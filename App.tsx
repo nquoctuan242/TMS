@@ -35,9 +35,12 @@ import { CarrierListView } from './src/CarrierListView';
 import { CarrierDetailView } from './src/CarrierDetailView';
 import { OrderOnlineView } from './src/OrderOnlineView';
 import { OrderOnlineDetailView } from './src/OrderOnlineDetailView';
+import { HandoverAutoView } from './src/HandoverAutoView';
+import { HandoverAutoDetailView } from './src/HandoverAutoDetailView';
+import { HandoverPrintModal } from './src/HandoverPrintModal';
 import { OnlineOrder } from './types';
-import { MOCK_ONLINE_ORDERS } from './constants';
-import { Carrier, LandingCostConfig } from './types';
+import { MOCK_ONLINE_ORDERS, MOCK_HANDOVER_MANIFESTS, MOCK_PENDING_HANDOVER_ORDERS } from './constants';
+import { Carrier, LandingCostConfig, HandoverManifest, HandoverSubOrder } from './types';
 import { MOCK_CARRIERS } from './constants';
 import { MOCK_SHIPMENT, MOCK_LANDING_COST_CONFIGS, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
 import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
@@ -430,7 +433,12 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-map-list' | 'region-list' | 'region-detail' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'shipment-handover-auto' | 'shipment-handover-auto-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-map-list' | 'region-list' | 'region-detail' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+
+  const [handoverManifests, setHandoverManifests] = useState<HandoverManifest[]>(MOCK_HANDOVER_MANIFESTS);
+  const [pendingHandoverOrders, setPendingHandoverOrders] = useState<HandoverSubOrder[]>(MOCK_PENDING_HANDOVER_ORDERS);
+  const [selectedHandoverManifest, setSelectedHandoverManifest] = useState<HandoverManifest | null>(null);
+  const [printHandoverManifest, setPrintHandoverManifest] = useState<HandoverManifest | null>(null);
 
   const [activeCompanyId, setActiveCompanyId] = useState(currentUser.companyIds?.[0] || '');
   const [shipment, setShipment] = useState<ShipmentData>(MOCK_SHIPMENT);
@@ -1065,6 +1073,154 @@ const App: React.FC = () => {
     }
   };
 
+  // Handover Auto Handlers
+  const handleSealHandoverManifest = (id: string) => {
+    const target = handoverManifests.find(m => m.id === id);
+    if (!target) return;
+    const now = new Date().toLocaleString();
+    const updatedTarget: HandoverManifest = {
+      ...target,
+      status: 'Sealed',
+      sealedAt: now,
+      notes: target.notes ? `${target.notes} | Sealed at ${now}.` : `Sealed at ${now}.`
+    };
+
+    // Auto generate new open manifest for same route
+    const newManifestId = `man-${Date.now()}`;
+    const codeSeq = (handoverManifests.length + 1).toString().padStart(3, '0');
+    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const newManifestCode = `HO-${todayStr}-${codeSeq}`;
+
+    const newOpenManifest: HandoverManifest = {
+      id: newManifestId,
+      manifestCode: newManifestCode,
+      carrier: '',
+      originHub: target.originHub,
+      originAddress: target.originAddress,
+      destinationHub: target.destinationHub,
+      destinationAddress: target.destinationAddress,
+      status: 'Open',
+      cutoffTime: target.cutoffTime || '18:00',
+      createdAt: now,
+      totalOrders: 0,
+      totalWeight: 0,
+      totalCod: 0,
+      notes: `Auto-generated follow-up manifest after sealing ${target.manifestCode}. Ready for subsequent orders.`,
+      orders: []
+    };
+
+    const nextList = [newOpenManifest, ...handoverManifests.map(m => m.id === id ? updatedTarget : m)];
+    setHandoverManifests(nextList);
+    if (selectedHandoverManifest && selectedHandoverManifest.id === id) {
+      setSelectedHandoverManifest(updatedTarget);
+    }
+  };
+
+  const handleDispatchHandoverManifest = (id: string, dispatchData: { carrier?: string; driverName: string; driverPhone: string; plateNumber: string; reference: string }) => {
+    const target = handoverManifests.find(m => m.id === id);
+    if (!target) return;
+    const now = new Date().toLocaleString();
+    const wasOpen = target.status === 'Open';
+    const updatedTarget: HandoverManifest = {
+      ...target,
+      carrier: dispatchData.carrier || 'SPX Express',
+      status: 'Dispatched',
+      dispatchedAt: now,
+      carrierDriverName: dispatchData.driverName,
+      carrierDriverPhone: dispatchData.driverPhone,
+      carrierPlateNumber: dispatchData.plateNumber,
+      dispatchReference: dispatchData.reference,
+      orders: target.orders.map(o => ({ ...o, status: 'Dispatched' as const }))
+    };
+
+    let nextList = handoverManifests.map(m => m.id === id ? updatedTarget : m);
+
+    // If it was Open when dispatched, auto-generate follow-up Open manifest for subsequent orders
+    if (wasOpen) {
+      const newManifestId = `man-${Date.now()}`;
+      const codeSeq = (handoverManifests.length + 1).toString().padStart(3, '0');
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const newManifestCode = `HO-${todayStr}-${codeSeq}`;
+
+      const newOpenManifest: HandoverManifest = {
+        id: newManifestId,
+        manifestCode: newManifestCode,
+        carrier: '', // Unassigned until dispatched
+        originHub: target.originHub,
+        originAddress: target.originAddress,
+        destinationHub: target.destinationHub,
+        destinationAddress: target.destinationAddress,
+        status: 'Open',
+        cutoffTime: target.cutoffTime || '18:00',
+        createdAt: now,
+        totalOrders: 0,
+        totalWeight: 0,
+        totalCod: 0,
+        notes: `Auto-generated follow-up manifest after dispatching ${target.manifestCode}. Ready for subsequent orders.`,
+        orders: []
+      };
+      nextList = [newOpenManifest, ...nextList];
+    }
+
+    setHandoverManifests(nextList);
+    if (selectedHandoverManifest && selectedHandoverManifest.id === id) {
+      setSelectedHandoverManifest(updatedTarget);
+    }
+  };
+
+  const handleAddOrdersToHandoverManifest = (manifestId: string, orderIds: string[]) => {
+    const ordersToAdd = pendingHandoverOrders.filter(p => orderIds.includes(p.id));
+    if (ordersToAdd.length === 0) return;
+
+    const update = (m: HandoverManifest): HandoverManifest => {
+      const combinedOrders = [...m.orders, ...ordersToAdd.map(o => ({ ...o, status: 'In Manifest' as const }))];
+      const addedWeight = ordersToAdd.reduce((sum, o) => sum + o.weight, 0);
+      const addedCod = ordersToAdd.reduce((sum, o) => sum + o.codAmount, 0);
+      return {
+        ...m,
+        orders: combinedOrders,
+        totalOrders: combinedOrders.length,
+        totalWeight: parseFloat((m.totalWeight + addedWeight).toFixed(2)),
+        totalCod: m.totalCod + addedCod
+      };
+    };
+
+    setHandoverManifests(prev => prev.map(m => m.id === manifestId ? update(m) : m));
+    setPendingHandoverOrders(prev => prev.filter(p => !orderIds.includes(p.id)));
+    if (selectedHandoverManifest && selectedHandoverManifest.id === manifestId) {
+      setSelectedHandoverManifest(update(selectedHandoverManifest));
+    }
+  };
+
+  const handleRemoveOrderFromHandoverManifest = (manifestId: string, orderId: string) => {
+    let removedOrder: HandoverSubOrder | null = null;
+    const update = (m: HandoverManifest): HandoverManifest => {
+      const remainingOrders = m.orders.filter(o => {
+        if (o.id === orderId) {
+          removedOrder = o;
+          return false;
+        }
+        return true;
+      });
+      if (!removedOrder) return m;
+      return {
+        ...m,
+        orders: remainingOrders,
+        totalOrders: remainingOrders.length,
+        totalWeight: Math.max(0, parseFloat((m.totalWeight - (removedOrder as HandoverSubOrder).weight).toFixed(2))),
+        totalCod: Math.max(0, m.totalCod - (removedOrder as HandoverSubOrder).codAmount)
+      };
+    };
+
+    setHandoverManifests(prev => prev.map(m => m.id === manifestId ? update(m) : m));
+    if (selectedHandoverManifest && selectedHandoverManifest.id === manifestId) {
+      setSelectedHandoverManifest(update(selectedHandoverManifest));
+    }
+    if (removedOrder) {
+      setPendingHandoverOrders(prev => [{ ...(removedOrder as unknown as HandoverSubOrder), status: 'Pending Handover' as const }, ...prev]);
+    }
+  };
+
   const handleToggleStoresMulti = (filters: Partial<typeof stores[0]>, isAdding: boolean) => {
     // Only target stores within assigned companies!
     const availableStores = stores.filter(s => (editingUser.companyIds || []).includes(s.companyId));
@@ -1371,7 +1527,7 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-truck-arrow-right" 
             label="Shipments" 
-            active={currentView === 'shipment-online' || currentView === 'shipment-internal' || currentView === 'shipment-detail' || currentView === 'shipment-drop-off' || currentView === 'shipment-drop-off-detail'} 
+            active={currentView === 'shipment-online' || currentView === 'shipment-internal' || currentView === 'shipment-detail' || currentView === 'shipment-drop-off' || currentView === 'shipment-drop-off-detail' || currentView === 'shipment-handover-auto' || currentView === 'shipment-handover-auto-detail'} 
             hasSubItems 
             onClick={() => {}}
           >
@@ -1393,6 +1549,12 @@ const App: React.FC = () => {
                   onClick={() => setCurrentView('shipment-drop-off')}
                 >
                   Drop-off
+                </div>
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'shipment-handover-auto' || currentView === 'shipment-handover-auto-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('shipment-handover-auto')}
+                >
+                  Handover Auto
                 </div>
              </div>
           </SidebarItem>
@@ -1687,6 +1849,8 @@ const App: React.FC = () => {
                  currentView === 'shipment-online' ? 'Online Shipment' :
                   currentView === 'shipment-drop-off' ? 'Drop-off Shipment' :
                   currentView === 'shipment-drop-off-detail' ? 'Drop-off Detail' :
+                  currentView === 'shipment-handover-auto' ? 'Handover Auto' :
+                  currentView === 'shipment-handover-auto-detail' ? 'Handover Auto Detail' :
                   currentView === 'shipment-internal' ? 'Internal Transfer Shipment' : 'Shipment Detail'}
               </span>
             </div>
@@ -9136,6 +9300,30 @@ const App: React.FC = () => {
                   </div>
                </div>
             </div>
+          ) : currentView === 'shipment-handover-auto' ? (
+            <HandoverAutoView
+              manifests={handoverManifests}
+              pendingOrders={pendingHandoverOrders}
+              onUpdateManifests={setHandoverManifests}
+              onUpdatePendingOrders={setPendingHandoverOrders}
+              onSeal={handleSealHandoverManifest}
+              onDispatch={handleDispatchHandoverManifest}
+              onRowClick={(manifest) => {
+                setSelectedHandoverManifest(manifest);
+                setCurrentView('shipment-handover-auto-detail');
+              }}
+            />
+          ) : currentView === 'shipment-handover-auto-detail' && selectedHandoverManifest ? (
+            <HandoverAutoDetailView
+              manifest={selectedHandoverManifest}
+              pendingOrders={pendingHandoverOrders}
+              onBack={() => setCurrentView('shipment-handover-auto')}
+              onSeal={handleSealHandoverManifest}
+              onDispatch={handleDispatchHandoverManifest}
+              onAddOrders={handleAddOrdersToHandoverManifest}
+              onRemoveOrder={handleRemoveOrderFromHandoverManifest}
+              onPrint={(m) => setPrintHandoverManifest(m)}
+            />
           ) : (
             <>
               <nav className="flex items-center justify-between mb-4">
@@ -9586,6 +9774,13 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Global Handover Print Modal */}
+      <HandoverPrintModal
+        isOpen={!!printHandoverManifest}
+        manifest={printHandoverManifest}
+        onClose={() => setPrintHandoverManifest(null)}
+      />
     </div>
   );
 };

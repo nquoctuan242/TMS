@@ -601,3 +601,46 @@ export interface Region {
   createdAt: string;
 }
 
+export interface HandoverSubOrder {
+  id: string;
+  orderCode: string;
+  trackingNumber: string;
+  carrierCode: string;
+  carrierService: string;
+  originStore: string;
+  originAddress: string;
+  destinationHub: string;
+  destinationAddress: string;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  weight: number; // in kg
+  codAmount: number; // in VND or currency
+  status: 'Pending Handover' | 'In Manifest' | 'Dispatched';
+  createdAt: string;
+}
+
+export interface HandoverManifest {
+  id: string;
+  manifestCode: string;
+  carrier: string;
+  originHub: string;
+  originAddress: string;
+  destinationHub: string;
+  destinationAddress: string;
+  status: 'Open' | 'Sealed' | 'Dispatched' | 'Completed';
+  cutoffTime?: string;
+  createdAt: string;
+  sealedAt?: string;
+  dispatchedAt?: string;
+  dispatchReference?: string;
+  carrierDriverName?: string;
+  carrierDriverPhone?: string;
+  carrierPlateNumber?: string;
+  totalOrders: number;
+  totalWeight: number;
+  totalCod: number;
+  notes?: string;
+  orders: HandoverSubOrder[];
+}
+
