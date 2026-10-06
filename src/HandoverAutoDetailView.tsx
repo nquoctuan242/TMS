@@ -88,8 +88,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
     setIsDispatchModalOpen(false);
   };
 
-  const formattedCod = new Intl.NumberFormat('en-US').format(manifest.totalCod);
-
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
@@ -141,9 +139,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
                   {manifest.status}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Route: <span className="font-semibold text-gray-800">{manifest.originHub}</span> &rarr; <span className="font-semibold text-gray-800">{manifest.destinationHub}</span> {manifest.status === 'Dispatched' && manifest.carrier ? `(${manifest.carrier})` : <span className="text-gray-400 italic font-normal">(Carrier assigned upon dispatch)</span>}
-              </p>
             </div>
           </div>
 
@@ -192,19 +187,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
             </button>
           </div>
         </div>
-
-        {/* Status notification banner for Open vs Sealed */}
-        {manifest.status === 'Open' && (
-          <div className="px-6 py-2.5 bg-emerald-50/70 border-b border-emerald-100 flex items-center justify-between text-xs text-emerald-900">
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-circle-info text-emerald-600"></i>
-              <span>
-                <strong>Auto-Handover Active:</strong> Any new orders arriving with matching pickup point (<strong>{manifest.originHub}</strong>) and destination (<strong>{manifest.destinationHub}</strong>) will automatically be grouped into this manifest.
-              </span>
-            </div>
-            <span className="text-[11px] font-semibold text-emerald-700">Accepting inbound orders</span>
-          </div>
-        )}
 
         {manifest.status === 'Sealed' && (
           <div className="px-6 py-2.5 bg-amber-50/70 border-b border-amber-100 flex items-center justify-between text-xs text-amber-900">
@@ -265,7 +247,7 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
             <span className="text-[10px] font-bold text-[#1b4d3e] uppercase tracking-wider block">
               Handover Aggregate Metrics
             </span>
-            <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+            <div className="grid grid-cols-2 gap-2 pt-1 text-center">
               <div>
                 <span className="text-xs text-gray-500 block">Orders</span>
                 <span className="text-base font-black text-gray-900">{manifest.totalOrders}</span>
@@ -273,10 +255,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
               <div>
                 <span className="text-xs text-gray-500 block">Weight</span>
                 <span className="text-base font-black text-gray-900">{manifest.totalWeight.toFixed(1)} <span className="text-[10px] font-normal">kg</span></span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-500 block">COD</span>
-                <span className="text-xs font-black text-[#1b4d3e] truncate block" title={`${formattedCod} VND`}>{formattedCod}</span>
               </div>
             </div>
           </div>
@@ -341,12 +319,7 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
               <tr>
                 <th className="px-4 py-3 border-r border-gray-200 w-10 text-center">#</th>
                 <th className="px-4 py-3 border-r border-gray-200">Order Code</th>
-                <th className="px-4 py-3 border-r border-gray-200">Carrier Tracking #</th>
-                <th className="px-4 py-3 border-r border-gray-200">Carrier Service</th>
-                <th className="px-4 py-3 border-r border-gray-200">Receiver Details</th>
-                <th className="px-4 py-3 border-r border-gray-200">Delivery Address</th>
                 <th className="px-4 py-3 border-r border-gray-200 text-center">Weight</th>
-                <th className="px-4 py-3 border-r border-gray-200 text-right">COD (VND)</th>
                 <th className="px-4 py-3 border-r border-gray-200 text-center">Status</th>
                 <th className="px-4 py-3 text-center w-20">Action</th>
               </tr>
@@ -354,7 +327,7 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
             <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-gray-400 italic">
+                  <td colSpan={5} className="px-4 py-12 text-center text-gray-400 italic">
                     {manifest.orders.length === 0 ? (
                       <div className="space-y-2">
                         <i className="fa-solid fa-inbox text-3xl text-gray-300"></i>
@@ -382,26 +355,8 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
                     <td className="px-4 py-3 border-r border-gray-100 font-mono font-bold text-[#1b4d3e]">
                       {ord.orderCode}
                     </td>
-                    <td className="px-4 py-3 border-r border-gray-100 font-mono font-semibold text-blue-700">
-                      {ord.trackingNumber}
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-100">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
-                        {ord.carrierService}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-100">
-                      <div className="font-semibold text-gray-900">{ord.receiverName}</div>
-                      <div className="text-[11px] text-gray-500 font-mono">{ord.receiverPhone}</div>
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-100 max-w-xs truncate text-[11px] text-gray-600" title={ord.receiverAddress}>
-                      {ord.receiverAddress}
-                    </td>
                     <td className="px-4 py-3 border-r border-gray-100 text-center font-mono font-bold">
                       {ord.weight} kg
-                    </td>
-                    <td className="px-4 py-3 border-r border-gray-100 text-right font-mono font-semibold text-gray-800">
-                      {ord.codAmount > 0 ? new Intl.NumberFormat('en-US').format(ord.codAmount) : '-'}
                     </td>
                     <td className="px-4 py-3 border-r border-gray-100 text-center">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-700">
@@ -434,14 +389,11 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
             {manifest.orders.length > 0 && (
               <tfoot className="bg-gray-50 text-xs font-bold text-gray-800 border-t border-gray-200">
                 <tr>
-                  <td colSpan={6} className="px-4 py-3 text-right uppercase tracking-wider text-[11px] text-gray-600 border-r border-gray-200">
+                  <td colSpan={2} className="px-4 py-3 text-right uppercase tracking-wider text-[11px] text-gray-600 border-r border-gray-200">
                     Manifest Totals:
                   </td>
                   <td className="px-4 py-3 text-center font-mono border-r border-gray-200">
                     {manifest.totalWeight.toFixed(2)} kg
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-[#1b4d3e] border-r border-gray-200">
-                    {formattedCod} VND
                   </td>
                   <td colSpan={2} className="px-4 py-3 text-center text-gray-500 text-[11px]">
                     {manifest.totalOrders} total sub-orders
@@ -542,7 +494,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
                           <th className="p-2.5">Carrier Tracking #</th>
                           <th className="p-2.5">Receiver</th>
                           <th className="p-2.5 text-center">Weight</th>
-                          <th className="p-2.5 text-right">COD</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -575,9 +526,6 @@ export const HandoverAutoDetailView: React.FC<HandoverAutoDetailViewProps> = ({
                               <div className="text-[10px] text-gray-400">{po.receiverPhone}</div>
                             </td>
                             <td className="p-2.5 text-center font-mono">{po.weight} kg</td>
-                            <td className="p-2.5 text-right font-mono font-semibold">
-                              {po.codAmount > 0 ? new Intl.NumberFormat('en-US').format(po.codAmount) : '-'}
-                            </td>
                           </tr>
                         ))}
                       </tbody>

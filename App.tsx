@@ -24,6 +24,7 @@ import { VehicleSettingsView } from './src/VehicleSettingsView';
 import { TicketContentDetailView } from './src/TicketContentDetailView';
 import { UserStoreAccessListView } from './src/UserStoreAccessListView';
 import { UserStoreAccessDetailView } from './src/UserStoreAccessDetailView';
+import { HazmatGroupConfigView } from './src/HazmatGroupConfigView';
 
 import React, { useState } from 'react';
 import { LandingCostListView } from './src/LandingCostListView';
@@ -433,7 +434,7 @@ const MOCK_DROP_OFF_SHIPMENTS: DropOffShipment[] = [
 
 const App: React.FC = () => {
   const currentUser = MOCK_USERS[0];
-  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'shipment-handover-auto' | 'shipment-handover-auto-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-map-list' | 'region-list' | 'region-detail' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail'>('shipment-online');
+  const [currentView, setCurrentView] = useState<'shipment-online' | 'shipment-internal' | 'shipment-detail' | 'shipment-drop-off' | 'shipment-drop-off-detail' | 'shipment-handover-auto' | 'shipment-handover-auto-detail' | 'contract-list' | 'company-list' | 'company-detail' | 'config-strategy' | 'carrier-list' | 'carrier-detail' | 'store-list' | 'store-detail' | 'user-list' | 'user-detail' | 'role-list' | 'role-detail' | 'internal-transfer' | 'internal-transfer-detail' | 'order-online' | 'order-online-detail' | 'it-route-list' | 'it-route-detail' | 'shipper-list' | 'shipper-detail' | 'ticket-list' | 'ticket-detail' | 'ticket-content-list' | 'ticket-content-detail' | 'ticket-type-list' | 'ticket-type-detail' | 'delivery-sla-list' | 'delivery-sla-detail' | 'zone-rule-list' | 'zone-rule-detail' | 'zone-map-list' | 'region-list' | 'region-detail' | 'zone-matrix-detail' | 'scan-time-list' | 'scan-time-detail' | 'landing-cost-list' | 'landing-cost-detail' | 'landing-cost-calculator' | 'daily-commission' | 'payroll-period-list' | 'payroll-period-detail' | 'hazmat-group-config'>('shipment-online');
 
   const [handoverManifests, setHandoverManifests] = useState<HandoverManifest[]>(MOCK_HANDOVER_MANIFESTS);
   const [pendingHandoverOrders, setPendingHandoverOrders] = useState<HandoverSubOrder[]>(MOCK_PENDING_HANDOVER_ORDERS);
@@ -1709,11 +1710,17 @@ const App: React.FC = () => {
           <SidebarItem 
             icon="fa-gear" 
             label="Configs" 
-            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' || currentView === 'zone-rule-list' || currentView === 'zone-rule-detail' || currentView === 'region-list' || currentView === 'region-detail' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail'} 
+            active={currentView === 'vehicle-settings' || currentView === 'store-list' || currentView === 'store-detail' || currentView === 'it-route-list' || currentView === 'it-route-detail' || currentView === 'delivery-sla-list' || currentView === 'delivery-sla-detail' || currentView === 'zone-rule-list' || currentView === 'zone-rule-detail' || currentView === 'region-list' || currentView === 'region-detail' || currentView === 'user-store-access-list' || currentView === 'user-store-access-detail' || currentView === 'hazmat-group-config'} 
             hasSubItems 
             onClick={() => {}}
           >
              <div className="ml-8 mt-2 space-y-2">
+                <div 
+                  className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'hazmat-group-config' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
+                  onClick={() => setCurrentView('hazmat-group-config')}
+                >
+                  Hazmat Group Config
+                </div>
                 <div 
                   className={`text-xs font-medium px-3 py-2 rounded-l-full cursor-pointer ${currentView === 'store-list' || currentView === 'store-detail' ? 'text-white/90 bg-white/10' : 'text-white/60 hover:text-white'}`}
                   onClick={() => setCurrentView('store-list')}
@@ -1798,7 +1805,8 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 font-semibold">
               <i className="fa-solid fa-list-ul"></i>
               <span className="whitespace-nowrap">
-                {currentView === 'role-list' ? 'Role List' :
+                {currentView === 'hazmat-group-config' ? 'Configs / Hazmat Group Config' :
+                 currentView === 'role-list' ? 'Role List' :
                  currentView === 'role-detail' ? 'Role Detail' :
                  currentView === 'user-list' ? 'User List' :
                  currentView === 'user-detail' ? 'User Detail' :
@@ -6534,6 +6542,8 @@ const App: React.FC = () => {
                   </div>
                 )}
              </div>
+          ) : currentView === 'hazmat-group-config' ? (
+             <HazmatGroupConfigView />
           ) : currentView === 'vehicle-settings' ? (
              <VehicleSettingsView />
           ) : currentView === 'store-list' ? (

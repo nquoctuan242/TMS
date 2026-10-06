@@ -644,3 +644,19 @@ export interface HandoverManifest {
   orders: HandoverSubOrder[];
 }
 
+export interface HazmatGroupConfig {
+  id: string;
+  hazmatGroup: string;       // PERFUME, NAIL, ALCOHOL, ESSENTIAL_OIL, AEROSOL, LITHIUM_BATTERY, SAFE
+  hazardClass: string;       // "3", "2.1", "9", "—"
+  isHazmat: boolean;         // true (Y), false (N)
+  nhanLQ: boolean;           // true (YES), false (—)
+  nhanMuiTen: boolean;       // true (YES), false (—)
+  handlingGroup: string;     // HAZMAT_TRAY, LANE_LITHIUM, NORMAL
+  lqMaxMl: number | null;    // 5000, 1000, 0, null (—)
+  unNumber: string;          // UN1266, UN1263, UN1170, UN1169, UN1950, UN3481, —
+  description?: string;
+  packingInstructions?: string;
+  carrierAllowed?: string[];
+  updatedAt?: string;
+}
+

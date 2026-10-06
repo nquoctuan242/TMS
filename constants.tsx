@@ -1,6 +1,6 @@
 import { PurchaseOrder } from "./types";
 
-import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, ScanTimeConfig, DailyCommission, PayrollPeriod } from './types';
+import { ShipmentData, HistoryEntry, InternalTransfer, ITRoute, Shipper, Ticket, TicketType, ScanTimeConfig, DailyCommission, PayrollPeriod, HazmatGroupConfig } from './types';
 
 export const MOCK_PAYROLL_PERIODS: PayrollPeriod[] = [
   {
@@ -1122,3 +1122,112 @@ export const MOCK_HANDOVER_MANIFESTS: import('./types').HandoverManifest[] = [
     ]
   }
 ];
+
+export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
+  {
+    id: 'hz-1',
+    hazmatGroup: 'PERFUME',
+    hazardClass: '3',
+    isHazmat: true,
+    nhanLQ: true,
+    nhanMuiTen: true,
+    handlingGroup: 'HAZMAT_TRAY',
+    lqMaxMl: 5000,
+    unNumber: 'UN1266',
+    description: 'Perfumery products with flammable solvents',
+    packingInstructions: 'Pack in leak-proof inner containers with absorbent material. Orient upright with orientation labels.',
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-2',
+    hazmatGroup: 'NAIL',
+    hazardClass: '3',
+    isHazmat: true,
+    nhanLQ: true,
+    nhanMuiTen: true,
+    handlingGroup: 'HAZMAT_TRAY',
+    lqMaxMl: 5000,
+    unNumber: 'UN1263',
+    description: 'Nail polish, enamel, lacquers, and solvent removers',
+    packingInstructions: 'Secure caps with seal tape, pack in cushioned trays with absorbent pads.',
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-3',
+    hazmatGroup: 'ALCOHOL',
+    hazardClass: '3',
+    isHazmat: true,
+    nhanLQ: true,
+    nhanMuiTen: true,
+    handlingGroup: 'HAZMAT_TRAY',
+    lqMaxMl: 1000,
+    unNumber: 'UN1170',
+    description: 'Ethanol solutions, hand sanitizers, pure medical alcohol',
+    packingInstructions: 'Maximum 1,000 ml per inner package. Double sealed in Hazmat Tray.',
+    carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-4',
+    hazmatGroup: 'ESSENTIAL_OIL',
+    hazardClass: '3',
+    isHazmat: true,
+    nhanLQ: true,
+    nhanMuiTen: true,
+    handlingGroup: 'HAZMAT_TRAY',
+    lqMaxMl: 5000,
+    unNumber: 'UN1169',
+    description: 'Extracts, aromatic, liquid essential oils',
+    packingInstructions: 'Glass dropper bottles must be protected with bubble sleeves in Hazmat Tray.',
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-5',
+    hazmatGroup: 'AEROSOL',
+    hazardClass: '2.1',
+    isHazmat: true,
+    nhanLQ: true,
+    nhanMuiTen: false,
+    handlingGroup: 'HAZMAT_TRAY',
+    lqMaxMl: 1000,
+    unNumber: 'UN1950',
+    description: 'Pressurized aerosol spray cans, deodorants, hairsprays',
+    packingInstructions: 'Protect discharge valves against accidental release with protective caps. No arrow label needed.',
+    carrierAllowed: ['SPX Express', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-6',
+    hazmatGroup: 'LITHIUM_BATTERY',
+    hazardClass: '9',
+    isHazmat: true,
+    nhanLQ: false,
+    nhanMuiTen: false,
+    handlingGroup: 'LANE_LITHIUM',
+    lqMaxMl: 0,
+    unNumber: 'UN3481',
+    description: 'Lithium ion batteries contained in or packed with electronic equipment',
+    packingInstructions: 'Dedicated sorting lane LANE_LITHIUM. Must comply with Section II of PI 966/967.',
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post'],
+    updatedAt: '2026-10-01 09:30:00'
+  },
+  {
+    id: 'hz-7',
+    hazmatGroup: 'SAFE',
+    hazardClass: '—',
+    isHazmat: false,
+    nhanLQ: false,
+    nhanMuiTen: false,
+    handlingGroup: 'NORMAL',
+    lqMaxMl: null,
+    unNumber: '—',
+    description: 'Standard retail consumer goods, cosmetics, non-hazardous skincare',
+    packingInstructions: 'Normal packing protocol without hazmat restrictions.',
+    carrierAllowed: ['All Carriers'],
+    updatedAt: '2026-10-01 09:30:00'
+  }
+];
+
