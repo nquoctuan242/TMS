@@ -644,6 +644,14 @@ export interface HandoverManifest {
   orders: HandoverSubOrder[];
 }
 
+export interface CarrierApiConfig {
+  id?: string;
+  carrier: string;           // e.g. "Easyship (item flag)", "EasyPost — USPS", "EasyPost — FedEx/DHL"
+  parameterField?: string;   // e.g. "item flag", "hazmat_type", "dangerous_goods_code"
+  parameterValue: string;    // e.g. "contains_battery_pi967 = true", "CLASS_9_NEW_LITHIUM_DEVICE", "LITHIUM", etc.
+  description?: string;
+}
+
 export interface HazmatGroupConfig {
   id: string;
   hazmatGroup: string;       // PERFUME, NAIL, ALCOHOL, ESSENTIAL_OIL, AEROSOL, LITHIUM_BATTERY, SAFE
@@ -654,9 +662,11 @@ export interface HazmatGroupConfig {
   handlingGroup: string;     // HAZMAT_TRAY, LANE_LITHIUM, NORMAL
   lqMaxMl: number | null;    // 5000, 1000, 0, null (—)
   unNumber: string;          // UN1266, UN1263, UN1170, UN1169, UN1950, UN3481, —
+  dgNature?: string;         // Bản chất DG (DG Nature / Classification)
   description?: string;
   packingInstructions?: string;
   carrierAllowed?: string[];
+  carrierApiConfigs?: CarrierApiConfig[]; // Carrier API parameters to transmit
   updatedAt?: string;
 }
 
