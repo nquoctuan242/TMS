@@ -655,11 +655,15 @@ export interface HandoverManifest {
   orders: HandoverSubOrder[];
 }
 
+export type CarrierIntegrationType = 'direct' | 'aggregator';
+
 export interface CarrierApiConfig {
   id?: string;
-  carrier: string;           // e.g. "Easyship (item flag)", "EasyPost — USPS", "EasyPost — FedEx/DHL"
-  parameterField?: string;   // e.g. "item flag", "hazmat_type", "dangerous_goods_code"
-  parameterValue: string;    // e.g. "contains_battery_pi967 = true", "CLASS_9_NEW_LITHIUM_DEVICE", "LITHIUM", etc.
+  carrierType?: CarrierIntegrationType; // 'direct' (Direct carrier like USPS) | 'aggregator' (Aggregator like EasyPost, Easyship)
+  carrier: string;                      // Carrier or Aggregator name: "EasyPost", "Easyship", "USPS", "FedEx", "DHL"
+  subCarrier?: string;                  // Sub-carrier under aggregator: "USPS", "FedEx", "DHL", "UPS", "Item Flag" (only when carrierType is 'aggregator')
+  parameterField?: string;              // e.g. "item_flag", "hazmat_type", "dangerous_goods_code"
+  parameterValue: string;               // e.g. "contains_battery_pi967 = true", "CLASS_9_NEW_LITHIUM_DEVICE", "LITHIUM", etc.
   description?: string;
 }
 

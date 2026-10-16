@@ -1137,11 +1137,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Flammable liquid, Class 3',
     description: 'Perfumery products with flammable solvents (PERFUME — alcohol-based fragrances)',
     packingInstructions: 'Pack in leak-proof inner containers with absorbent material. Orient upright with orientation labels.',
-    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost', 'USPS'],
     carrierApiConfigs: [
-      { id: 'c-1-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-1-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS hazmat authorization' },
-      { id: 'c-1-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limited quantity' }
+      { id: 'c-1-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item via Easyship aggregator' },
+      { id: 'c-1-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS hazmat authorization via EasyPost aggregator' },
+      { id: 'c-1-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limited quantity via EasyPost aggregator' },
+      { id: 'c-1-4', carrier: 'USPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'ID8000', description: 'Direct USPS hazmat commodity declaration' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1158,11 +1159,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Flammable liquid, Class 3',
     description: 'Nail polish, enamel, lacquers, and solvent removers (NAIL — nail enamel & remover)',
     packingInstructions: 'Secure caps with seal tape, pack in cushioned trays with absorbent pads.',
-    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost', 'FedEx Express'],
     carrierApiConfigs: [
-      { id: 'c-2-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-2-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS class 3 flammable' },
-      { id: 'c-2-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL limited quantity' }
+      { id: 'c-2-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
+      { id: 'c-2-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS class 3 flammable' },
+      { id: 'c-2-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL limited quantity' },
+      { id: 'c-2-4', carrier: 'FedEx Express', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'ORM-D', description: 'Direct FedEx hazardous material manifest' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1179,11 +1181,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Flammable liquid (ethanol)',
     description: 'Ethanol solutions, hand sanitizers, pure medical alcohol (ALCOHOL — high-proof ethanol / toners)',
     packingInstructions: 'Maximum 1,000 ml per inner package. Double sealed in Hazmat Tray.',
-    carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost', 'USPS'],
     carrierApiConfigs: [
-      { id: 'c-3-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-3-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3 or AIR_ELIGIBLE_ETHANOL', description: 'USPS ethanol authorization' },
-      { id: 'c-3-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY', description: 'FedEx/DHL limited quantity' }
+      { id: 'c-3-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
+      { id: 'c-3-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3 or AIR_ELIGIBLE_ETHANOL', description: 'USPS ethanol authorization' },
+      { id: 'c-3-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY', description: 'FedEx/DHL limited quantity' },
+      { id: 'c-3-4', carrier: 'USPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'AIR_ELIGIBLE_ETHANOL', description: 'Direct USPS air flammable declaration' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1202,9 +1205,9 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     packingInstructions: 'Glass dropper bottles must be protected with bubble sleeves in Hazmat Tray.',
     carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
-      { id: 'c-4-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-4-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS consumer commodity ID8000' },
-      { id: 'c-4-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ORMD or Limited Quantity' }
+      { id: 'c-4-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
+      { id: 'c-4-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS consumer commodity ID8000' },
+      { id: 'c-4-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ORMD or Limited Quantity' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1221,11 +1224,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Compressed Gas, Class 2.1',
     description: 'Pressurized aerosol spray cans, hairsprays, thermal water (AEROSOL — spray mist / hairspray)',
     packingInstructions: 'Protect discharge valves against accidental release with protective caps. No arrow label needed.',
-    carrierAllowed: ['SPX Express', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'Viettel Post', 'Easyship', 'EasyPost', 'DHL Express'],
     carrierApiConfigs: [
-      { id: 'c-5-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Pressurized / liquid aerosol flag' },
-      { id: 'c-5-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000', description: 'USPS consumer commodity ID8000' },
-      { id: 'c-5-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'ORMD / LIMITED_QUANTITY', description: 'FedEx/DHL ORM-D ground only' }
+      { id: 'c-5-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Pressurized / liquid aerosol flag' },
+      { id: 'c-5-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000', description: 'USPS consumer commodity ID8000' },
+      { id: 'c-5-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'ORMD / LIMITED_QUANTITY', description: 'FedEx/DHL ORM-D ground only' },
+      { id: 'c-5-4', carrier: 'DHL Express', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY', description: 'Direct DHL Express limited quantity air/ground' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1242,11 +1246,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Lithium-ion installed in equipment',
     description: 'Beauty & electronic appliances with built-in battery (Section II, PI 967)',
     packingInstructions: 'Dedicated sorting lane LANE_LITHIUM. Must comply with Section II of PI 967 (installed in equipment).',
-    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost', 'UPS'],
     carrierApiConfigs: [
-      { id: 'c-6-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_battery_pi967 = true', description: 'Battery contained in equipment flag' },
-      { id: 'c-6-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_9_NEW_LITHIUM_DEVICE', description: 'USPS lithium battery in new equipment' },
-      { id: 'c-6-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LITHIUM', description: 'FedEx/DHL lithium declaration' }
+      { id: 'c-6-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_battery_pi967 = true', description: 'Battery contained in equipment flag' },
+      { id: 'c-6-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_9_NEW_LITHIUM_DEVICE', description: 'USPS lithium battery in new equipment' },
+      { id: 'c-6-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LITHIUM', description: 'FedEx/DHL lithium declaration' },
+      { id: 'c-6-4', carrier: 'UPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'LITHIUM_PI967', description: 'Direct UPS lithium in equipment declaration' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1263,11 +1268,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     dgNature: 'Lithium-ion packed with equipment',
     description: 'Spare or replacement battery packed with equipment (Section II, PI 966)',
     packingInstructions: 'Packed with equipment (PI 966). Inner terminals isolated, packed in flame-retardant pouch.',
-    carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost'],
+    carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost', 'UPS'],
     carrierApiConfigs: [
-      { id: 'c-7-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_battery_pi966 = true', description: 'Battery packed with equipment flag' },
-      { id: 'c-7-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_9_NEW_LITHIUM_DEVICE', description: 'USPS lithium packed with equipment' },
-      { id: 'c-7-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LITHIUM', description: 'FedEx/DHL lithium declaration' }
+      { id: 'c-7-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_battery_pi966 = true', description: 'Battery packed with equipment flag' },
+      { id: 'c-7-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_9_NEW_LITHIUM_DEVICE', description: 'USPS lithium packed with equipment' },
+      { id: 'c-7-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LITHIUM', description: 'FedEx/DHL lithium declaration' },
+      { id: 'c-7-4', carrier: 'UPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'LITHIUM_PI966', description: 'Direct UPS lithium packed with equipment declaration' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   },
@@ -1286,9 +1292,10 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     packingInstructions: 'Normal packing protocol without hazmat restrictions.',
     carrierAllowed: ['All Carriers'],
     carrierApiConfigs: [
-      { id: 'c-8-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'None', description: 'No dangerous goods flag transmitted' },
-      { id: 'c-8-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'None', description: 'Standard shipping' },
-      { id: 'c-8-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'None', description: 'Standard shipping' }
+      { id: 'c-8-1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'None', description: 'No dangerous goods flag transmitted' },
+      { id: 'c-8-2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'None', description: 'Standard shipping' },
+      { id: 'c-8-3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'None', description: 'Standard shipping' },
+      { id: 'c-8-4', carrier: 'USPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'None', description: 'Standard direct shipping' }
     ],
     updatedAt: '2026-10-01 09:30:00'
   }

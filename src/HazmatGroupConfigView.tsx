@@ -6,17 +6,99 @@ interface HazmatGroupConfigViewProps {
   onBack?: () => void;
 }
 
-const COMMON_CARRIERS = [
-  'Easyship (item flag)',
-  'EasyPost — USPS',
-  'EasyPost — FedEx/DHL',
-  'SPX Express',
-  'GHN (Giao Hang Nhanh)',
-  'GHTK (Giao Hang Tiet Kiem)',
-  'Viettel Post',
-  'DHL Express',
-  'FedEx Express'
+export interface CarrierCatalogItem {
+  name: string;
+  type: 'aggregator' | 'direct';
+  label: string;
+  defaultSubCarrier?: string;
+  subCarrierOptions?: string[];
+  suggestedFields?: string[];
+}
+
+export const KNOWN_CARRIERS: CarrierCatalogItem[] = [
+  {
+    name: 'EasyPost',
+    type: 'aggregator',
+    label: 'EasyPost (Shipping Aggregator)',
+    defaultSubCarrier: 'USPS',
+    subCarrierOptions: ['USPS', 'FedEx', 'DHL', 'FedEx/DHL', 'UPS', 'OnTrac', 'LaserShip'],
+    suggestedFields: ['hazmat_type', 'dangerous_goods_code', 'cargo_flight_only']
+  },
+  {
+    name: 'Easyship',
+    type: 'aggregator',
+    label: 'Easyship (Shipping Aggregator)',
+    defaultSubCarrier: 'Item Flag',
+    subCarrierOptions: ['Item Flag', 'USPS', 'FedEx Express', 'DHL Express', 'UPS', 'Aramex', 'DPD'],
+    suggestedFields: ['item_flag', 'contains_liquids', 'battery_pi']
+  },
+  {
+    name: 'ShipStation',
+    type: 'aggregator',
+    label: 'ShipStation (Shipping Aggregator)',
+    defaultSubCarrier: 'USPS',
+    subCarrierOptions: ['USPS', 'FedEx', 'UPS', 'DHL Express'],
+    suggestedFields: ['hazmat_type', 'confirmation']
+  },
+  {
+    name: 'USPS',
+    type: 'direct',
+    label: 'USPS (Direct Postal Carrier)',
+    suggestedFields: ['hazmat_type', 'content_type']
+  },
+  {
+    name: 'FedEx Express',
+    type: 'direct',
+    label: 'FedEx Express (Direct Carrier)',
+    suggestedFields: ['hazmat_type', 'dangerous_goods_accessibility']
+  },
+  {
+    name: 'DHL Express',
+    type: 'direct',
+    label: 'DHL Express (Direct Carrier)',
+    suggestedFields: ['hazmat_type', 'dangerous_goods_code', 'un_code']
+  },
+  {
+    name: 'UPS',
+    type: 'direct',
+    label: 'UPS (Direct Carrier)',
+    suggestedFields: ['hazmat_type', 'regulation_set']
+  },
+  {
+    name: 'SPX Express',
+    type: 'direct',
+    label: 'SPX Express (Direct Carrier)',
+    suggestedFields: ['hazmat_flag', 'goods_type']
+  },
+  {
+    name: 'GHN (Giao Hang Nhanh)',
+    type: 'direct',
+    label: 'GHN (Direct Carrier)',
+    suggestedFields: ['special_goods_type', 'is_flammable']
+  },
+  {
+    name: 'GHTK (Giao Hang Tiet Kiem)',
+    type: 'direct',
+    label: 'GHTK (Direct Carrier)',
+    suggestedFields: ['transport_type', 'special_service']
+  },
+  {
+    name: 'Viettel Post',
+    type: 'direct',
+    label: 'Viettel Post (Direct Carrier)',
+    suggestedFields: ['item_classification', 'air_forbidden']
+  }
 ];
+
+export const detectCarrierType = (carrierName: string, explicitType?: 'direct' | 'aggregator'): 'direct' | 'aggregator' => {
+  if (explicitType) return explicitType;
+  const lower = (carrierName || '').toLowerCase().trim();
+  if (lower.includes('easypost') || lower.includes('easyship') || lower.includes('shipstation') || lower.includes('shippo') || lower.includes('aggregator')) {
+    return 'aggregator';
+  }
+  const matched = KNOWN_CARRIERS.find(k => k.name.toLowerCase() === lower);
+  return matched ? matched.type : 'direct';
+};
 
 export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () => {
   const [hazmatList, setHazmatList] = useState<HazmatGroupConfig[]>(MOCK_HAZMAT_GROUPS);
@@ -50,9 +132,10 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
     description: '',
     packingInstructions: '',
     carrierApiConfigs: [
-      { id: '1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: '2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS hazmat authorization' },
-      { id: '3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limited quantity' }
+      { id: '1', carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
+      { id: '2', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS hazmat authorization' },
+      { id: '3', carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limited quantity' },
+      { id: '4', carrier: 'USPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'ID8000', description: 'Direct USPS commodity code' }
     ]
   });
 
@@ -70,6 +153,7 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
       (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (item.carrierApiConfigs && item.carrierApiConfigs.some(c =>
         c.carrier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.subCarrier && c.subCarrier.toLowerCase().includes(searchTerm.toLowerCase())) ||
         c.parameterValue.toLowerCase().includes(searchTerm.toLowerCase())
       ));
 
@@ -98,9 +182,10 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
       description: '',
       packingInstructions: '',
       carrierApiConfigs: [
-        { id: `c-${Date.now()}-1`, carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-        { id: `c-${Date.now()}-2`, carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS hazmat code' },
-        { id: `c-${Date.now()}-3`, carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limit' }
+        { id: `c-${Date.now()}-1`, carrier: 'Easyship', carrierType: 'aggregator', subCarrier: 'Item Flag', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
+        { id: `c-${Date.now()}-2`, carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3', description: 'USPS hazmat code' },
+        { id: `c-${Date.now()}-3`, carrier: 'EasyPost', carrierType: 'aggregator', subCarrier: 'FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limit' },
+        { id: `c-${Date.now()}-4`, carrier: 'USPS', carrierType: 'direct', parameterField: 'hazmat_type', parameterValue: 'ID8000', description: 'Direct USPS postal ground declaration' }
       ]
     });
     setIsModalOpen(true);
@@ -110,7 +195,12 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
     setEditingItem(item);
     setFormData({
       ...item,
-      carrierApiConfigs: item.carrierApiConfigs ? [...item.carrierApiConfigs] : []
+      carrierApiConfigs: item.carrierApiConfigs
+        ? item.carrierApiConfigs.map(c => ({
+            ...c,
+            carrierType: detectCarrierType(c.carrier, c.carrierType)
+          }))
+        : []
     });
     setIsModalOpen(true);
   };
@@ -133,8 +223,10 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
   const handleAddCarrierParam = () => {
     const newConfig: CarrierApiConfig = {
       id: `c-param-${Date.now()}`,
-      carrier: 'Easyship (item flag)',
-      parameterField: 'item_flag',
+      carrier: 'EasyPost',
+      carrierType: 'aggregator',
+      subCarrier: 'USPS',
+      parameterField: 'hazmat_type',
       parameterValue: '',
       description: ''
     };
@@ -150,6 +242,28 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
       carrierApiConfigs: prev.carrierApiConfigs?.filter((_, i) => i !== index)
     }));
   };
+
+  const handleCarrierChange = (index: number, newCarrierName: string) => {
+    const matched = KNOWN_CARRIERS.find(k => k.name.toLowerCase() === newCarrierName.trim().toLowerCase());
+    const newType = matched ? matched.type : detectCarrierType(newCarrierName);
+    const newSubCarrier = newType === 'aggregator' ? (matched?.defaultSubCarrier || 'USPS') : undefined;
+
+    setFormData(prev => ({
+      ...prev,
+      carrierApiConfigs: prev.carrierApiConfigs?.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              carrier: newCarrierName,
+              carrierType: newType,
+              subCarrier: newSubCarrier,
+              parameterField: item.parameterField || matched?.suggestedFields?.[0] || 'hazmat_type'
+            }
+          : item
+      )
+    }));
+  };
+
 
   const handleUpdateCarrierParam = (index: number, field: keyof CarrierApiConfig, value: string) => {
     setFormData(prev => ({
@@ -560,31 +674,56 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
                                 <table className="w-full text-left text-xs">
                                   <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                                     <tr>
-                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[28%]">Carrier</th>
-                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[22%]">Parameter Field</th>
-                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[30%]">API Value to Fill</th>
+                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[22%]">Carrier</th>
+                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[20%]">Sub-Carrier</th>
+                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[18%]">Parameter Field</th>
+                                      <th className="px-3.5 py-2 border-r border-gray-200 w-[22%]">API Value to Fill</th>
                                       <th className="px-3.5 py-2">Notes</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-gray-100">
-                                    {item.carrierApiConfigs.map((c, idx) => (
-                                      <tr key={c.id || idx} className="hover:bg-gray-50/80">
-                                        <td className="px-3.5 py-2 border-r border-gray-100 font-bold text-gray-800">
-                                          {c.carrier}
-                                        </td>
-                                        <td className="px-3.5 py-2 border-r border-gray-100 font-mono text-gray-600">
-                                          {c.parameterField || 'item flag / hazmat type'}
-                                        </td>
-                                        <td className="px-3.5 py-2 border-r border-gray-100">
-                                          <code className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200">
-                                            {c.parameterValue}
-                                          </code>
-                                        </td>
-                                        <td className="px-3.5 py-2 text-gray-500 text-[11px]">
-                                          {c.description || 'Transmit during shipment creation API call'}
-                                        </td>
-                                      </tr>
-                                    ))}
+                                    {item.carrierApiConfigs.map((c, idx) => {
+                                      const isAggregator = c.carrierType === 'aggregator' || (!c.carrierType && detectCarrierType(c.carrier) === 'aggregator');
+                                      return (
+                                        <tr key={c.id || idx} className="hover:bg-gray-50/80">
+                                          <td className="px-3.5 py-2 border-r border-gray-100">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span className="font-bold text-gray-800">{c.carrier}</span>
+                                              {isAggregator ? (
+                                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                  Aggregator
+                                                </span>
+                                              ) : (
+                                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                  Direct Carrier
+                                                </span>
+                                              )}
+                                            </div>
+                                          </td>
+                                          <td className="px-3.5 py-2 border-r border-gray-100 font-mono">
+                                            {isAggregator ? (
+                                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 inline-flex items-center gap-1">
+                                                <i className="fa-solid fa-code-branch text-[9px] text-indigo-500"></i>
+                                                {c.subCarrier || '—'}
+                                              </span>
+                                            ) : (
+                                              <span className="text-gray-400 italic text-[11px]">— (Direct)</span>
+                                            )}
+                                          </td>
+                                          <td className="px-3.5 py-2 border-r border-gray-100 font-mono text-gray-600">
+                                            {c.parameterField || 'item flag / hazmat type'}
+                                          </td>
+                                          <td className="px-3.5 py-2 border-r border-gray-100">
+                                            <code className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                                              {c.parameterValue}
+                                            </code>
+                                          </td>
+                                          <td className="px-3.5 py-2 text-gray-500 text-[11px]">
+                                            {c.description || 'Transmit during shipment creation API call'}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
                                   </tbody>
                                 </table>
                               </div>
@@ -705,13 +844,16 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
                     <table className="w-full text-left text-xs border-collapse">
                       <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
                         <tr>
-                          <th className="px-4 py-2.5 border-r border-gray-200 w-[28%]">
+                          <th className="px-4 py-2.5 border-r border-gray-200 w-[22%]">
                             Carrier
                           </th>
-                          <th className="px-4 py-2.5 border-r border-gray-200 w-[22%]">
+                          <th className="px-4 py-2.5 border-r border-gray-200 w-[20%]">
+                            Sub-Carrier
+                          </th>
+                          <th className="px-4 py-2.5 border-r border-gray-200 w-[18%]">
                             Parameter Field
                           </th>
-                          <th className="px-4 py-2.5 border-r border-gray-200 w-[30%]">
+                          <th className="px-4 py-2.5 border-r border-gray-200 w-[22%]">
                             Value to Fill (API Payload)
                           </th>
                           <th className="px-4 py-2.5">
@@ -721,42 +863,63 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
                       </thead>
                       <tbody className="divide-y divide-gray-100 font-medium">
                         {viewingDetailItem.carrierApiConfigs && viewingDetailItem.carrierApiConfigs.length > 0 ? (
-                          viewingDetailItem.carrierApiConfigs.map((config, index) => (
-                            <tr key={config.id || index} className="hover:bg-gray-50/60">
-                              <td className="px-4 py-3 border-r border-gray-100 font-bold text-gray-900">
-                                <div className="flex items-center gap-2">
-                                  <i className="fa-solid fa-truck-fast text-[#4d9e5f] text-xs"></i>
-                                  <span>{config.carrier}</span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 border-r border-gray-100 font-mono text-gray-700">
-                                {config.parameterField || 'item flag'}
-                              </td>
-                              <td className="px-4 py-3 border-r border-gray-100">
-                                <div className="flex items-center justify-between gap-2">
-                                  <code className="px-2.5 py-1 rounded text-xs font-mono font-black bg-amber-50 text-amber-900 border border-amber-200 block truncate">
-                                    {config.parameterValue}
-                                  </code>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard?.writeText(config.parameterValue);
-                                      alert(`Copied "${config.parameterValue}" to clipboard`);
-                                    }}
-                                    className="text-gray-400 hover:text-gray-700 p-1"
-                                    title="Copy API value"
-                                  >
-                                    <i className="fa-regular fa-copy text-xs"></i>
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 text-[11px]">
-                                {config.description || 'Required for hazmat air/ground clearance'}
-                              </td>
-                            </tr>
-                          ))
+                          viewingDetailItem.carrierApiConfigs.map((config, index) => {
+                            const isAggregator = config.carrierType === 'aggregator' || (!config.carrierType && detectCarrierType(config.carrier) === 'aggregator');
+                            return (
+                              <tr key={config.id || index} className="hover:bg-gray-50/60">
+                                <td className="px-4 py-3 border-r border-gray-100">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-gray-900">{config.carrier}</span>
+                                    {isAggregator ? (
+                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                        Aggregator
+                                      </span>
+                                    ) : (
+                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Direct Carrier
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 border-r border-gray-100">
+                                  {isAggregator ? (
+                                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 inline-flex items-center gap-1">
+                                      <i className="fa-solid fa-code-branch text-[9px] text-indigo-500"></i>
+                                      {config.subCarrier || 'Required'}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 italic text-[11px]">— (Direct Carrier)</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 border-r border-gray-100 font-mono text-gray-700">
+                                  {config.parameterField || 'item flag'}
+                                </td>
+                                <td className="px-4 py-3 border-r border-gray-100">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <code className="px-2.5 py-1 rounded text-xs font-mono font-black bg-amber-50 text-amber-900 border border-amber-200 block truncate">
+                                      {config.parameterValue}
+                                    </code>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard?.writeText(config.parameterValue);
+                                        alert(`Copied "${config.parameterValue}" to clipboard`);
+                                      }}
+                                      className="text-gray-400 hover:text-gray-700 p-1"
+                                      title="Copy API value"
+                                    >
+                                      <i className="fa-regular fa-copy text-xs"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-gray-600 text-[11px]">
+                                  {config.description || (isAggregator ? 'Aggregator payload parameter' : 'Direct carrier declaration')}
+                                </td>
+                              </tr>
+                            );
+                          })
                         ) : (
                           <tr>
-                            <td colSpan={4} className="px-4 py-6 text-center text-gray-400 italic">
+                            <td colSpan={5} className="px-4 py-6 text-center text-gray-400 italic">
                               No carrier parameters configured.
                             </td>
                           </tr>
@@ -786,7 +949,13 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
       "lq_max_ml": ${viewingDetailItem.lqMaxMl ?? 'null'}
     },
     "carrier_specific_parameters": {
-${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "${c.parameterValue}"`).join(',\n')}
+${(viewingDetailItem.carrierApiConfigs || []).map(c => {
+  const isAggregator = c.carrierType === 'aggregator' || (!c.carrierType && detectCarrierType(c.carrier) === 'aggregator');
+  const keyLabel = isAggregator && c.subCarrier
+    ? `${c.carrier} [sub_carrier: ${c.subCarrier}]`
+    : `${c.carrier} [direct]`;
+  return `      "${keyLabel}": "${c.parameterValue}"`;
+}).join(',\n')}
     }
   }
 }`}
@@ -1064,8 +1233,8 @@ ${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "$
                 </div>
               </div>
 
-              {/* CARRIER API INTEGRATION PARAMETERS (CORE NEW SECTION) */}
-              <div className="p-4 bg-emerald-50/40 border border-emerald-200 rounded-xl space-y-3">
+              {/* CARRIER API TRANSMIT PARAMETERS */}
+              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-bold text-[#1b4d3e] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
@@ -1073,7 +1242,7 @@ ${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "$
                       <span>Carrier API Transmit Parameters</span>
                     </span>
                     <span className="text-[10px] text-gray-500 block mt-0.5">
-                      Carrier and corresponding parameter values to transmit in API payload
+                      Direct carriers connect directly; shipping aggregators require specifying the downstream sub-carrier
                     </span>
                   </div>
                   <button
@@ -1086,84 +1255,138 @@ ${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "$
                   </button>
                 </div>
 
-                {/* Carrier Param Table / Rows */}
-                <div className="space-y-2">
-                  {(!formData.carrierApiConfigs || formData.carrierApiConfigs.length === 0) ? (
-                    <div className="text-center py-4 bg-white rounded-lg border border-dashed border-gray-300 text-gray-400">
-                      No carrier API parameters defined. Click "Add Carrier" to add a mapping.
-                    </div>
-                  ) : (
-                    formData.carrierApiConfigs.map((config, index) => (
-                      <div
-                        key={config.id || index}
-                        className="bg-white p-3 rounded-lg border border-gray-200 shadow-2xs space-y-2"
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <div>
-                            <label className="text-[9px] font-bold text-gray-500 uppercase block mb-0.5">Carrier</label>
-                            <input
-                              type="text"
-                              list="common-carriers"
-                              value={config.carrier}
-                              onChange={e => handleUpdateCarrierParam(index, 'carrier', e.target.value)}
-                              placeholder="e.g. Easyship (item flag)"
-                              className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] font-semibold"
-                            />
-                            <datalist id="common-carriers">
-                              {COMMON_CARRIERS.map(c => (
-                                <option key={c} value={c} />
-                              ))}
-                            </datalist>
-                          </div>
+                {/* Carrier Parameter Table */}
+                <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white shadow-2xs">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#e9f2ee] text-[#1b4d3e] font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="px-3 py-2 border-r border-gray-200 w-[22%]">Carrier</th>
+                        <th className="px-3 py-2 border-r border-gray-200 w-[18%]">Sub-Carrier</th>
+                        <th className="px-3 py-2 border-r border-gray-200 w-[18%]">Parameter Field</th>
+                        <th className="px-3 py-2 border-r border-gray-200 w-[20%]">Value to Fill</th>
+                        <th className="px-3 py-2 border-r border-gray-200">Notes</th>
+                        <th className="px-2 py-2 text-center w-9"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(!formData.carrierApiConfigs || formData.carrierApiConfigs.length === 0) ? (
+                        <tr>
+                          <td colSpan={6} className="text-center py-4 text-gray-400 italic">
+                            No carrier API parameters configured. Click "Add Carrier" to add one.
+                          </td>
+                        </tr>
+                      ) : (
+                        formData.carrierApiConfigs.map((config, index) => {
+                          const isAggregator = config.carrierType === 'aggregator' || (!config.carrierType && detectCarrierType(config.carrier) === 'aggregator');
+                          const matchedCarrier = KNOWN_CARRIERS.find(k => k.name.toLowerCase() === config.carrier.trim().toLowerCase());
+                          const availableSubCarriers = matchedCarrier?.subCarrierOptions || ['USPS', 'FedEx', 'DHL', 'FedEx/DHL', 'UPS', 'Item Flag'];
 
-                          <div>
-                            <label className="text-[9px] font-bold text-gray-500 uppercase block mb-0.5">Parameter Field</label>
-                            <input
-                              type="text"
-                              value={config.parameterField || ''}
-                              onChange={e => handleUpdateCarrierParam(index, 'parameterField', e.target.value)}
-                              placeholder="e.g. item_flag, hazmat_type"
-                              className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] font-mono"
-                            />
-                          </div>
+                          return (
+                            <tr key={config.id || index} className="hover:bg-gray-50/60 align-middle">
+                              {/* 1. Carrier Column */}
+                              <td className="p-2 border-r border-gray-100">
+                                <input
+                                  type="text"
+                                  required
+                                  list={`carrier-list-${index}`}
+                                  value={config.carrier}
+                                  onChange={e => handleCarrierChange(index, e.target.value)}
+                                  placeholder="e.g. EasyPost, USPS"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-semibold focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                                />
+                                <datalist id={`carrier-list-${index}`}>
+                                  {KNOWN_CARRIERS.map(c => (
+                                    <option key={c.name} value={c.name}>
+                                      {c.label}
+                                    </option>
+                                  ))}
+                                </datalist>
+                              </td>
 
-                          <div className="relative">
-                            <label className="text-[9px] font-bold text-gray-500 uppercase block mb-0.5">
-                              API Value to Fill <span className="text-red-500">*</span>
-                            </label>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="text"
-                                required
-                                value={config.parameterValue}
-                                onChange={e => handleUpdateCarrierParam(index, 'parameterValue', e.target.value)}
-                                placeholder="e.g. contains_liquids = true"
-                                className="w-full px-2 py-1.5 border border-amber-300 bg-amber-50/40 rounded text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f] font-mono font-bold text-amber-900"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCarrierParam(index)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                                title="Remove carrier parameter"
-                              >
-                                <i className="fa-solid fa-trash-can"></i>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                              {/* 2. Sub-Carrier Column (Aggregator allows selection, direct shows —) */}
+                              <td className="p-2 border-r border-gray-100">
+                                {isAggregator ? (
+                                  <div>
+                                    <input
+                                      type="text"
+                                      list={`subcarrier-list-${index}`}
+                                      value={config.subCarrier || ''}
+                                      onChange={e => handleUpdateCarrierParam(index, 'subCarrier', e.target.value)}
+                                      placeholder="e.g. USPS, FedEx"
+                                      className="w-full px-2 py-1 border border-indigo-300 bg-indigo-50/40 rounded text-xs font-semibold text-indigo-950 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    />
+                                    <datalist id={`subcarrier-list-${index}`}>
+                                      {availableSubCarriers.map(sub => (
+                                        <option key={sub} value={sub} />
+                                      ))}
+                                    </datalist>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400 text-[11px] italic px-1 block">
+                                    — (Direct)
+                                  </span>
+                                )}
+                              </td>
 
-                        <div>
-                          <input
-                            type="text"
-                            value={config.description || ''}
-                            onChange={e => handleUpdateCarrierParam(index, 'description', e.target.value)}
-                            placeholder="Optional notes / API documentation reference..."
-                            className="w-full px-2 py-1 border border-gray-200 rounded text-[11px] text-gray-600 outline-none"
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
+                              {/* 3. Parameter Field Column */}
+                              <td className="p-2 border-r border-gray-100">
+                                <input
+                                  type="text"
+                                  list={`field-list-${index}`}
+                                  value={config.parameterField || ''}
+                                  onChange={e => handleUpdateCarrierParam(index, 'parameterField', e.target.value)}
+                                  placeholder="hazmat_type"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                                />
+                                <datalist id={`field-list-${index}`}>
+                                  <option value="hazmat_type" />
+                                  <option value="item_flag" />
+                                  <option value="dangerous_goods_code" />
+                                  <option value="contains_liquids" />
+                                  <option value="battery_pi" />
+                                </datalist>
+                              </td>
+
+                              {/* 4. Value to Fill Column */}
+                              <td className="p-2 border-r border-gray-100">
+                                <input
+                                  type="text"
+                                  required
+                                  value={config.parameterValue}
+                                  onChange={e => handleUpdateCarrierParam(index, 'parameterValue', e.target.value)}
+                                  placeholder="e.g. CLASS_3"
+                                  className="w-full px-2 py-1 border border-amber-300 bg-amber-50/50 rounded text-xs font-mono font-bold text-amber-950 focus:ring-1 focus:ring-[#4d9e5f] outline-none"
+                                />
+                              </td>
+
+                              {/* 5. Notes Column */}
+                              <td className="p-2 border-r border-gray-100">
+                                <input
+                                  type="text"
+                                  value={config.description || ''}
+                                  onChange={e => handleUpdateCarrierParam(index, 'description', e.target.value)}
+                                  placeholder="Notes..."
+                                  className="w-full px-2 py-1 border border-gray-200 rounded text-[11px] text-gray-600 focus:ring-1 focus:ring-gray-300 outline-none"
+                                />
+                              </td>
+
+                              {/* 6. Delete Action */}
+                              <td className="p-2 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCarrierParam(index)}
+                                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                  title="Remove carrier"
+                                >
+                                  <i className="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
