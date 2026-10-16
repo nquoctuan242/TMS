@@ -407,6 +407,17 @@ export interface StoreCarrierVendorConfig {
   dropoff?: boolean;
   dropOffPoints?: DropOffPoint[];
 }
+export interface InternalServiceCoverage {
+  id: string;
+  country: string;
+  cities: string[];
+  allowedAllCities?: boolean;
+  serviceTypes?: string[];
+  maxRadiusKm?: number;
+  status: boolean;
+  notes?: string;
+}
+
 export interface StoreCarrierConfig {
   id: string;
   carrierId?: string;

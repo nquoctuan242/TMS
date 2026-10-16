@@ -695,7 +695,7 @@ export const HazmatGroupConfigView: React.FC<HazmatGroupConfigViewProps> = () =>
                         Carrier API Dangerous Goods Payload Configuration
                       </span>
                       <p className="text-[11px] text-amber-800 mt-0.5">
-                        Khi đơn hàng có sản phẩm thuộc nhóm <strong>{viewingDetailItem.hazmatGroup.replace(/_/g, ' ')}</strong>, hệ thống tự động truyền các cờ và mã hazmat tương ứng dưới đây vào payload API gửi đến hãng vận chuyển.
+                        When an order contains items classified under <strong>{viewingDetailItem.hazmatGroup.replace(/_/g, ' ')}</strong>, the system will automatically transmit the corresponding hazmat flags and parameters below into the outbound carrier API payload.
                       </p>
                     </div>
                   </div>
@@ -958,13 +958,13 @@ ${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "$
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-gray-700 uppercase tracking-wider text-[10px]">
-                    Bản chất DG (DG Nature / Classification)
+                    DG Nature / Classification
                   </label>
                   <input
                     type="text"
                     value={formData.dgNature || ''}
                     onChange={e => setFormData({ ...formData, dgNature: e.target.value })}
-                    placeholder="e.g. Flammable liquid, Class 3 hoặc Lithium-ion lắp trong máy"
+                    placeholder="e.g. Flammable liquid, Class 3 or Lithium-ion installed in equipment"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]"
                   />
                 </div>
@@ -1070,7 +1070,7 @@ ${(viewingDetailItem.carrierApiConfigs || []).map(c => `      "${c.carrier}": "$
                   <div>
                     <span className="font-bold text-[#1b4d3e] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                       <i className="fa-solid fa-network-wired"></i>
-                      <span>Thông số apply cho các carrier khi truyền API</span>
+                      <span>Carrier API Transmit Parameters</span>
                     </span>
                     <span className="text-[10px] text-gray-500 block mt-0.5">
                       Carrier and corresponding parameter values to transmit in API payload

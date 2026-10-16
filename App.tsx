@@ -44,7 +44,7 @@ import { MOCK_ONLINE_ORDERS, MOCK_HANDOVER_MANIFESTS, MOCK_PENDING_HANDOVER_ORDE
 import { Carrier, LandingCostConfig, HandoverManifest, HandoverSubOrder } from './types';
 import { MOCK_CARRIERS } from './constants';
 import { MOCK_SHIPMENT, MOCK_LANDING_COST_CONFIGS, MOCK_HISTORY, MOCK_INTERNAL_TRANSFERS, MOCK_PURCHASE_ORDERS, MOCK_IT_ROUTES, MOCK_SHIPPERS, MOCK_TICKETS, MOCK_TICKET_TYPES, MOCK_SCAN_TIME_CONFIGS, MOCK_DAILY_COMMISSIONS, MOCK_PAYROLL_PERIODS } from './constants';
-import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint } from './types';
+import { ShipmentData, HistoryEntry, TransitPoint, InternalTransfer, PurchaseOrder, ITRoute, Shipper, Ticket, TicketType, Attachment, ShipperSearchRadiusConfig, ScanTimeConfig, DailyCommission, PayrollPeriod, StoreCarrierConfig, ShippingVendorService, DropOffPoint, InternalServiceCoverage } from './types';
 
 const REJECT_REASONS = [
   "Delivery drivers have no valid reason for missing orders.",
@@ -71,6 +71,19 @@ const STORES_LIST_MOCK = [
     street: '568 Lũy Bán Bích', 
     distanceFetched: true, 
     lastDistance: '12.5 km',
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-1',
+        country: 'Vietnam',
+        allowedAllCities: false,
+        cities: ['Thành phố Hồ Chí Minh', 'Bình Dương', 'Đồng Nai'],
+        serviceTypes: ['2H Express', 'Same Day', 'Standard Internal'],
+        maxRadiusKm: 25,
+        status: true,
+        notes: 'Giao nhanh nội thành TP.HCM và các khu vực giáp ranh Bình Dương, Đồng Nai'
+      }
+    ],
     dropOffPoints: [
       { id: 'dp1', carrier: 'GHTK', address: '123 Phan Xích Long, Phú Nhuận, HCM' },
       { id: 'dp2', carrier: 'J&T', address: '456 Lê Văn Sỹ, Tân Bình, HCM' }
@@ -88,7 +101,20 @@ const STORES_LIST_MOCK = [
     stateProvince: 'Thành phố Hồ Chí Minh', 
     ward: 'Ward 13',
     street: '71 Hoàng Hoa Thám', 
-    distanceFetched: false 
+    distanceFetched: false,
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-2',
+        country: 'Vietnam',
+        allowedAllCities: true,
+        cities: ['Toàn quốc (All Cities)'],
+        serviceTypes: ['Standard Internal', 'Internal Transfer'],
+        maxRadiusKm: 0,
+        status: true,
+        notes: 'Kho tổng điều phối đơn nội bộ toàn quốc'
+      }
+    ]
   },
   { 
     id: '3', 
@@ -102,7 +128,20 @@ const STORES_LIST_MOCK = [
     stateProvince: 'Thành phố Hồ Chí Minh', 
     ward: 'Ward 12',
     street: '456 Le Van Sy', 
-    distanceFetched: false 
+    distanceFetched: false,
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-3',
+        country: 'Vietnam',
+        allowedAllCities: false,
+        cities: ['Thành phố Hồ Chí Minh'],
+        serviceTypes: ['2H Express', 'Same Day'],
+        maxRadiusKm: 15,
+        status: true,
+        notes: 'Chỉ giao hàng nội bộ trong các quận TP. Hồ Chí Minh'
+      }
+    ]
   },
   { 
     id: '4', 
@@ -116,7 +155,20 @@ const STORES_LIST_MOCK = [
     stateProvince: 'Hà Nội', 
     ward: 'Minh Phu',
     street: 'KCN Noi Bai', 
-    distanceFetched: false 
+    distanceFetched: false,
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-4',
+        country: 'Vietnam',
+        allowedAllCities: false,
+        cities: ['Hà Nội', 'Bắc Ninh', 'Hưng Yên'],
+        serviceTypes: ['2H Express', 'Same Day', 'Internal Transfer'],
+        maxRadiusKm: 30,
+        status: true,
+        notes: 'Phục vụ đơn giao nhanh nội bộ khu vực phía Bắc'
+      }
+    ]
   },
   { 
     id: '5', 
@@ -130,7 +182,20 @@ const STORES_LIST_MOCK = [
     stateProvince: 'Bangkok', 
     ward: 'Pathum Wan',
     street: 'Rama I Rd', 
-    distanceFetched: false 
+    distanceFetched: false,
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-5',
+        country: 'Thailand',
+        allowedAllCities: false,
+        cities: ['Bangkok', 'Nonthaburi', 'Samut Prakan'],
+        serviceTypes: ['Same Day', 'Standard Internal'],
+        maxRadiusKm: 20,
+        status: true,
+        notes: 'Bangkok Metropolitan Region coverage'
+      }
+    ]
   },
 ];
 
@@ -183,6 +248,8 @@ interface Store {
   dropOffPoints?: DropOffPoint[];
   carrierConfigs?: StoreCarrierConfig[];
   shipperSearchConfigs?: ShipperSearchRadiusConfig[];
+  enableInternalService?: boolean;
+  internalServiceCoverages?: InternalServiceCoverage[];
 }
 
 interface DropOffItem {
@@ -554,7 +621,20 @@ const App: React.FC = () => {
     radius: '5',
     zoneCount: '1',
     distanceFetched: true,
-    lastDistance: '12.5 km'
+    lastDistance: '12.5 km',
+    enableInternalService: true,
+    internalServiceCoverages: [
+      {
+        id: 'cov-1',
+        country: 'Vietnam',
+        allowedAllCities: false,
+        cities: ['Thành phố Hồ Chí Minh', 'Bình Dương', 'Đồng Nai'],
+        serviceTypes: ['2H Express', 'Same Day', 'Standard Internal'],
+        maxRadiusKm: 25,
+        status: true,
+        notes: 'Giao nhanh nội thành TP.HCM và các khu vực giáp ranh'
+      }
+    ]
   });
 
   // Modal states
@@ -1023,6 +1103,12 @@ const App: React.FC = () => {
     if (!editingStore.name || !editingStore.customer || !editingStore.phone) {
         alert("Please fill in the required fields (*)");
         return;
+    }
+    if (editingStore.id) {
+      setStores(prev => prev.map(s => s.id === editingStore.id ? ({ ...s, ...editingStore } as Store) : s));
+    } else {
+      const newStore = { ...editingStore, id: Date.now().toString() } as Store;
+      setStores(prev => [...prev, newStore]);
     }
     alert("Store updated successfully!");
     setCurrentView('store-list');

@@ -1135,12 +1135,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     lqMaxMl: 5000,
     unNumber: 'UN1266',
     dgNature: 'Flammable liquid, Class 3',
-    description: 'Perfumery products with flammable solvents (PERFUME — nước hoa gốc cồn)',
+    description: 'Perfumery products with flammable solvents (PERFUME — alcohol-based fragrances)',
     packingInstructions: 'Pack in leak-proof inner containers with absorbent material. Orient upright with orientation labels.',
     carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
       { id: 'c-1-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-1-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 hoặc CLASS_3', description: 'USPS hazmat authorization' },
+      { id: 'c-1-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS hazmat authorization' },
       { id: 'c-1-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ground limited quantity' }
     ],
     updatedAt: '2026-10-01 09:30:00'
@@ -1156,7 +1156,7 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     lqMaxMl: 5000,
     unNumber: 'UN1263',
     dgNature: 'Flammable liquid, Class 3',
-    description: 'Nail polish, enamel, lacquers, and solvent removers (NAIL — nước sơn móng)',
+    description: 'Nail polish, enamel, lacquers, and solvent removers (NAIL — nail enamel & remover)',
     packingInstructions: 'Secure caps with seal tape, pack in cushioned trays with absorbent pads.',
     carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
@@ -1177,12 +1177,12 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     lqMaxMl: 1000,
     unNumber: 'UN1170',
     dgNature: 'Flammable liquid (ethanol)',
-    description: 'Ethanol solutions, hand sanitizers, pure medical alcohol (ALCOHOL — cồn / toner cồn cao)',
+    description: 'Ethanol solutions, hand sanitizers, pure medical alcohol (ALCOHOL — high-proof ethanol / toners)',
     packingInstructions: 'Maximum 1,000 ml per inner package. Double sealed in Hazmat Tray.',
     carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
       { id: 'c-3-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-3-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3 hoặc AIR_ELIGIBLE_ETHANOL', description: 'USPS ethanol authorization' },
+      { id: 'c-3-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'CLASS_3 or AIR_ELIGIBLE_ETHANOL', description: 'USPS ethanol authorization' },
       { id: 'c-3-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY', description: 'FedEx/DHL limited quantity' }
     ],
     updatedAt: '2026-10-01 09:30:00'
@@ -1197,13 +1197,13 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     handlingGroup: 'HAZMAT_TRAY',
     lqMaxMl: 5000,
     unNumber: 'UN1169',
-    dgNature: 'Class 3 hoặc consumer commodity',
-    description: 'Extracts, aromatic, liquid essential oils (ESSENTIAL_OIL — tinh dầu)',
+    dgNature: 'Class 3 or Consumer Commodity',
+    description: 'Extracts, aromatic, liquid essential oils (ESSENTIAL OIL — organic extracts)',
     packingInstructions: 'Glass dropper bottles must be protected with bubble sleeves in Hazmat Tray.',
     carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
       { id: 'c-4-1', carrier: 'Easyship (item flag)', parameterField: 'item_flag', parameterValue: 'contains_liquids = true', description: 'Liquid flag on line item' },
-      { id: 'c-4-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 hoặc CLASS_3', description: 'USPS consumer commodity ID8000' },
+      { id: 'c-4-2', carrier: 'EasyPost — USPS', parameterField: 'hazmat_type', parameterValue: 'ID8000 or CLASS_3', description: 'USPS consumer commodity ID8000' },
       { id: 'c-4-3', carrier: 'EasyPost — FedEx/DHL', parameterField: 'hazmat_type', parameterValue: 'LIMITED_QUANTITY / ORMD', description: 'FedEx/DHL ORMD or Limited Quantity' }
     ],
     updatedAt: '2026-10-01 09:30:00'
@@ -1218,8 +1218,8 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     handlingGroup: 'HAZMAT_TRAY',
     lqMaxMl: 1000,
     unNumber: 'UN1950',
-    dgNature: 'Khí nén, Class 2',
-    description: 'Pressurized aerosol spray cans, hairsprays, thermal water (AEROSOL — xịt khoáng / xịt tóc)',
+    dgNature: 'Compressed Gas, Class 2.1',
+    description: 'Pressurized aerosol spray cans, hairsprays, thermal water (AEROSOL — spray mist / hairspray)',
     packingInstructions: 'Protect discharge valves against accidental release with protective caps. No arrow label needed.',
     carrierAllowed: ['SPX Express', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
@@ -1239,8 +1239,8 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     handlingGroup: 'LANE_LITHIUM',
     lqMaxMl: 0,
     unNumber: 'UN3481',
-    dgNature: 'Lithium-ion lắp trong máy',
-    description: 'Thiết bị làm đẹp có pin gắn liền (máy mới - Section II, PI 967)',
+    dgNature: 'Lithium-ion installed in equipment',
+    description: 'Beauty & electronic appliances with built-in battery (Section II, PI 967)',
     packingInstructions: 'Dedicated sorting lane LANE_LITHIUM. Must comply with Section II of PI 967 (installed in equipment).',
     carrierAllowed: ['SPX Express', 'GHN', 'GHTK', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
@@ -1260,8 +1260,8 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     handlingGroup: 'LANE_LITHIUM',
     lqMaxMl: 0,
     unNumber: 'UN3481',
-    dgNature: 'Lithium-ion đóng rời cùng kiện',
-    description: 'Pin dự phòng / thay thế đóng rời cùng kiện hoặc kèm máy (PI 966)',
+    dgNature: 'Lithium-ion packed with equipment',
+    description: 'Spare or replacement battery packed with equipment (Section II, PI 966)',
     packingInstructions: 'Packed with equipment (PI 966). Inner terminals isolated, packed in flame-retardant pouch.',
     carrierAllowed: ['SPX Express', 'GHN', 'Viettel Post', 'Easyship', 'EasyPost'],
     carrierApiConfigs: [
@@ -1281,7 +1281,7 @@ export const MOCK_HAZMAT_GROUPS: HazmatGroupConfig[] = [
     handlingGroup: 'NORMAL',
     lqMaxMl: null,
     unNumber: '—',
-    dgNature: 'Hàng tiêu chuẩn an toàn / Non-DG',
+    dgNature: 'Standard Safe Goods / Non-DG',
     description: 'Standard retail consumer goods, cosmetics, non-hazardous skincare',
     packingInstructions: 'Normal packing protocol without hazmat restrictions.',
     carrierAllowed: ['All Carriers'],
