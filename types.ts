@@ -386,6 +386,7 @@ export interface OnlineOrder {
   estimatedDeliveryTime: string;
   orderType: string;
   pickActions: string;
+  pickAddressFull?: string;
 }
 
 

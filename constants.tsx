@@ -619,7 +619,8 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     createdAt: '02/07/2026 13:22:17',
     estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
     orderType: 'Domestic',
-    pickActions: '*** *** *** ***, BRADENTON, FLORI'
+    pickActions: '*** *** *** ***, BRADENTON, FLORI',
+    pickAddressFull: '1420 Manatee Ave W, Bradenton, Florida 34205, US'
   },
   {
     id: '2',
@@ -632,7 +633,8 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     createdAt: '02/07/2026 13:16:13',
     estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
     orderType: 'Domestic',
-    pickActions: '*** *** *** ***, BRADENTON, FLORI'
+    pickActions: '*** *** *** ***, BRADENTON, FLORI',
+    pickAddressFull: '5108 15th St E, Bradenton, Florida 34203, US'
   },
   {
     id: '3',
@@ -645,7 +647,8 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     createdAt: '02/07/2026 11:31:02',
     estimatedDeliveryTime: '02/07/2026 - 03/07/2026',
     orderType: 'Domestic',
-    pickActions: '*** *** *** *** California 90201, U'
+    pickActions: '*** *** *** *** California 90201, U',
+    pickAddressFull: '6820 Eastern Ave, Bell Gardens, California 90201, US'
   }
 ];
 
