@@ -385,6 +385,9 @@ interface ShipmentListItem {
 }
 
 const MOCK_SHIPMENTS_LIST: ShipmentListItem[] = [
+  { id: 'pw-1', code: 'S261102PW01', order: '261102ORD1', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'Hieu Minh', status: 'Picked up Waiting Confirmation', priority: 'high', createdAt: '02/11/2026 09:15:22' },
+  { id: 'pw-2', code: 'S261102PW02', order: '261102ORD2', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: 'Maria Olala', status: 'Picked up Waiting Confirmation', priority: 'normal', createdAt: '02/11/2026 09:10:08' },
+  { id: 'pw-3', code: 'S261102PW03', order: '261102ORD3', customer: 'OMS - NOW_20250606121235', carrier: 'Easypost', shipper: 'Tony Stark', status: 'Picked up Waiting Confirmation', priority: 'normal', createdAt: '02/11/2026 08:48:41' },
   { id: '1', code: 'S260119G19E', order: '2601192TO9', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Cancelled', priority: 'normal', createdAt: '19/01/2026 13:29:15' },
   { id: '2', code: 'S260119DMX6', order: '260119MOHQ', customer: 'OMS - NOW_20250606121235', carrier: 'Hasaki Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 11:14:04' },
   { id: '3', code: 'S260119QLN1', order: '2601199TVU', customer: 'OMS - NOW_20250606121235', carrier: 'Yun Express', shipper: '', status: 'Delivered', priority: 'normal', createdAt: '19/01/2026 10:01:09' },
@@ -527,6 +530,132 @@ const App: React.FC = () => {
 
   const [history, setHistory] = useState<HistoryEntry[]>(MOCK_HISTORY);
   const [listShipments, setListShipments] = useState<ShipmentListItem[]>(MOCK_SHIPMENTS_LIST);
+  const [selectedOnlineShipmentIds, setSelectedOnlineShipmentIds] = useState<string[]>([]);
+  const [onlineShipmentFilters, setOnlineShipmentFilters] = useState({
+    code: '',
+    order: '',
+    customer: '',
+    carrier: '',
+    shipper: '',
+    status: '',
+  });
+  const [showOnlineStatusDropdown, setShowOnlineStatusDropdown] = useState(false);
+  const [onlineBulkStatusModal, setOnlineBulkStatusModal] = useState<{
+    isOpen: boolean;
+    targetStatus: 'Picked up' | 'Out for Delivery' | null;
+    note: string;
+  }>({
+    isOpen: false,
+    targetStatus: null,
+    note: '',
+  });
+  const [onlineStatusFeedback, setOnlineStatusFeedback] = useState<{
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  } | null>(null);
+
+  const isPickedUpWaitingConfirmation = (status: string) =>
+    status.trim().toLowerCase() === 'picked up waiting confirmation';
+
+  const filteredOnlineShipments = listShipments.filter((s) => {
+    const matchCode = !onlineShipmentFilters.code || s.code.toLowerCase().includes(onlineShipmentFilters.code.trim().toLowerCase());
+    const matchOrder = !onlineShipmentFilters.order || s.order.toLowerCase().includes(onlineShipmentFilters.order.trim().toLowerCase());
+    const matchCustomer = !onlineShipmentFilters.customer || s.customer === onlineShipmentFilters.customer;
+    const matchCarrier = !onlineShipmentFilters.carrier || s.carrier === onlineShipmentFilters.carrier;
+    const matchShipper = !onlineShipmentFilters.shipper || s.shipper === onlineShipmentFilters.shipper;
+    const matchStatus =
+      !onlineShipmentFilters.status ||
+      s.status.trim().toLowerCase() === onlineShipmentFilters.status.trim().toLowerCase();
+    return matchCode && matchOrder && matchCustomer && matchCarrier && matchShipper && matchStatus;
+  });
+
+  const toggleOnlineShipmentSelection = (id: string) => {
+    setOnlineStatusFeedback(null);
+    setSelectedOnlineShipmentIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllOnlineShipments = () => {
+    setOnlineStatusFeedback(null);
+    const visibleIds = filteredOnlineShipments.map((s) => s.id);
+    if (visibleIds.length === 0) return;
+    const allVisibleSelected = visibleIds.every((id) => selectedOnlineShipmentIds.includes(id));
+    if (allVisibleSelected) {
+      setSelectedOnlineShipmentIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelectedOnlineShipmentIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
+  const handleOpenBulkOnlineStatusModal = (targetStatus: 'Picked up' | 'Out for Delivery') => {
+    setShowOnlineStatusDropdown(false);
+    if (selectedOnlineShipmentIds.length === 0) {
+      setOnlineStatusFeedback({
+        type: 'warning',
+        message: 'Please select at least one shipment with status "Picked up Waiting Confirmation" before changing status.',
+      });
+      return;
+    }
+    setOnlineStatusFeedback(null);
+    setOnlineBulkStatusModal({
+      isOpen: true,
+      targetStatus,
+      note: '',
+    });
+  };
+
+  const handleConfirmBulkOnlineStatusChange = () => {
+    const targetStatus = onlineBulkStatusModal.targetStatus;
+    if (!targetStatus) return;
+
+    const selectedItems = listShipments.filter((s) => selectedOnlineShipmentIds.includes(s.id));
+    const eligibleItems = selectedItems.filter((s) => isPickedUpWaitingConfirmation(s.status));
+    if (eligibleItems.length === 0) {
+      setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' });
+      return;
+    }
+
+    const eligibleIdSet = new Set(eligibleItems.map((s) => s.id));
+    setListShipments((prev) =>
+      prev.map((s) => (eligibleIdSet.has(s.id) ? { ...s, status: targetStatus } : s))
+    );
+
+    if (eligibleItems.some((s) => s.code === shipment.shipmentCode)) {
+      const nowStr = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).replace(',', '');
+      setHistory((prev) => [
+        {
+          status: targetStatus,
+          time: nowStr,
+          performedBy: currentUser.fullName,
+          note:
+            onlineBulkStatusModal.note.trim() ||
+            `Bulk status changed from Picked up Waiting Confirmation to ${targetStatus}`,
+          carrierStatus: targetStatus,
+        },
+        ...prev,
+      ]);
+    }
+
+    const skippedCount = selectedItems.length - eligibleItems.length;
+    setSelectedOnlineShipmentIds([]);
+    setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' });
+    setOnlineStatusFeedback({
+      type: 'success',
+      message:
+        skippedCount > 0
+          ? `Updated ${eligibleItems.length} shipment(s) to "${targetStatus}" (${skippedCount} ineligible shipment(s) skipped).`
+          : `Successfully updated ${eligibleItems.length} shipment(s) from "Picked up Waiting Confirmation" to "${targetStatus}".`,
+    });
+  };
+
   const [dailyCommissions, setDailyCommissions] = useState<DailyCommission[]>(MOCK_DAILY_COMMISSIONS);
   const [internalTransfers, setInternalTransfers] = useState<InternalTransfer[]>(MOCK_INTERNAL_TRANSFERS);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(MOCK_PURCHASE_ORDERS);
@@ -8774,34 +8903,82 @@ const App: React.FC = () => {
                <div className="bg-white border rounded p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Shipment Code</label>
-                    <input type="text" placeholder="Enter shipment code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                    <input
+                      type="text"
+                      value={onlineShipmentFilters.code}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, code: e.target.value }))}
+                      placeholder="Enter shipment code"
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Order Code</label>
-                    <input type="text" placeholder="Enter order code" className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs" />
+                    <input
+                      type="text"
+                      value={onlineShipmentFilters.order}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, order: e.target.value }))}
+                      placeholder="Enter order code"
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Customer</label>
-                    <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white">
-                      <option>Input to Search customer</option>
+                    <select
+                      value={onlineShipmentFilters.customer}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, customer: e.target.value }))}
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white"
+                    >
+                      <option value="">All customers</option>
+                      {Array.from(new Set(listShipments.map((s) => s.customer))).map((cust) => (
+                        <option key={cust} value={cust}>{cust}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Carrier</label>
-                    <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white">
-                      <option>Select carrier</option>
+                    <select
+                      value={onlineShipmentFilters.carrier}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, carrier: e.target.value }))}
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white"
+                    >
+                      <option value="">All carriers</option>
+                      {Array.from(new Set(listShipments.map((s) => s.carrier))).map((car) => (
+                        <option key={car} value={car}>{car}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Shipper</label>
-                    <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white">
-                      <option>Input to Select shipper</option>
+                    <select
+                      value={onlineShipmentFilters.shipper}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, shipper: e.target.value }))}
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white"
+                    >
+                      <option value="">All shippers</option>
+                      {Array.from(new Set(listShipments.map((s) => s.shipper).filter(Boolean))).map((sh) => (
+                        <option key={sh} value={sh}>{sh}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-orange-500 uppercase">Shipment status</label>
-                    <select className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white">
-                      <option>Select shipment status</option>
+                    <select
+                      value={onlineShipmentFilters.status}
+                      onChange={(e) => setOnlineShipmentFilters((prev) => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-1.5 border rounded outline-none focus:ring-1 focus:ring-[#4d9e5f] text-xs bg-white"
+                    >
+                      <option value="">All statuses</option>
+                      <option value="Waiting for Pickup">Waiting for Pickup</option>
+                      <option value="Picked up Waiting Confirmation">Picked up Waiting Confirmation</option>
+                      <option value="Picked up">Picked up</option>
+                      <option value="Out for Delivery">Out for Delivery</option>
+                      <option value="Dispatched">Dispatched</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Returning local hub">Returning local hub</option>
+                      <option value="Returned local hub">Returned local hub</option>
+                      <option value="Returning warehouse">Returning warehouse</option>
+                      <option value="Returned">Returned</option>
+                      <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
                   <div className="lg:col-span-2 space-y-1">
@@ -8809,25 +8986,195 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <input type="date" defaultValue="2026-01-13" className="w-full px-3 py-1.5 border rounded text-xs outline-none" />
                       <span className="text-gray-400">→</span>
-                      <input type="date" defaultValue="2026-01-19" className="w-full px-3 py-1.5 border rounded text-xs outline-none" />
+                      <input type="date" defaultValue="2026-11-02" className="w-full px-3 py-1.5 border rounded text-xs outline-none" />
                     </div>
                   </div>
                   <div className="lg:col-span-1 flex items-end gap-2">
-                    <button className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold hover:bg-gray-50 flex items-center gap-2 transition-all">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOnlineShipmentFilters({ code: '', order: '', customer: '', carrier: '', shipper: '', status: '' });
+                        setOnlineStatusFeedback(null);
+                      }}
+                      className="px-4 py-1.5 border border-gray-300 rounded text-xs font-bold hover:bg-gray-50 flex items-center gap-2 transition-all cursor-pointer"
+                    >
                       <i className="fa-solid fa-rotate-left"></i> Reset
                     </button>
-                    <button className="px-6 py-1.5 bg-[#1b4d3e] text-white rounded text-xs font-bold hover:bg-[#153a2f] flex items-center gap-2 transition-all">
+                    <button
+                      type="button"
+                      className="px-6 py-1.5 bg-[#1b4d3e] text-white rounded text-xs font-bold hover:bg-[#153a2f] flex items-center gap-2 transition-all cursor-pointer"
+                    >
                       <i className="fa-solid fa-magnifying-glass"></i> Search
                     </button>
                   </div>
                </div>
 
-               <div className="bg-white border rounded shadow-sm overflow-hidden">
+               {onlineStatusFeedback && (
+                 <div
+                   className={`px-4 py-3 rounded border flex items-center justify-between gap-3 text-xs font-medium animate-in fade-in duration-200 ${
+                     onlineStatusFeedback.type === 'success'
+                       ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                       : onlineStatusFeedback.type === 'warning'
+                       ? 'bg-amber-50 border-amber-200 text-amber-800'
+                       : 'bg-red-50 border-red-200 text-red-800'
+                   }`}
+                 >
+                   <div className="flex items-center gap-2">
+                     <i
+                       className={`fa-solid ${
+                         onlineStatusFeedback.type === 'success'
+                           ? 'fa-circle-check text-emerald-600'
+                           : 'fa-triangle-exclamation text-amber-600'
+                       }`}
+                     ></i>
+                     <span>{onlineStatusFeedback.message}</span>
+                   </div>
+                   <button
+                     type="button"
+                     onClick={() => setOnlineStatusFeedback(null)}
+                     className="text-gray-400 hover:text-gray-700 cursor-pointer"
+                   >
+                     <i className="fa-solid fa-xmark"></i>
+                   </button>
+                 </div>
+               )}
+
+               <div className="bg-white border rounded shadow-sm">
+                  {/* Action Bar */}
+                  <div className="px-4 py-3 border-b flex flex-wrap items-center justify-between gap-3 bg-gray-50/40">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-xs font-bold text-[#1b4d3e] uppercase tracking-wider">
+                        Online Shipment List ({filteredOnlineShipments.length})
+                      </span>
+                      {selectedOnlineShipmentIds.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-1 rounded bg-[#e9f2ee] text-[#1b4d3e] border border-[#b5ccb6] text-[11px] font-bold">
+                            {selectedOnlineShipmentIds.length} selected
+                          </span>
+                          {(() => {
+                            const selectedObjs = listShipments.filter((s) => selectedOnlineShipmentIds.includes(s.id));
+                            const eligibleCount = selectedObjs.filter((s) => isPickedUpWaitingConfirmation(s.status)).length;
+                            return (
+                              <span
+                                className={`px-2.5 py-1 rounded text-[11px] font-medium border ${
+                                  eligibleCount > 0
+                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                }`}
+                              >
+                                {eligibleCount} in Picked up Waiting Confirmation
+                              </span>
+                            );
+                          })()}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOnlineShipmentIds([])}
+                            className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors cursor-pointer ml-1"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      ) : (
+                        (() => {
+                          const waitingIds = filteredOnlineShipments
+                            .filter((s) => isPickedUpWaitingConfirmation(s.status))
+                            .map((s) => s.id);
+                          return waitingIds.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOnlineStatusFeedback(null);
+                                setSelectedOnlineShipmentIds(waitingIds);
+                              }}
+                              className="px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-semibold transition-colors cursor-pointer"
+                            >
+                              Select {waitingIds.length} Waiting Confirmation
+                            </button>
+                          ) : null;
+                        })()
+                      )}
+                    </div>
+
+                    {/* Change Status Dropdown Action */}
+                    <div className="relative">
+                      {showOnlineStatusDropdown && (
+                        <div
+                          className="fixed inset-0 z-30"
+                          onClick={() => setShowOnlineStatusDropdown(false)}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowOnlineStatusDropdown((prev) => !prev)}
+                        className={`relative z-40 px-4 py-1.5 rounded text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
+                          selectedOnlineShipmentIds.length > 0
+                            ? 'bg-[#1b4d3e] text-white hover:bg-[#153a2f]'
+                            : 'bg-white text-[#1b4d3e] border border-[#1b4d3e]/30 hover:bg-[#e9f2ee]/60'
+                        }`}
+                      >
+                        <i className="fa-solid fa-arrows-rotate text-[11px]"></i>
+                        <span>Change Status</span>
+                        {selectedOnlineShipmentIds.length > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[10px]">
+                            {selectedOnlineShipmentIds.length}
+                          </span>
+                        )}
+                        <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showOnlineStatusDropdown ? 'rotate-180' : ''}`}></i>
+                      </button>
+
+                      {showOnlineStatusDropdown && (
+                        <div className="absolute right-0 mt-1.5 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-40 py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                          <div className="px-3 py-1.5 border-b border-gray-100">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              From: Picked up Waiting Confirmation
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenBulkOnlineStatusModal('Picked up')}
+                            className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-[#e9f2ee] hover:text-[#1b4d3e] flex items-center gap-2.5 transition-colors cursor-pointer"
+                          >
+                            <span className="w-6 h-6 rounded bg-teal-50 text-teal-600 border border-teal-200 flex items-center justify-center shrink-0">
+                              <i className="fa-solid fa-box-open text-[11px]"></i>
+                            </span>
+                            <div className="flex flex-col">
+                              <span>Mark as Picked up</span>
+                              <span className="text-[10px] font-normal text-gray-400">Confirm carrier/shipper pickup</span>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenBulkOnlineStatusModal('Out for Delivery')}
+                            className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-[#e9f2ee] hover:text-[#1b4d3e] flex items-center gap-2.5 transition-colors cursor-pointer"
+                          >
+                            <span className="w-6 h-6 rounded bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
+                              <i className="fa-solid fa-truck-fast text-[11px]"></i>
+                            </span>
+                            <div className="flex flex-col">
+                              <span>Mark as Out for Delivery</span>
+                              <span className="text-[10px] font-normal text-gray-400">Confirm pickup & start delivery</span>
+                            </div>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-[12px]">
                       <thead className="bg-[#c2d6ce] text-gray-800 font-bold border-b">
                         <tr>
-                          <th className="px-3 py-2 border-r w-10 text-center"><input type="checkbox" className="rounded" /></th>
+                          <th className="px-3 py-2 border-r w-10 text-center">
+                            <input
+                              type="checkbox"
+                              className="rounded cursor-pointer accent-[#1b4d3e]"
+                              checked={
+                                filteredOnlineShipments.length > 0 &&
+                                filteredOnlineShipments.every((s) => selectedOnlineShipmentIds.includes(s.id))
+                              }
+                              onChange={toggleSelectAllOnlineShipments}
+                            />
+                          </th>
                           <th className="px-4 py-2 border-r whitespace-nowrap">Shipment Code</th>
                           <th className="px-4 py-2 border-r whitespace-nowrap">Order Codes</th>
                           <th className="px-4 py-2 border-r whitespace-nowrap">Customer</th>
@@ -8840,36 +9187,87 @@ const App: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y text-gray-600">
-                        {listShipments.map((s) => (
-                          <tr key={s.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-3 py-3 border-r text-center"><input type="checkbox" className="rounded" /></td>
-                            <td className="px-4 py-3 border-r">
-                              <div className="flex items-center gap-2">
-                                <span className="text-blue-500 font-medium bg-blue-50 px-3 py-1 rounded border border-blue-100 cursor-pointer hover:bg-blue-100" onClick={() => setCurrentView('shipment-detail')}>{s.code}</span>
-                                <i className="fa-regular fa-copy text-orange-400 cursor-pointer"></i>
-                              </div>
+                        {filteredOnlineShipments.map((s) => {
+                          const isSelected = selectedOnlineShipmentIds.includes(s.id);
+                          const isWaitingConfirm = isPickedUpWaitingConfirmation(s.status);
+                          return (
+                            <tr
+                              key={s.id}
+                              className={`transition-colors ${
+                                isSelected ? 'bg-[#e9f2ee]/50 hover:bg-[#e9f2ee]/70' : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <td className="px-3 py-3 border-r text-center">
+                                <input
+                                  type="checkbox"
+                                  className="rounded cursor-pointer accent-[#1b4d3e]"
+                                  checked={isSelected}
+                                  onChange={() => toggleOnlineShipmentSelection(s.id)}
+                                />
+                              </td>
+                              <td className="px-4 py-3 border-r">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="text-blue-500 font-medium bg-blue-50 px-3 py-1 rounded border border-blue-100 cursor-pointer hover:bg-blue-100"
+                                    onClick={() => setCurrentView('shipment-detail')}
+                                  >
+                                    {s.code}
+                                  </span>
+                                  <i
+                                    className="fa-regular fa-copy text-orange-400 cursor-pointer"
+                                    title="Copy code"
+                                    onClick={() => navigator.clipboard?.writeText(s.code)}
+                                  ></i>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 border-r text-gray-800 font-medium">{s.order}</td>
+                              <td className="px-4 py-3 border-r truncate max-w-[200px]">{s.customer}</td>
+                              <td className="px-4 py-3 border-r">{s.carrier}</td>
+                              <td className="px-4 py-3 border-r">{s.shipper || '-'}</td>
+                              <td className="px-4 py-3 border-r">
+                                 <select
+                                   value={s.status}
+                                   onChange={(e) => handleStatusChange(s.id, e.target.value)}
+                                   className={`px-2 py-1 border rounded text-[11px] font-semibold min-w-[200px] focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all ${
+                                     isWaitingConfirm
+                                       ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                       : s.status === 'Picked up'
+                                       ? 'bg-teal-50 text-teal-700 border-teal-200'
+                                       : s.status === 'Out for Delivery'
+                                       ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                       : s.status === 'Delivered'
+                                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                       : s.status === 'Cancelled'
+                                       ? 'bg-red-50 text-red-600 border-red-200'
+                                       : 'bg-white text-gray-700 border-gray-200'
+                                   }`}
+                                 >
+                                   <option value="Waiting for Pickup">Waiting for Pickup</option>
+                                   <option value="Picked up Waiting Confirmation">Picked up Waiting Confirmation</option>
+                                   <option value="Picked up">Picked up</option>
+                                   <option value="Out for Delivery">Out for Delivery</option>
+                                   <option value="Dispatched">Dispatched</option>
+                                   <option value="Delivered">Delivered</option>
+                                   <option value="Returning local hub">Returning local hub</option>
+                                   <option value="Returned local hub">Returned local hub</option>
+                                   <option value="Returning warehouse">Returning warehouse</option>
+                                   <option value="Returned">Returned</option>
+                                   <option value="Cancelled">Cancelled</option>
+                                 </select>
+                              </td>
+                              <td className="px-4 py-3 border-r text-blue-600 font-medium">{s.priority}</td>
+                              <td className="px-4 py-3 border-r font-mono">{s.createdAt}</td>
+                              <td className="px-4 py-3 text-gray-400">21/...</td>
+                            </tr>
+                          );
+                        })}
+                        {filteredOnlineShipments.length === 0 && (
+                          <tr>
+                            <td colSpan={10} className="px-4 py-8 text-center text-gray-400">
+                              No shipments match the selected filters.
                             </td>
-                            <td className="px-4 py-3 border-r text-gray-800 font-medium">{s.order}</td>
-                            <td className="px-4 py-3 border-r truncate max-w-[200px]">{s.customer}</td>
-                            <td className="px-4 py-3 border-r">{s.carrier}</td>
-                            <td className="px-4 py-3 border-r">{s.shipper || '-'}</td>
-                            <td className="px-4 py-3 border-r">
-                               <select value={s.status} onChange={(e) => handleStatusChange(s.id, e.target.value)} className="px-2 py-1 border rounded bg-white text-[11px] font-medium min-w-[140px] focus:ring-1 focus:ring-[#4d9e5f] outline-none transition-all">
-                                 <option value="Cancelled">Cancelled</option>
-                                 <option value="Delivered">Delivered</option>
-                                 <option value="Waiting for Pickup">Waiting for Pickup</option>
-                                 <option value="Returning local hub">Returning local hub</option>
-                                 <option value="Returned local hub">Returned local hub</option>
-                                 <option value="Returned">Returned</option>
-                                 <option value="Returning warehouse">Returning warehouse</option>
-                                 <option value="Dispatched">Dispatched</option>
-                               </select>
-                            </td>
-                            <td className="px-4 py-3 border-r text-blue-600 font-medium">{s.priority}</td>
-                            <td className="px-4 py-3 border-r font-mono">{s.createdAt}</td>
-                            <td className="px-4 py-3 text-gray-400">21/...</td>
                           </tr>
-                        ))}
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -9628,6 +10026,187 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Online Shipment Bulk Change Status Modal */}
+      {onlineBulkStatusModal.isOpen && onlineBulkStatusModal.targetStatus && (() => {
+        const selectedItems = listShipments.filter((s) => selectedOnlineShipmentIds.includes(s.id));
+        const eligibleItems = selectedItems.filter((s) => isPickedUpWaitingConfirmation(s.status));
+        const ineligibleItems = selectedItems.filter((s) => !isPickedUpWaitingConfirmation(s.status));
+        const targetStatus = onlineBulkStatusModal.targetStatus;
+
+        return (
+          <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' })}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-4 bg-gray-50 border-b flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#1b4d3e] uppercase tracking-wider flex items-center gap-2">
+                  <i className="fa-solid fa-arrows-rotate"></i>
+                  {targetStatus === 'Picked up' ? 'Mark as Picked up' : 'Mark as Out for Delivery'}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' })}
+                  className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                >
+                  <i className="fa-solid fa-xmark text-base"></i>
+                </button>
+              </div>
+
+              {eligibleItems.length === 0 ? (
+                <div className="p-6 space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+                    <i className="fa-solid fa-triangle-exclamation text-amber-500 text-lg mt-0.5"></i>
+                    <div className="space-y-1 text-xs">
+                      <p className="font-bold text-amber-900">No Eligible Shipments Selected</p>
+                      <p className="leading-relaxed">
+                        Only shipments in <span className="font-bold">"Picked up Waiting Confirmation"</span> status can transition to{' '}
+                        <span className="font-bold">"{targetStatus}"</span>. None of the {selectedItems.length} selected shipment(s) meet this condition.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-lg overflow-hidden max-h-48 overflow-y-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-gray-50 text-gray-600 font-bold border-b">
+                        <tr>
+                          <th className="px-3 py-2">Shipment Code</th>
+                          <th className="px-3 py-2">Order Code</th>
+                          <th className="px-3 py-2">Current Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {selectedItems.map((item) => (
+                          <tr key={item.id}>
+                            <td className="px-3 py-2 font-mono font-bold text-gray-800">{item.code}</td>
+                            <td className="px-3 py-2 text-gray-600">{item.order}</td>
+                            <td className="px-3 py-2">
+                              <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium text-[11px]">
+                                {item.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' })}
+                      className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 space-y-4">
+                  {/* Status Transition Summary */}
+                  <div className="flex items-center justify-center gap-3 p-3.5 rounded-lg bg-gray-50 border border-gray-200">
+                    <span className="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
+                      Picked up Waiting Confirmation
+                    </span>
+                    <i className="fa-solid fa-arrow-right text-gray-400"></i>
+                    <span
+                      className={`px-2.5 py-1 rounded text-xs font-bold border ${
+                        targetStatus === 'Picked up'
+                          ? 'bg-teal-50 text-teal-700 border-teal-200'
+                          : 'bg-blue-50 text-blue-700 border-blue-200'
+                      }`}
+                    >
+                      {targetStatus}
+                    </span>
+                  </div>
+
+                  {/* Eligible Shipments List */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700">
+                        Shipments to update ({eligibleItems.length})
+                      </span>
+                      <span className="text-[11px] text-emerald-600 font-semibold">
+                        Ready for confirmation
+                      </span>
+                    </div>
+                    <div className="border rounded-lg overflow-hidden max-h-44 overflow-y-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-gray-50 text-gray-600 font-bold border-b">
+                          <tr>
+                            <th className="px-3 py-2">Shipment Code</th>
+                            <th className="px-3 py-2">Order Code</th>
+                            <th className="px-3 py-2">Carrier</th>
+                            <th className="px-3 py-2">Shipper</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {eligibleItems.map((item) => (
+                            <tr key={item.id}>
+                              <td className="px-3 py-2 font-mono font-bold text-blue-600">{item.code}</td>
+                              <td className="px-3 py-2 text-gray-700">{item.order}</td>
+                              <td className="px-3 py-2 text-gray-600">{item.carrier}</td>
+                              <td className="px-3 py-2 text-gray-600">{item.shipper || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Skipped Shipments Warning if mixed selection */}
+                  {ineligibleItems.length > 0 && (
+                    <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 space-y-1">
+                      <p className="font-bold flex items-center gap-1.5">
+                        <i className="fa-solid fa-circle-info text-amber-500"></i>
+                        {ineligibleItems.length} selected shipment(s) will be skipped
+                      </p>
+                      <p className="text-[11px] text-amber-700">
+                        Only shipments in "Picked up Waiting Confirmation" will be updated. Skipped:{' '}
+                        {ineligibleItems.map((i) => `${i.code} (${i.status})`).join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Optional Note */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-600 uppercase">Note (Optional)</label>
+                    <input
+                      type="text"
+                      value={onlineBulkStatusModal.note}
+                      onChange={(e) => setOnlineBulkStatusModal((prev) => ({ ...prev, note: e.target.value }))}
+                      placeholder="Enter confirmation note..."
+                      className="w-full border border-gray-200 rounded px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-[#4d9e5f]"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setOnlineBulkStatusModal({ isOpen: false, targetStatus: null, note: '' })}
+                      className="px-4 py-2 border border-gray-300 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmBulkOnlineStatusChange}
+                      className="px-5 py-2 bg-[#1b4d3e] hover:bg-[#153a2f] text-white rounded text-xs font-bold transition-colors shadow-sm cursor-pointer flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-check"></i>
+                      Confirm ({eligibleItems.length})
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Drop-off Point Configuration Modal */}
       {configuringDropOffPoint && (
