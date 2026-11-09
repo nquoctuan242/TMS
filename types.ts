@@ -373,6 +373,15 @@ export interface Carrier {
   note: string;
 }
 
+export interface OrderHistoryItem {
+  id: string;
+  status: string;
+  timeUTC7: string;
+  localTime: string;
+  performedBy: string;
+  note: string;
+}
+
 export interface OnlineOrder {
   id: string;
   orderCode: string;
@@ -387,6 +396,14 @@ export interface OnlineOrder {
   orderType: string;
   pickActions: string;
   pickAddressFull?: string;
+  totalAmount?: string;
+  isReturn?: boolean;
+  transportType?: string;
+  paymentMethod?: string;
+  orderCategory?: string;
+  cod?: string;
+  note?: string;
+  history?: OrderHistoryItem[];
 }
 
 

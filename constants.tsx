@@ -607,7 +607,104 @@ export const MOCK_CARRIERS: import('./types').Carrier[] = [
   }
 ];
 
+export const DEFAULT_ORDER_HISTORY: import('./types').OrderHistoryItem[] = [
+  {
+    id: 'h1',
+    status: 'Completed',
+    timeUTC7: '08/11/2026 15:00:08 (UTC+7)',
+    localTime: '08/11/2026 01:00:08 (UTC-7)',
+    performedBy: 'system',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h2',
+    status: 'Delivered',
+    timeUTC7: '08/11/2026 07:32:27 (UTC+7)',
+    localTime: '07/11/2026 17:32:26 (UTC-7)',
+    performedBy: 'khoada@hasaki.us',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h3',
+    status: 'Out for delivery',
+    timeUTC7: '08/11/2026 06:30:28 (UTC+7)',
+    localTime: '07/11/2026 16:30:28 (UTC-7)',
+    performedBy: 'khoada@hasaki.us',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h4',
+    status: 'Picked up',
+    timeUTC7: '08/11/2026 06:27:13 (UTC+7)',
+    localTime: '07/11/2026 16:27:13 (UTC-7)',
+    performedBy: 'HSKLLC',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h5',
+    status: 'Picked up waiting confirmation',
+    timeUTC7: '08/11/2026 06:18:47 (UTC+7)',
+    localTime: '07/11/2026 16:18:47 (UTC-7)',
+    performedBy: 'khoada@hasaki.us',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h6',
+    status: 'Waiting for pickup',
+    timeUTC7: '08/11/2026 04:21:10 (UTC+7)',
+    localTime: '07/11/2026 14:21:10 (UTC-7)',
+    performedBy: 'HSKLLC',
+    note: 'Update shipment status. update est delivery date: from 08/11/2026 00:59 to 08/11/2026 23:59'
+  },
+  {
+    id: 'h7',
+    status: 'Packed',
+    timeUTC7: '08/11/2026 04:21:10 (UTC+7)',
+    localTime: '07/11/2026 14:21:09 (UTC-7)',
+    performedBy: 'HSKLLC',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h8',
+    status: 'Dispatched',
+    timeUTC7: '08/11/2026 03:15:36 (UTC+7)',
+    localTime: '07/11/2026 13:15:36 (UTC-7)',
+    performedBy: 'HSKLLC',
+    note: 'Sync order with shipment'
+  },
+  {
+    id: 'h9',
+    status: 'New',
+    timeUTC7: '08/11/2026 03:15:34 (UTC+7)',
+    localTime: '07/11/2026 13:15:34 (UTC-7)',
+    performedBy: 'HSKLLC',
+    note: 'Create order'
+  }
+];
+
 export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
+  {
+    id: 'ord-addgx1',
+    orderCode: '261108ADDGX1',
+    customerOrderCode: '261107US91VI00',
+    customer: 'HASAKI LLC',
+    carrier: 'Hasaki Express',
+    trackingNumber: 'S261108AD01',
+    status: 'Completed',
+    createdAt: '08/11/2026 03:15:34',
+    estimatedDeliveryTime: '08/11/2026 - 10/11/2026',
+    orderType: 'Domestic',
+    pickActions: '*** *** *** *** California 90201, U',
+    pickAddressFull: '6820 Eastern Ave, Bell Gardens, California 90201, US',
+    totalAmount: '41 USD',
+    isReturn: false,
+    transportType: 'Unspecified',
+    paymentMethod: 'Unspecified',
+    orderCategory: 'Cosmetics',
+    cod: '***',
+    note: '—',
+    history: DEFAULT_ORDER_HISTORY
+  },
   {
     id: '1',
     orderCode: '2607027DJR',
@@ -620,7 +717,15 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
     orderType: 'Domestic',
     pickActions: '*** *** *** ***, BRADENTON, FLORI',
-    pickAddressFull: '1420 Manatee Ave W, Bradenton, Florida 34205, US'
+    pickAddressFull: '1420 Manatee Ave W, Bradenton, Florida 34205, US',
+    totalAmount: '35 USD',
+    isReturn: false,
+    transportType: 'Unspecified',
+    paymentMethod: 'Unspecified',
+    orderCategory: 'Cosmetics',
+    cod: '***',
+    note: '—',
+    history: DEFAULT_ORDER_HISTORY
   },
   {
     id: '2',
@@ -634,7 +739,15 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     estimatedDeliveryTime: '04/07/2026 - 07/07/2026',
     orderType: 'Domestic',
     pickActions: '*** *** *** ***, BRADENTON, FLORI',
-    pickAddressFull: '5108 15th St E, Bradenton, Florida 34203, US'
+    pickAddressFull: '5108 15th St E, Bradenton, Florida 34203, US',
+    totalAmount: '28.5 USD',
+    isReturn: false,
+    transportType: 'Unspecified',
+    paymentMethod: 'Unspecified',
+    orderCategory: 'Cosmetics',
+    cod: '***',
+    note: '—',
+    history: DEFAULT_ORDER_HISTORY
   },
   {
     id: '3',
@@ -648,7 +761,15 @@ export const MOCK_ONLINE_ORDERS: import('./types').OnlineOrder[] = [
     estimatedDeliveryTime: '02/07/2026 - 03/07/2026',
     orderType: 'Domestic',
     pickActions: '*** *** *** *** California 90201, U',
-    pickAddressFull: '6820 Eastern Ave, Bell Gardens, California 90201, US'
+    pickAddressFull: '6820 Eastern Ave, Bell Gardens, California 90201, US',
+    totalAmount: '52 USD',
+    isReturn: false,
+    transportType: 'Unspecified',
+    paymentMethod: 'Unspecified',
+    orderCategory: 'Cosmetics',
+    cod: '***',
+    note: '—',
+    history: DEFAULT_ORDER_HISTORY
   }
 ];
 
